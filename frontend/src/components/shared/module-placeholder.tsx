@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, CircleDashed, Check, ShieldCheck, Link2 } from "lucide-react";
+import { ArrowUpRight, CircleDashed, Check, ShieldCheck } from "lucide-react";
 import { navigation } from "@/components/layout/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,16 +20,15 @@ export function ModulePlaceholder({ href }: { href: string }) {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
         <Card className="flex flex-col overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-primary via-teal to-secondary" />
           <CardHeader className="gap-4 p-5 sm:p-7">
             <div className="flex items-center justify-between gap-3"><span className="flex size-12 items-center justify-center rounded-xl border border-primary/10 bg-secondary"><Icon className="size-6 text-primary" aria-hidden="true" /></span><Badge variant="outline">{item.phase} · TAHAP BERIKUTNYA</Badge></div>
-            <div><CardTitle className="text-xl">{dashboard ? "Navigasi siap. Pemantauan menyusul." : "Modul akan tersedia pada fase " + item.phase}</CardTitle><CardDescription className="mt-2">{dashboard ? "Jelajahi struktur aplikasi dan ubah mode pemantauan. Ringkasan operasional akan dihubungkan ke mock provider pada F1.1." : "Route dan konteks mode sudah tersedia. Interaksi operasional berikut akan dibangun pada tahap modul ini."}</CardDescription></div>
+            <div><CardTitle className="text-xl">{dashboard ? "Navigasi siap. Pemantauan menyusul." : "Modul akan tersedia pada fase " + item.phase}</CardTitle><CardDescription className="mt-2">{dashboard ? "Jelajahi struktur aplikasi dan ubah mode pemantauan. Provider data sudah terhubung; ringkasan operasional ditampilkan pada F1.1." : "Route dan konteks mode sudah tersedia. Interaksi operasional berikut akan dibangun pada tahap modul ini."}</CardDescription></div>
           </CardHeader>
           <CardContent className="px-5 pb-5 sm:px-7 sm:pb-7">
             <p className="mb-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground">TERSEDIA PADA {item.phase}</p>
             <ul className="space-y-3">{item.capabilities.map((capability) => <li key={capability} className="flex items-start gap-2.5 text-sm leading-6"><CircleDashed className="mt-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><span>{capability}</span></li>)}</ul>
           </CardContent>
-          <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 border-t bg-muted/40 px-5 py-3.5 text-xs text-muted-foreground sm:px-7"><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Navigasi tersedia</span><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Mode dapat diubah</span><span className="flex items-center gap-1.5"><Link2 className="size-3.5" aria-hidden="true" />Integrasi provider menunggu branch data</span></div>
+          <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 border-t bg-muted/40 px-5 py-3.5 text-xs text-muted-foreground sm:px-7"><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Navigasi tersedia</span><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Mode dapat diubah</span><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Provider data terhubung</span></div>
         </Card>
         <MonitoringContextPanel />
       </div>
@@ -41,7 +40,7 @@ export function ModulePlaceholder({ href }: { href: string }) {
             {navigation.filter((entry) => entry.href !== "/dashboard").map((entry) => {
               const ModuleIcon = entry.icon;
               return (
-                <Link key={entry.href} href={entry.href} className="group flex items-start gap-3 rounded-xl border bg-card p-4 transition-colors hover:border-primary/35 hover:bg-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Link key={entry.href} href={entry.href} className="group flex items-start gap-3 rounded-xl border bg-card p-4 transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-teal"><ModuleIcon className="size-[18px]" aria-hidden="true" /></span>
                   <div className="min-w-0 flex-1"><h3 className="text-sm font-semibold">{entry.label}</h3><p className="mt-1 text-xs text-muted-foreground">{entry.phase} · Menunggu implementasi</p></div>
                   <ArrowUpRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
