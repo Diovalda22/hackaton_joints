@@ -42,6 +42,8 @@ def test_groundwater_null_is_preserved_and_historical_mode_is_explicit() -> None
             "gwt_m": None,
             "quality_flag": "MISSING",
             "source": "mmc1.xlsx",
+            "source_id": "source-1",
+            "source_sha256": "a" * 64,
             "mode": "HISTORICAL_REPLAY",
         }
     )

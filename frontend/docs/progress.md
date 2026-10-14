@@ -2,9 +2,11 @@
 
 Pembaruan terakhir: **14 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari**: frontend, backend, database, ETL, NASA FIRMS, decision engine, tugas/laporan, dan eksperimen ML GWT +1 hari.
 
+Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PROJECT_TASKS.md).
+
 ## 1. Posisi saat ini
 
-**Shell F0 selesai diimplementasikan; gate F0 belum selesai. F1, backend, ETL, FIRMS, dan ML belum tersedia pada checkout yang terakhir diperiksa.**
+**Shell F0 dan backend foundation/data API sudah diimplementasikan; gate integrasi frontend belum selesai. FIRMS live, priorities, tasks/reports, dan ML menunggu tahap berikutnya.**
 
 | Bagian | Status | Bukti / pekerjaan tersisa |
 | --- | --- | --- |
@@ -16,7 +18,8 @@ Pembaruan terakhir: **14 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari*
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | PARTIAL | Lint/typecheck/build lulus; browser dan instalasi bersih belum terverifikasi |
 | F1.1–F1.7 | TODO | Seluruh halaman fitur masih berupa penanda fase |
-| Backend / data / FIRMS / ML | TODO | Milik kita; belum diimplementasikan dan diuji |
+| Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
+| FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
 Code shell tercatat pada `main` lokal dan referensi lokal `origin/main`, commit **`f3177ea`** (`feat(frontend): implement GambutOps F0 shell and routing`). Ini hasil inspeksi Git lokal, bukan pemeriksaan langsung ke GitHub. Branch shell terpisah juga tersedia pada checkout `/tmp/gambutops-f0-shell`.
 
@@ -169,14 +172,14 @@ Hasil ini bersifat historis. Setelah perubahan kode berikutnya, jalankan ulang p
 | Hambatan | Pemilik | Aksi untuk menutup |
 | --- | --- | --- |
 | Progres frontend teman belum diketahui | Teman | Ambil handoff shell dan laporkan branch/progres aktual |
-| Kontrak/API backend belum tersedia | Kita | Publikasi Pydantic/OpenAPI serta contoh payload pada awal H1 |
+| Integrasi kontrak/API frontend | Kedua engineer | Review `/openapi.json`; stations/GWT/hotspots siap, respons hotspots memakai pagination envelope |
 | Terminal gagal membuat sandbox sementara: `No space left on device` | Kita | Pulihkan kapasitas disk/temp sebelum menjalankan setup dan tes backend |
 | Dependency/DB/FIRMS belum terverifikasi | Kita | Periksa akses dan environment sebelum implementasi backend |
 | Registry npm tidak dapat diakses dalam sandbox | Teman | Pasang dependency dan uji `npm ci` pada lingkungan normal |
 | Chromium/server tidak dapat diuji dalam sandbox | Teman | Jalankan smoke test dan inspeksi visual pada lingkungan normal |
 | Deadline belum ditetapkan | Kedua engineer | Isi tanggal H1 dan deadline, lalu sesuaikan estimasi |
 
-**Langkah terdekat:** handoff shell ke teman; kita memeriksa environment backend dan menyepakati kontrak API. Tracker ini mengubah rencana dan kepemilikan, bukan mengklaim kode backend/frontend lanjutan sudah dibuat.
+**Langkah terdekat:** frontend mengintegrasikan read API; kita melanjutkan FIRMS live dan rule engine setelah review milestone data. Startup/import dan filter endpoint didokumentasikan dalam `backend/README.md`.
 
 ## 8. Cara memperbarui tracker
 
@@ -191,6 +194,7 @@ Status: TODO = belum dimulai; IN_PROGRESS = dikerjakan; IMPLEMENTED = kode terse
 | Tanggal | Milestone / status | Pemilik | Branch / commit / PR | Perubahan dan hasil tes | Handoff berikutnya |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-14 | F0 shell / IMPLEMENTED | Kita | `main` lokal, `f3177ea` | Shell tersedia; lint/typecheck/build PASS; browser FAIL karena lingkungan | Integrasi provider teman dan QA browser |
+| 2026-10-14 | Backend data / IMPLEMENTED | Kita | `feat/backend-data` | Audit GWT/VIIRS nyata; migration PostGIS upgrade/downgrade PASS; Ruff PASS; 20 pytest PASS | Adapter REST tiga endpoint read; FIRMS/rules berikutnya |
 | 2026-10-14 | F0 data / IMPLEMENTED | Teman | `feat/f0-data` | Kontrak, mock/REST repository, provider; lint/typecheck/build/test:data/test:shell PASS | `feat/frontend-monitoring` setelah merge |
 | — | — | — | — | — | — |
 
@@ -202,8 +206,8 @@ Selesai berarti gate frontend dan backend terpenuhi: API/DB nyata digunakan dala
 
 - [ ] FastAPI/Pydantic, OpenAPI, health, environment, migrations PostgreSQL/PostGIS.
 - [ ] Auth akun demo, role write server-side, CORS, secrets hanya server.
-- [ ] Audit ulang GWT, hash/provenance, null/gap/duplikat, koordinat nullable; reimport tanpa duplikasi.
-- [ ] Stations/GWT/hotspots API dengan tanggal/bbox; VIIRS CSV import dan UTC/key stabil.
+- [x] Audit ulang GWT, hash/provenance, null/gap/duplikat, koordinat nullable; reimport tanpa duplikasi.
+- [x] Stations/GWT/hotspots API dengan tanggal/bbox; VIIRS CSV import dan UTC/key stabil.
 - [ ] FIRMS sync server-side, dedup/cache, waktu sinkronisasi, penanganan API gagal.
 - [ ] Rules deterministik/ber-versi, snapshot/reasons/missing inputs, as_of tanpa future leakage; tetap heuristik belum tervalidasi ilmiah.
 - [ ] Tasks/reports API, DB persistence, role/status/history, laporan SIMULASI, transisi follow-up.

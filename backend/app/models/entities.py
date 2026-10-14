@@ -35,6 +35,31 @@ class DataSource(Base):
     )
 
 
+class DataImportRun(Base):
+    __tablename__ = "data_import_runs"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    source_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("data_sources.id", ondelete="CASCADE"), nullable=False
+    )
+    dataset_kind: Mapped[str] = mapped_column(String(30), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    rows_seen: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    rows_inserted: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    rows_skipped: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    audit_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint("dataset_kind IN ('GROUNDWATER', 'HOTSPOT')", name="dataset_kind_value"),
+        CheckConstraint("status IN ('STARTED', 'COMPLETED', 'FAILED')", name="status_value"),
+        Index("ix_data_import_runs_source_started", "source_id", "started_at"),
+    )
+
+
 class Station(Base, TimestampMixin):
     __tablename__ = "stations"
 
@@ -68,6 +93,10 @@ class GroundwaterObservation(Base):
     observed_date: Mapped[date] = mapped_column(Date, nullable=False)
     gwt_m: Mapped[float | None] = mapped_column(Float)
     quality_flag: Mapped[str] = mapped_column(String(30), nullable=False)
+    mode: Mapped[str] = mapped_column(
+        String(30), nullable=False, server_default="HISTORICAL_REPLAY"
+    )
+    source_row_number: Mapped[int | None] = mapped_column()
     source_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("data_sources.id", ondelete="RESTRICT"), nullable=False
     )
@@ -78,7 +107,11 @@ class GroundwaterObservation(Base):
             "quality_flag IN ('VALID', 'MISSING', 'DUPLICATE', 'SUSPECT')",
             name="quality_flag_value",
         ),
+        CheckConstraint(
+            "mode IN ('HISTORICAL_REPLAY', 'CURRENT_MONITORING')", name="mode_value"
+        ),
         Index("ix_groundwater_station_date", "station_id", "observed_date"),
+        Index("ix_groundwater_mode_date", "mode", "observed_date"),
     )
 
 
@@ -89,12 +122,18 @@ class Hotspot(Base, TimestampMixin):
     external_key: Mapped[str] = mapped_column(String(180), nullable=False, unique=True)
     source_product: Mapped[str] = mapped_column(String(80), nullable=False)
     sensor: Mapped[str] = mapped_column(String(80), nullable=False)
+    satellite: Mapped[str] = mapped_column(String(80), nullable=False)
     acquired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     geom: Mapped[Any] = mapped_column(
         Geometry(geometry_type="POINT", srid=4326, spatial_index=False), nullable=False
     )
     frp: Mapped[float | None] = mapped_column(Float)
     confidence_raw: Mapped[str | None] = mapped_column(String(30))
+    quality_flag: Mapped[str] = mapped_column(String(30), nullable=False, server_default="VALID")
+    mode: Mapped[str] = mapped_column(
+        String(30), nullable=False, server_default="HISTORICAL_REPLAY"
+    )
+    source_row_number: Mapped[int | None] = mapped_column()
     verification_status: Mapped[str] = mapped_column(
         String(30), nullable=False, server_default="UNVERIFIED"
     )
@@ -108,7 +147,14 @@ class Hotspot(Base, TimestampMixin):
             "verification_status IN ('UNVERIFIED', 'VERIFIED', 'DISMISSED')",
             name="verification_status_value",
         ),
+        CheckConstraint(
+            "quality_flag IN ('VALID', 'SUSPECT')", name="quality_flag_value"
+        ),
+        CheckConstraint(
+            "mode IN ('HISTORICAL_REPLAY', 'CURRENT_MONITORING')", name="mode_value"
+        ),
         Index("ix_hotspots_acquired_at", "acquired_at"),
+        Index("ix_hotspots_mode_acquired", "mode", "acquired_at"),
         Index("ix_hotspots_geom", "geom", postgresql_using="gist"),
     )
 

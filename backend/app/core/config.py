@@ -41,6 +41,14 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
     @property
+    def async_database_url(self) -> str:
+        if self.database_url.startswith("postgresql+psycopg://"):
+            return self.database_url.replace(
+                "postgresql+psycopg://", "postgresql+psycopg_async://", 1
+            )
+        return self.database_url
+
+    @property
     def resolved_coordinator_token(self) -> str:
         return self.coordinator_token or "demo-coordinator-token"
 

@@ -1,7 +1,7 @@
 # GambutOps Backend
 
-Foundation backend untuk GambutOps: FastAPI/Pydantic, kontrak OpenAPI v1, autentikasi role
-demo di server, CORS allowlist, SQLAlchemy, dan migration PostgreSQL/PostGIS.
+Backend GambutOps: FastAPI/Pydantic, autentikasi role demo, PostgreSQL/PostGIS,
+ETL GWT, importer VIIRS historis, dan read API untuk monitoring.
 
 ## Menjalankan lokal
 
@@ -36,10 +36,60 @@ curl -H 'Authorization: Bearer demo-coordinator-token' \
   http://localhost:8000/api/v1/auth/me
 ```
 
-Skema endpoint tahap berikut sudah diterbitkan di OpenAPI agar frontend dapat menyelaraskan
-payload. Sampai milestone implementasinya selesai, endpoint data tersebut sengaja merespons
-HTTP `501`; hanya `/health`, `/openapi.json`, `/docs`, dan `/api/v1/auth/me` yang operasional
-pada foundation ini.
+Endpoint stations, groundwater, dan hotspots sudah membaca database. Endpoint priorities,
+tasks/reports, dan ML masih mengembalikan `501` sampai milestone masing-masing selesai.
+
+## Audit dan import data
+
+```bash
+.venv/bin/python -m app.cli audit-gwt ../dataset/mmc1.xlsx
+.venv/bin/python -m app.cli import-gwt ../dataset/mmc1.xlsx
+.venv/bin/python -m app.cli import-gwt ../dataset/mmc1.xlsx --apply
+.venv/bin/python -m app.cli audit-hotspots ../dataset/viirs-snpp_2019_Indonesia.csv \
+  --output var/audits/viirs-2019.json
+.venv/bin/python -m app.cli import-hotspots ../dataset/viirs-snpp_2019_Indonesia.csv \
+  --from 2019-08-01 --to 2019-08-31 --bbox '100,-4,112,2' --apply
+```
+
+Import tanpa `--apply` hanya mengaudit. Import hotspot tanpa filter tanggal/bbox memerlukan
+`--allow-full-dataset`. Ketiga CSV lokal memuat 809.523 baris; gunakan filter untuk demo kecil.
+Nama file harus memuat `snpp` atau `jpss1` agar produk dapat diidentifikasi.
+
+Audit JSON dan CSV GWT ternormalisasi ditulis ke `var/audits/`, yang diabaikan Git. Workbook
+asli dipertahankan. Hash SHA-256 dan nomor baris sumber disimpan bersama data; riwayat import
+menyimpan audit, jumlah insert/skip, dan waktu selesai. Seluruh file dalam satu perintah import
+berada dalam satu transaksi; kegagalan menyebabkan rollback.
+
+Kebijakan GWT: `#N/A` menjadi `null/MISSING`; konflik duplikat menjadi satu observasi
+`null/DUPLICATE`, dengan nilai mentah tersimpan pada audit. BRG5 tanggal 2019-03-21 memiliki
+dua nilai berbeda. Audit menghasilkan 3.928 observasi unik: 3.534 valid, 393 missing, dan satu
+konflik duplikat. Tidak ada interpolasi atau koreksi tanggal otomatis. Sheet `wrc` (110 baris)
+hanya dicatat sebagai arsip penelitian. Kalender yang tidak memiliki baris tetap menjadi gap.
+
+Semua import lokal memakai `HISTORICAL_REPLAY`. Koordinat stasiun tetap null sampai sumber
+terverifikasi tersedia. Timestamp GWT pada API adalah representasi tanggal harian pada
+00:00 UTC, bukan jam pengukuran yang diketahui. Data penelitian dapat mengandung pengolahan
+sebelumnya; flag VALID berarti numerik valid untuk pipeline, bukan bukti pengukuran langsung.
+
+VIIRS memakai waktu akuisisi UTC, confidence mentah, instrument dan satellite dari CSV,
+serta key stabil dari produk/satelit/waktu/koordinat. Reimport tidak menambah observasi yang
+sama. `last_synced_at` pada CSV berarti waktu import lokal, bukan keberhasilan sync NASA live.
+Hotspot menunjukkan anomali panas satelit; confidence tidak menunjukkan probabilitas kebakaran.
+
+## Kontrak read API
+
+- `GET /api/v1/stations`: array stasiun terurut menurut code, ID berupa UUID.
+- `GET /api/v1/stations/{uuid}/groundwater?from=2019-01-01&to=2019-01-31&mode=HISTORICAL_REPLAY`:
+  array observasi terurut tanggal naik, batas tanggal inklusif, nilai null dipertahankan.
+- `GET /api/v1/hotspots?from=2019-01-01&to=2019-01-31&bbox=100,-4,112,2&satellite=N`:
+  respons `{items,total,limit,offset}`, default limit 200, maksimum 1000; terurut waktu turun
+  dengan UUID sebagai pemutus urutan. `source_product` dan `mode` juga dapat difilter.
+
+Mode default adalah `HISTORICAL_REPLAY`. Query `CURRENT_MONITORING` kosong sampai observasi
+terkini tersedia. API menolak rentang tanggal terbalik, bbox tidak valid, UUID invalid, dan
+pagination di luar batas dengan `422`; stasiun tidak ditemukan menghasilkan `404`.
+Produk CSV: `VIIRS_SNPP_HISTORICAL` dan `VIIRS_NOAA20_HISTORICAL`; satellite mentah `N`/`N20`.
+Koneksi read API memakai SQLAlchemy async; import CLI memakai transaksi sinkron dan COPY.
 
 ## Database
 
@@ -49,6 +99,7 @@ Migration pertama mengaktifkan PostGIS dan `pgcrypto`, lalu membuat:
 - `hotspots` dengan titik EPSG:4326 dan indeks GiST;
 - `priority_assessments` dengan snapshot JSON dan versi rule;
 - `users`, `inspection_tasks`, `field_reports`, serta `task_status_history`.
+- `data_import_runs` untuk audit dan hasil import; kolom mode membedakan observasi historis/terkini.
 
 Koordinat stasiun harus lengkap dan memiliki `coordinate_source`. Status, role, mode, prioritas,
 dan kualitas data dibatasi oleh constraint database. Menjalankan migration offline tanpa database:
@@ -67,4 +118,15 @@ dan kualitas data dibatasi oleh constraint database. Menjalankan migration offli
 Tes foundation mencakup health, autentikasi/otorisasi role, CORS, publikasi kontrak OpenAPI,
 konfigurasi production, nullable GWT, mode historis, dan metadata tabel. Tes migration terhadap
 PostgreSQL nyata memerlukan Docker/PostGIS yang aktif.
+
+Tes data mencakup audit workbook nyata, duplikat, null/nol, UTC, key stabil, filter, dan API.
+Integration test memakai database khusus dengan nama berakhiran `_test`, lalu menjalankan
+migration upgrade/downgrade; jangan arahkan ke database aplikasi yang memiliki data penting.
+
+```bash
+GAMBUTOPS_TEST_DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/gambutops_test \
+  .venv/bin/pytest
+```
+
+Tanpa variabel tersebut tes integrasi dilewati dengan alasan eksplisit.
 

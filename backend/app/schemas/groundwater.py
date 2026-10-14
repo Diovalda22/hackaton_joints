@@ -15,5 +15,7 @@ class GroundwaterObservation(BaseModel):
     gwt_m: float | None
     quality_flag: QualityFlag
     source: str
+    source_id: str
+    source_sha256: str
     mode: MonitoringMode
 
