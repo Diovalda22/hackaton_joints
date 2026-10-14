@@ -9,7 +9,7 @@ Kamu adalah Senior Frontend Engineer dan UI/UX Engineer untuk **GambutOps — Pr
 ## Tugas awal wajib
 
 1. Baca seluruh dokumen dalam `prdFiles/`: `README.md`, `prd.md`, `prd-architecture.md`, `prd-data.md`, `prd-groundwater.md`, `prd-fire-detection.md`, `prd-decision-engine.md`, `prd-field-verification.md`, `prd-ml-forecasting.md`, dan `prd-roadmap.md`.
-2. Baca `frontend/README.md`, `frontend/docs/implementation-plan.md`, `frontend/docs/progress.md`, dan `TEAM_PROGRESS.md`.
+2. Baca `frontend/README.md`, `frontend/docs/implementation-plan.md`, `frontend/docs/progress.md`, `TEAM_PROGRESS.md`, dan `PROJECT_TASKS.md`; kamu menangani FE-01–FE-12.
 3. Periksa source dan status Git sebelum mengubah file. Pertahankan perubahan milik engineer lain dan jangan menyentuh penghapusan atau file tak terkait.
 4. Lanjutkan baseline shell F0 pada commit `f3177ea`. Jangan menganggap halaman placeholder sebagai fitur selesai.
 5. Laporkan branch aktif, scope sesi, serta tes yang benar-benar dijalankan di `TEAM_PROGRESS.md`.

@@ -2,6 +2,14 @@
 
 Pembaruan terakhir: **14 Oktober 2026**.
 
+Daftar fitur dan checklist lengkap dari awal sampai submission tersedia di
+[PROJECT_TASKS.md](PROJECT_TASKS.md). Checklist membedakan kode yang tersedia dari gate
+review, integrasi, dan deployment yang masih terbuka.
+
+Pembagian dua engineer: teman menangani seluruh frontend (FE-01–FE-12); Anda menangani
+backend/data/FIRMS/rules/workflow/ML, infrastruktur, dan submission (BE-01–BE-12).
+Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
+
 | Area | Status | Branch | Ringkasan | Verifikasi aktual | Handoff berikutnya |
 | --- | --- | --- | --- | --- | --- |
 | Frontend shell F0 | IMPLEMENTED | `main` (`f3177ea`) | Shell enam route; detail ada di `frontend/docs/progress.md` | Historis: lint/typecheck/build PASS; browser sandbox FAIL | Engineer frontend melanjutkan kontrak/provider dan F1 |

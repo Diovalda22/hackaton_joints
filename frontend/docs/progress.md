@@ -2,6 +2,8 @@
 
 Pembaruan terakhir: **14 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari**: frontend, backend, database, ETL, NASA FIRMS, decision engine, tugas/laporan, dan eksperimen ML GWT +1 hari.
 
+Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PROJECT_TASKS.md).
+
 ## 1. Posisi saat ini
 
 **Shell F0 dan backend foundation/data API sudah diimplementasikan; gate integrasi frontend belum selesai. FIRMS live, priorities, tasks/reports, dan ML menunggu tahap berikutnya.**
