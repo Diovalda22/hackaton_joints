@@ -1,0 +1,187 @@
+import { z } from "zod";
+import { AREAS, findArea } from "@/lib/domain/areas";
+import { CURRENT_GWT_NOTICE, composeDashboardSummary } from "@/lib/domain/dashboard";
+import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
+import {
+  createReportInputSchema, createTaskInputSchema, fieldReportSchema, groundwaterSeriesSchema, hotspotCollectionSchema,
+  inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
+  priorityAssessmentSchema, stationSchema, updateTaskInputSchema, userSchema,
+} from "@/lib/schemas";
+import type { User } from "@/types";
+import { RepositoryError, isAbortError } from "./errors";
+import type { GambutOpsRepository, RequestOptions } from "./repository";
+
+export interface RestRepositoryOptions {
+  /** Contoh: http://localhost:8000/api/v1 */
+  baseUrl: string;
+  fetch?: typeof fetch;
+  /** Tanggal hari ini (YYYY-MM-DD) untuk batas Current Monitoring. */
+  today?: () => string;
+}
+
+type QueryValue = string | number | null | undefined;
+
+interface RequestConfig {
+  method?: "GET" | "POST" | "PATCH";
+  query?: Record<string, QueryValue>;
+  body?: unknown;
+  actor?: User;
+  signal?: AbortSignal;
+}
+
+const healthSchema = z.object({ status: z.string() }).loose();
+
+function validateInput<T extends z.ZodType>(schema: T, input: unknown): z.infer<T> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) throw new RepositoryError("VALIDATION", parsed.error.issues[0]?.message, { details: parsed.error.issues });
+  return parsed.data;
+}
+
+function errorFromResponse(status: number, detail: string | null): RepositoryError {
+  if (status === 404) return new RepositoryError("NOT_FOUND", detail ?? undefined, { status });
+  if (status === 401 || status === 403) return new RepositoryError("FORBIDDEN", detail ?? undefined, { status });
+  if (status === 409) return new RepositoryError("ILLEGAL_TRANSITION", detail ?? undefined, { status });
+  if (status === 400 || status === 422) return new RepositoryError("VALIDATION", detail ?? undefined, { status });
+  return new RepositoryError("HTTP", detail ?? `Server mengembalikan status ${status}.`, { status });
+}
+
+/** FastAPI mengirim `detail` berupa string atau daftar error validasi. */
+function readDetail(body: unknown): string | null {
+  if (!body || typeof body !== "object" || !("detail" in body)) return null;
+  const detail = (body as { detail: unknown }).detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail[0] && typeof detail[0] === "object" && "msg" in detail[0]) return String(detail[0].msg);
+  return null;
+}
+
+export function createRestRepository(options: RestRepositoryOptions): GambutOpsRepository {
+  const baseUrl = options.baseUrl.replace(/\/+$/, "");
+  const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+  const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+
+  async function request<T extends z.ZodType>(url: string, schema: T, config: RequestConfig = {}): Promise<z.infer<T>> {
+    const target = new URL(url);
+    for (const [key, value] of Object.entries(config.query ?? {})) {
+      if (value !== null && value !== undefined && value !== "") target.searchParams.set(key, String(value));
+    }
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (config.body !== undefined) headers["Content-Type"] = "application/json";
+    // Identitas demo; backend tetap wajib memverifikasi peran melalui autentikasi.
+    if (config.actor) headers["X-Actor-Id"] = config.actor.id;
+
+    let response: Response;
+    try {
+      response = await fetchImpl(target, {
+        method: config.method ?? "GET",
+        headers,
+        body: config.body === undefined ? undefined : JSON.stringify(config.body),
+        signal: config.signal,
+      });
+    } catch (error) {
+      if (isAbortError(error) || config.signal?.aborted) throw new RepositoryError("ABORTED");
+      throw new RepositoryError("NETWORK", undefined, { cause: error });
+    }
+
+    let body: unknown = null;
+    const text = await response.text().catch(() => "");
+    if (text) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        if (response.ok) throw new RepositoryError("INVALID_PAYLOAD", undefined, { status: response.status });
+      }
+    }
+    if (!response.ok) throw errorFromResponse(response.status, readDetail(body));
+
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) throw new RepositoryError("INVALID_PAYLOAD", undefined, { status: response.status, details: parsed.error.issues });
+    return parsed.data;
+  }
+
+  const api = (path: string) => `${baseUrl}${path}`;
+
+  const repository: GambutOpsRepository = {
+    kind: "rest",
+
+    getModeBounds(mode) {
+      return mode === "HISTORICAL_REPLAY" ? HISTORICAL_BOUNDS : currentBounds(today());
+    },
+
+    async health({ signal }: RequestOptions = {}) {
+      const result = await request(`${new URL(baseUrl).origin}/health`, healthSchema, { signal });
+      return { status: result.status === "ok" ? "ok" : "unavailable", detail: result.status };
+    },
+
+    listAreas: async () => [...AREAS],
+    listUsers: ({ signal }: RequestOptions = {}) => request(api("/users"), z.array(userSchema), { signal }),
+    listStations: ({ signal }: RequestOptions = {}) => request(api("/stations"), z.array(stationSchema), { signal }),
+
+    async getGroundwater(query, { signal } = {}) {
+      const series = await request(api(`/stations/${encodeURIComponent(query.station_id)}/groundwater`), groundwaterSeriesSchema, {
+        query: { from: query.from, to: query.to, mode: query.mode }, signal,
+      });
+      if (series.mode !== query.mode) throw new RepositoryError("INVALID_PAYLOAD", "Mode data GWT tidak sesuai permintaan.");
+      if (query.mode === "CURRENT_MONITORING") {
+        // Guard: observasi lama tidak boleh tampil sebagai kondisi terkini.
+        const minDate = currentBounds(today()).min_date;
+        const recent = series.observations.filter((obs) => obs.observed_at >= minDate);
+        if (recent.length === 0) return { ...series, availability: "NOT_AVAILABLE", notice: series.notice ?? CURRENT_GWT_NOTICE, observations: [] };
+        return { ...series, observations: recent };
+      }
+      return series;
+    },
+
+    async listHotspots(query, { signal } = {}) {
+      const bbox = query.bbox ?? findArea(query.area_id)?.bbox ?? null;
+      const collection = await request(api("/hotspots"), hotspotCollectionSchema, {
+        query: { from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","), source_product: query.source_product }, signal,
+      });
+      if (collection.mode !== query.mode || collection.items.some((item) => item.mode !== query.mode)) {
+        throw new RepositoryError("INVALID_PAYLOAD", "Data hotspot berisi mode yang tidak sesuai permintaan.");
+      }
+      return collection;
+    },
+
+    async listPriorities(query, { signal } = {}) {
+      const items = await request(api("/priorities"), z.array(priorityAssessmentSchema), {
+        query: { mode: query.mode, as_of: query.as_of, area_id: query.area_id }, signal,
+      });
+      if (items.some((item) => item.mode !== query.mode || item.as_of > query.as_of)) {
+        throw new RepositoryError("INVALID_PAYLOAD", "Assessment berisi mode atau as_of yang tidak sesuai permintaan.");
+      }
+      return query.area_id ? items.filter((item) => item.area_id === query.area_id) : items;
+    },
+
+    listTasks(query = {}, { signal } = {}) {
+      return request(api("/tasks"), z.array(inspectionTaskSchema), {
+        query: { mode: query.mode, status: query.status?.join(","), assignee_id: query.assignee_id }, signal,
+      });
+    },
+
+    getTask: (id, { signal } = {}) => request(api(`/tasks/${encodeURIComponent(id)}`), inspectionTaskDetailSchema, { signal }),
+
+    async createTask(input, { actor }, { signal } = {}) {
+      return request(api("/tasks"), inspectionTaskSchema, { method: "POST", body: validateInput(createTaskInputSchema, input), actor, signal });
+    },
+
+    async updateTask(id, input, { actor }, { signal } = {}) {
+      return request(api(`/tasks/${encodeURIComponent(id)}`), inspectionTaskSchema, { method: "PATCH", body: validateInput(updateTaskInputSchema, input), actor, signal });
+    },
+
+    async createReport(taskId, input, { actor }, { signal } = {}) {
+      return request(api(`/tasks/${encodeURIComponent(taskId)}/reports`), fieldReportSchema, { method: "POST", body: validateInput(createReportInputSchema, input), actor, signal });
+    },
+
+    getMlMetrics: ({ signal }: RequestOptions = {}) => request(api("/ml/metrics"), mlMetricsResponseSchema, { signal }),
+
+    async forecastGroundwater(input, { signal } = {}) {
+      return request(api("/ml/forecast"), mlForecastResponseSchema, { method: "POST", body: validateInput(mlForecastInputSchema, input), signal });
+    },
+
+    getDashboardSummary(query, options = {}) {
+      return composeDashboardSummary(repository, query, options);
+    },
+  };
+
+  return repository;
+}
