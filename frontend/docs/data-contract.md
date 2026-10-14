@@ -10,6 +10,8 @@ Sumber kebenaran kontrak: schema Zod di `src/lib/schemas/`. Tipe TypeScript di `
 | `src/types/` | Tipe entitas hasil `z.infer` |
 | `src/lib/api/repository.ts` | Interface `GambutOpsRepository` dan tipe query |
 | `src/lib/api/rest-repository.ts` | `createRestRepository()` — fetch + validasi Zod + pemetaan error |
+| `src/lib/api/rest-schemas.ts` | Schema Zod **respons backend** (stations/GWT/hotspots), meniru Pydantic/OpenAPI |
+| `src/lib/api/rest-mappers.ts` | Pemetaan murni respons backend → model UI |
 | `src/lib/mock/` | `createMockRepository()`, fixture deterministik, localStorage store, mock decision engine |
 | `src/lib/domain/` | State machine tugas, area, periode, label, komposisi dashboard |
 | `src/components/providers/` | `RepositoryProvider`, cache query, `MonitoringProvider`, hook data |
@@ -18,10 +20,11 @@ Komponen hanya memakai hook di `src/components/providers/data-hooks.ts`. Kompone
 
 ## Entitas
 
-- `Station` — `lat`/`lon` boleh null. Koordinat tanpa `coordinate_source` ditolak. Stasiun tanpa koordinat hanya tampil di grafik/daftar.
-- `GroundwaterObservation` — `gwt_m` dalam meter (negatif = di bawah permukaan); `null` wajib berflag `MISSING`, tidak pernah nol.
-- `GroundwaterSeries` — `availability: AVAILABLE | NOT_AVAILABLE` + `notice`. Current Monitoring tanpa observasi terbaru → `NOT_AVAILABLE`.
-- `Hotspot` — `observed_at` UTC, `confidence_raw` mentah FIRMS (bukan probabilitas), `frp_mw` nullable, `verification_status`.
+- `Station` — `id` opaque (UUID pada REST; jangan ditampilkan), `code` (mis. BRG6) sebagai label. `region`, `source`, `period_start/end` boleh null. `lat`/`lon` boleh null. Koordinat tanpa `coordinate_source` ditolak. Stasiun tanpa koordinat hanya tampil di grafik/daftar.
+- `GroundwaterObservation` — `gwt_m` dalam meter (negatif = di bawah permukaan). `null` hanya untuk `MISSING` (tidak ada pengamatan) atau `DUPLICATE_FLAGGED` (konflik duplikat); keduanya tidak pernah nol dan maknanya berbeda. `source_id`/`source_sha256` opsional (hanya dari REST).
+- `GroundwaterSeries` — `availability: AVAILABLE | NOT_AVAILABLE` + `notice`. AVAILABLE = ada baris pada hasil, bukan semua bernilai. Current Monitoring tanpa observasi terbaru → `NOT_AVAILABLE`.
+- `Hotspot` — `observed_at` UTC, `confidence_raw` mentah FIRMS (bukan probabilitas), `frp_mw` nullable, `verification_status`, `imported_at` (waktu import CSV lokal; null pada mock), `daynight` null bila sumber tidak menyediakannya.
+- `HotspotCollection` — satu halaman: `items`, `total` (seluruh hasil filter), `limit`, `offset`, `last_synced_at` + `last_synced_scope` (`PAGE_IMPORT` = waktu import terbaru item halaman ini; `SYNC` = waktu sync sumber, saat ini hanya mock).
 - `PriorityAssessment` — `mode`, `as_of`, `priority`, `decision`, `reason_codes`, `missing_inputs`, `input_snapshot` (dengan sumber dan waktu), `rule_version`, `scientific_status: "heuristic_not_validated"`.
 - `InspectionTask` / `InspectionTaskDetail` — status, `history` (aktor + peran + waktu), `mode`, `area_id`, `reports`.
 - `FieldReport` — `observed_at`, `result`, `note`, `evidence_url`, `is_simulation`.
@@ -36,6 +39,29 @@ Setiap observasi membawa provenance: `source`, `observed_at`, `quality_flag`, `m
 - Filter periode/area disimpan terpisah per mode di `MonitoringProvider`. `as_of` = akhir periode.
 - REST adapter menolak (`INVALID_PAYLOAD`) hotspot/assessment yang mode-nya berbeda dari permintaan atau `as_of`-nya melewati permintaan.
 - REST adapter menyembunyikan observasi GWT lama pada Current Monitoring dan mengembalikan `NOT_AVAILABLE`.
+
+## Read API backend → model UI
+
+Acuan bentuk JSON adalah OpenAPI backend ([handoff](../../backend/docs/read-api-handoff.md), contoh nyata di `backend/docs/examples/read-api.json`). Payload mentah divalidasi dengan `rest-schemas.ts`, lalu dipetakan oleh `rest-mappers.ts`. Field wajib hilang, tipe salah, atau mode/stasiun tidak sesuai permintaan → `INVALID_PAYLOAD`.
+
+| Backend | Model UI |
+| --- | --- |
+| Stations `latitude`/`longitude` | `lat`/`lon` |
+| Stations `id`, `code` | `id` tetap UUID (dipakai pada query), `code` untuk label |
+| GWT respons berupa **array** | dibungkus `{station_id, mode, from, to, availability, notice, observations}` dari query + hasil; diurutkan per tanggal, gap tidak diisi |
+| GWT `observed_date` | `observed_at` (YYYY-MM-DD). `observed_at` backend (00:00 UTC) tidak dipakai karena jam pengukuran tidak diketahui |
+| GWT kosong | `NOT_AVAILABLE` + `HISTORICAL_GWT_EMPTY_NOTICE` (Historical) atau `CURRENT_GWT_NOTICE` (Current) |
+| `quality_flag: DUPLICATE` | `DUPLICATE_FLAGGED` (nilai tetap null) |
+| Hotspot `acquired_at`, `sensor`, `frp` | `observed_at`, `instrument`, `frp_mw` |
+| Hotspot `last_synced_at` | `imported_at` per item; koleksi: maksimum di halaman ini, `last_synced_scope: "PAGE_IMPORT"`, null bila halaman kosong |
+| Hotspot (tidak ada) | `daynight: null`, `area_id` dari lookup bbox DEMO (`areaIdForPoint`), `is_simulation: false` |
+| `{items,total,limit,offset}` | `HotspotCollection` + `mode` dari query |
+
+Pagination hotspot: `limit` default 200, maksimum 1000 (`src/lib/domain/pagination.ts`); `offset` mulai 0. Urutan: waktu akuisisi turun, lalu ID. Halaman yang memakai `useHotspots({ limit, offset })` memegang state offset dan **mereset offset ke 0 saat mode/filter berubah**. Tidak ada pengambilan seluruh halaman otomatis. Dashboard memakai `total`, bukan `items.length`; `unverified` hanya dihitung dari halaman yang dimuat, ditandai `unverified_scope: "PAGE"` bila ada halaman lain.
+
+Mock mengikuti kontrak yang sama (pagination, urutan, kode satelit `N`/`N20`). ID stasiun mock tetap `BRG6` dkk.; UI harus selalu menampilkan `code`.
+
+Menjalankan REST lokal: `NEXT_PUBLIC_DATA_SOURCE=rest NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1`. CORS backend default hanya `http://localhost:3000`; buka frontend lewat `localhost`, bukan `127.0.0.1`, atau tambahkan origin di `GAMBUTOPS_CORS_ALLOWED_ORIGINS`.
 
 ## State machine tugas
 
@@ -64,8 +90,10 @@ Pelanggaran → `RepositoryError` dengan kode `ILLEGAL_TRANSITION` atau `FORBIDD
 
 ## Kebutuhan API untuk backend
 
-1. `GET /api/v1/stations/{id}/groundwater` menerima `mode` dan mengembalikan bentuk `GroundwaterSeries` (`availability`, `notice`, `observations`).
-2. `GET /api/v1/hotspots` menerima `mode`, `bbox=minLon,minLat,maxLon,maxLat`, `source_product`; mengembalikan `{ mode, items, last_synced_at }`.
+Stations, GWT, dan hotspots sudah memakai kontrak backend (lihat bagian di atas). Usulan berikut masih untuk endpoint yang belum tersedia:
+
+1. Status/waktu sync FIRMS global (tahap FIRMS live) agar `last_synced_scope: "SYNC"` dapat dipakai pada REST.
+2. `daynight` hotspot bila tersedia dari sumber.
 3. `GET /api/v1/priorities` mengembalikan array `PriorityAssessment` termasuk `area_id`, `target`, `input_snapshot` sebagai array `{key,label,value,unit,source,observed_at}`. Opsional: filter `area_id`.
 4. `GET /api/v1/tasks` menerima `mode`, `status` (dipisah koma), `assignee_id`. `GET /api/v1/tasks/{id}` mengembalikan task + `reports`.
 5. Tugas memiliki `mode`, `area_id`, `history[]` (`from,to,actor_id,actor_role,at,note`).

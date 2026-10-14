@@ -14,7 +14,7 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | Design system dan application shell | IMPLEMENTED | Sidebar, drawer mobile, topbar, tema terang, identitas demo |
 | Routing dan mode switcher | IMPLEMENTED | Enam route, redirect root, Historical Replay default, toast dan konteks lintas halaman |
 | Shared states dan provenance | IMPLEMENTED | Komponen loading/empty/error/retry, badge, dan sumber/waktu |
-| Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository, tes data 27/27; lihat bagian 10 |
+| Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository; REST stations/GWT/hotspots disesuaikan dengan read API backend di `feat/fe-read-contract`, tes data 38/38; lihat bagian 12 |
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | PARTIAL | Lint/typecheck/build lulus; browser dan instalasi bersih belum terverifikasi |
 | F1.1–F1.7 | TODO | Seluruh halaman fitur masih berupa penanda fase |
@@ -164,6 +164,10 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 | 2026-10-14 | `feat/f0-data`: lint, typecheck, build | PASS | Lingkungan lokal teman |
 | 2026-10-14 | `feat/f0-data`: `npm run test:data` | PASS | 27/27 |
 | 2026-10-14 | `feat/f0-data`: `npm run test:shell` (`next start` port 3100) | PASS | 1/1; screenshot 1440 px & 375 px tanpa error console/hydration |
+| 2026-10-15 | `feat/fe-read-contract`: lint, typecheck, build | PASS | Tanpa warning |
+| 2026-10-15 | `feat/fe-read-contract`: `npm run test:data` | PASS | 38/38, termasuk 10 tes kontrak dari `backend/docs/examples/read-api.json` |
+| 2026-10-15 | `feat/fe-read-contract`: `npm run test:shell` (`next start` port 3000, mock) | PASS | 1/1 |
+| 2026-10-15 | REST repository vs backend lokal `:8000` | PASS | Stations/GWT/hotspots/error 404–422 lolos; lihat bagian 12 |
 
 Hasil ini bersifat historis. Setelah perubahan kode berikutnya, jalankan ulang pemeriksaan yang relevan dan tambahkan hasil baru; jangan menyebut hasil lama sebagai bukti versi terbaru sudah lulus.
 
@@ -278,3 +282,30 @@ Branch `feat/frontend-monitoring` dari `main` setelah `feat/f0-data` digabung: d
 Temuan yang diperbaiki saat tes: fokus tidak kembali ke tombol Panduan setelah modal ditutup; peringatan aksesibilitas Radix `aria-describedby`; nama aksesibel link "Uji prediksi" ganda.
 
 Belum: halaman fitur (F1.1–F1.6) masih placeholder — UX inti baru lengkap setelah modul dibangun.
+
+## 12. Sesi frontend 2026-10-15 — adaptasi read API backend (`feat/fe-read-contract`)
+
+**Status:** IMPLEMENTED, belum commit/push. Mengikuti [handoff read API](../../backend/docs/read-api-handoff.md) dari commit backend `de27be9`.
+
+- Schema respons backend baru (`src/lib/api/rest-schemas.ts`) dan mapper murni (`src/lib/api/rest-mappers.ts`); REST adapter tidak lagi memvalidasi payload dengan schema model UI.
+- Stations: tambah `code` (label), `id` tetap UUID, `latitude/longitude → lat/lon`, `region`/`source` nullable.
+- GWT: array dibungkus menjadi series; `observed_date → observed_at`; `DUPLICATE → DUPLICATE_FLAGGED` dengan nilai tetap null; `source_id`/`source_sha256` dipertahankan; diurutkan per tanggal tanpa mengisi gap; hasil kosong → `NOT_AVAILABLE` + notice sesuai mode; mode/stasiun yang tidak sesuai → `INVALID_PAYLOAD`.
+- Hotspots: envelope `{items,total,limit,offset}`; `acquired_at/sensor/frp → observed_at/instrument/frp_mw`; `imported_at` per item; `last_synced_at` koleksi = waktu import terbaru di halaman (`last_synced_scope: "PAGE_IMPORT"`); `daynight` null; `area_id` lookup bbox DEMO; query `limit/offset/satellite`.
+- Dashboard: `total` dari server; `unverified_scope` (`PAGE` bila hanya satu halaman yang dimuat); `duplicate_days` terpisah dari `missing_days`.
+- Mock: pagination + urutan seperti backend (akuisisi turun, lalu ID), validasi limit 1–1000, kode satelit `N`/`N20`, `code` stasiun.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 38/38 lulus |
+| `npm run test:shell` (production, port 3000, mock) | 1/1 lulus |
+| Uji mutasi mapper (DUPLICATE→MISSING, total=items.length) | Keduanya tertangkap tes kontrak |
+| Smoke REST repository ke backend lokal `127.0.0.1:8000` | 8 stasiun; GWT BRG6/BRG3 2019-08-17..09-15 (BRG3 berhenti 2019-08-27); seluruh GWT 2018–2019 lolos dengan 393 MISSING + 1 DUPLICATE (BRG5 2019-03-21, null); hotspot halaman 1/2 tanpa tumpang tindih; Current kosong; 404/422 → NOT_FOUND/VALIDATION |
+
+Catatan:
+
+- Backend `:8000` yang dipakai smoke bukan database aplikasi port 5433 dari handoff (port 5433 tidak aktif): total hotspot Batanghari 604 dan Kubu Raya 448, bukan 3.439/2.964, dan hotspot terbaru 2019-08-31. Ulangi smoke pada database handoff.
+- `getDashboardSummary` pada REST masih gagal (HTTP 501) karena `/priorities` belum diimplementasikan; sesuai handoff.
+- Halaman groundwater/hotspots/dashboard masih placeholder, jadi belum ada pemeriksaan browser pada mode REST. Saat FE-04/FE-05 dibangun: tampilkan `code`, batas periode stasiun, beda MISSING vs duplikat, label “waktu import pada hasil halaman ini”, dan reset offset ketika filter/mode berubah.
+- CORS backend default hanya `http://localhost:3000`; buka frontend REST lewat `localhost`.
+

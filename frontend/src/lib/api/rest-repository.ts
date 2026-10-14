@@ -1,15 +1,17 @@
 import { z } from "zod";
 import { AREAS, findArea } from "@/lib/domain/areas";
-import { CURRENT_GWT_NOTICE, composeDashboardSummary } from "@/lib/domain/dashboard";
+import { composeDashboardSummary } from "@/lib/domain/dashboard";
 import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
-  createReportInputSchema, createTaskInputSchema, fieldReportSchema, groundwaterSeriesSchema, hotspotCollectionSchema,
+  createReportInputSchema, createTaskInputSchema, fieldReportSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
-  priorityAssessmentSchema, stationSchema, updateTaskInputSchema, userSchema,
+  priorityAssessmentSchema, updateTaskInputSchema, userSchema,
 } from "@/lib/schemas";
 import type { User } from "@/types";
 import { RepositoryError, isAbortError } from "./errors";
 import type { GambutOpsRepository, RequestOptions } from "./repository";
+import { toGroundwaterSeries, toHotspotCollection, toStation } from "./rest-mappers";
+import { apiGroundwaterObservationSchema, apiHotspotPageSchema, apiStationSchema } from "./rest-schemas";
 
 export interface RestRepositoryOptions {
   /** Contoh: http://localhost:8000/api/v1 */
@@ -114,32 +116,28 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
 
     listAreas: async () => [...AREAS],
     listUsers: ({ signal }: RequestOptions = {}) => request(api("/users"), z.array(userSchema), { signal }),
-    listStations: ({ signal }: RequestOptions = {}) => request(api("/stations"), z.array(stationSchema), { signal }),
+    async listStations({ signal }: RequestOptions = {}) {
+      const stations = await request(api("/stations"), z.array(apiStationSchema), { signal });
+      return stations.map(toStation);
+    },
 
     async getGroundwater(query, { signal } = {}) {
-      const series = await request(api(`/stations/${encodeURIComponent(query.station_id)}/groundwater`), groundwaterSeriesSchema, {
+      const rows = await request(api(`/stations/${encodeURIComponent(query.station_id)}/groundwater`), z.array(apiGroundwaterObservationSchema), {
         query: { from: query.from, to: query.to, mode: query.mode }, signal,
       });
-      if (series.mode !== query.mode) throw new RepositoryError("INVALID_PAYLOAD", "Mode data GWT tidak sesuai permintaan.");
-      if (query.mode === "CURRENT_MONITORING") {
-        // Guard: observasi lama tidak boleh tampil sebagai kondisi terkini.
-        const minDate = currentBounds(today()).min_date;
-        const recent = series.observations.filter((obs) => obs.observed_at >= minDate);
-        if (recent.length === 0) return { ...series, availability: "NOT_AVAILABLE", notice: series.notice ?? CURRENT_GWT_NOTICE, observations: [] };
-        return { ...series, observations: recent };
-      }
-      return series;
+      return toGroundwaterSeries(query, rows, today());
     },
 
     async listHotspots(query, { signal } = {}) {
       const bbox = query.bbox ?? findArea(query.area_id)?.bbox ?? null;
-      const collection = await request(api("/hotspots"), hotspotCollectionSchema, {
-        query: { from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","), source_product: query.source_product }, signal,
+      const page = await request(api("/hotspots"), apiHotspotPageSchema, {
+        query: {
+          from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","),
+          source_product: query.source_product, satellite: query.satellite, limit: query.limit, offset: query.offset,
+        },
+        signal,
       });
-      if (collection.mode !== query.mode || collection.items.some((item) => item.mode !== query.mode)) {
-        throw new RepositoryError("INVALID_PAYLOAD", "Data hotspot berisi mode yang tidak sesuai permintaan.");
-      }
-      return collection;
+      return toHotspotCollection(query, page);
     },
 
     async listPriorities(query, { signal } = {}) {

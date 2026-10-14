@@ -133,7 +133,7 @@ Gate: fondasi frontend/backend dapat dijalankan bersama dan kontrak diterima ked
 - [ ] Bersama: review dan merge branch data setelah pemeriksaan reviewer.
 - [x] Anda: siapkan database aplikasi lokal dan seed GWT/sampel hotspot dua bbox DEMO; reimport tanpa duplikasi.
 - [x] Anda: publikasikan handoff OpenAPI read API dan snapshot JSON nyata untuk teman frontend.
-- [ ] Teman: sesuaikan schema respons/REST adapter dengan handoff backend dan uji payload nyata.
+- [x] Teman: sesuaikan schema respons/REST adapter dengan handoff backend dan uji payload nyata (`feat/fe-read-contract`; lihat `frontend/docs/progress.md` §12).
 
 Gate: frontend memakai data historis dari API/database dengan provenance dan missing yang benar.
 
