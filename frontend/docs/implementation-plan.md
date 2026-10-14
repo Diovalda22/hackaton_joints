@@ -11,9 +11,9 @@
 - [x] Shared loading/empty/error/retry, provenance, badge demo/simulasi.
 - [x] Titik integrasi repository generic tanpa kontrak tandingan.
 - [x] README, `.env.example`, dan smoke test browser.
-- [ ] Gabungkan kontrak dan provider dari `feat/f0-data`, kemudian hubungkan ke AppProviders.
+- [x] Kontrak, mock/REST repository, dan provider dibuat pada `feat/f0-data`, lalu dihubungkan ke AppProviders.
 - [ ] Pasang MapLibre saat paket tersedia, sebelum F1.3.
-- [ ] Verifikasi browser pada lingkungan yang mengizinkan server dan Chromium.
+- [x] Verifikasi browser pada lingkungan yang mengizinkan server dan Chromium (14 Okt 2026, lihat di bawah).
 
 ## Keputusan PRD
 
@@ -47,6 +47,19 @@ Pemeriksaan pada 14 Oktober 2026, Node.js 24.16.0 / npm 11.18.0:
 Build pertama dengan Turbopack gagal karena sandbox menolak bind port internal CSS. Script dev/build memakai Webpack; build final berhasil. Instalasi menggunakan cache npm dan paket lokal dengan versi yang dipin; instalasi bersih melalui registry belum diuji karena DNS registry menghasilkan ENOTFOUND.
 
 Smoke test browser belum lulus. Responsivitas visual, interaksi, fokus drawer, dan navigasi client masih harus diperiksa melalui browser pada checkout normal. Tidak ada browser terkoneksi yang tersedia melalui tool UI pada sesi ini.
+
+## F0 data — verifikasi 14 Oktober 2026 (Node 26.5.0 / npm 11.17.0, macOS)
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| `npm run lint` | Lulus, exit 0, tanpa warning |
+| `npm run typecheck` | Lulus, exit 0 |
+| `npm run build` (Webpack) | Lulus; keenam route diprerender |
+| `npm run test:data` | Lulus, 27/27 |
+| `npm run test:shell` (server production port 3100, Chromium Playwright 1.62.1) | Lulus, 1/1 |
+| Screenshot 1440 px dan 375 px dashboard | Tanpa error console/hydration; panel konteks menampilkan periode, area, dan sumber data dari provider |
+
+Belum diuji di browser: persistensi tugas/laporan melalui UI (UI tugas dibangun pada F1.5). Persistensi diuji pada level repository dengan storage memori.
 
 ## Tahap selanjutnya — belum dikerjakan
 

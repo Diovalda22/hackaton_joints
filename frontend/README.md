@@ -1,4 +1,4 @@
-# GambutOps — frontend F0
+# GambutOps — frontend
 
 **Prevent · Detect · Act.** Fondasi tampilan prototype JOINTS Hackathon 2026. Bahasa antarmuka Indonesia; seluruh identitas demo berlabel simulasi. Sumber kebutuhan: 10 PRD dalam `../prdFiles/`.
 
@@ -12,7 +12,7 @@ npm ci
 npm run dev
 ```
 
-Buka http://localhost:3000. Tidak membutuhkan backend, API key, atau `.env`. `.env.example` memuat catatan konfigurasi REST masa depan; konfigurasi tersebut belum digunakan pada F0. Jangan menyalin file kredensial workspace ke aplikasi atau `public/`.
+Buka http://localhost:3000. Tidak membutuhkan backend, API key, atau `.env`. Lihat `.env.example` untuk mengaktifkan REST adapter. Jangan menyalin file kredensial workspace ke aplikasi atau `public/`.
 
 ```bash
 npm run lint
@@ -26,45 +26,37 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 ## Bagian yang selesai
 
 - Application shell responsif: sidebar desktop yang dapat diciutkan, drawer mobile dengan fokus terkelola, topbar, skip link, dan footer.
-- Routing `/dashboard`, `/groundwater`, `/hotspots`, `/priorities`, `/tasks`, `/experiments/ml`; root mengarah ke dashboard. Halaman fitur merupakan penanda fase, bukan fitur F1 yang sudah selesai.
-- Historical Replay sebagai mode awal. Context mode bertahan selama navigasi client; reload memulai Historical Replay kembali. Tidak ada data historis yang ditampilkan sebagai kondisi terkini.
-- Mode switcher memperbarui badge/keterangan dan memunculkan toast. Current Monitoring menampilkan “Data muka air terkini tidak tersedia”.
+- Routing `/dashboard`, `/groundwater`, `/hotspots`, `/priorities`, `/tasks`, `/experiments/ml`; root mengarah ke dashboard. Halaman fitur masih penanda fase F1, bukan fitur selesai.
+- Mode switcher Historical Replay / Current Monitoring. Filter periode dan area disimpan **terpisah per mode** di `MonitoringProvider`; `as_of` = akhir periode.
+- **Lapisan data (F0 data):** schema Zod + tipe, `GambutOpsRepository`, `createMockRepository()` (deterministik, localStorage untuk tugas/laporan), `createRestRepository()` (validasi payload, pemetaan error, guard mode), state machine tugas, dan hook data dengan cache per mode serta pembatalan respons lama. Detail: [docs/data-contract.md](docs/data-contract.md).
 - Komponen bersama untuk provenance, DEMO/SIMULASI, loading, empty, error/retry, dan toast.
-- TypeScript strict, ESLint, Tailwind 4, komponen shadcn/ui berbasis Radix, dan dependency formulir/grafik untuk tahap berikutnya.
+- Panduan gaya UI: [style.md](style.md) — flat, tanpa shadow berlebih, hover halus.
+- **Panduan penggunaan dalam aplikasi** (modal): muncul otomatis pada kunjungan pertama, bisa dibuka lagi lewat tombol **Panduan** di header, kartu sidebar, atau kartu "Mulai dari sini". Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
+- Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
+- Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
 
-MapLibre belum dipasang: tidak digunakan pada F0 dan paket tidak tersedia di cache lokal saat registry tidak dapat diakses. Instalasi MapLibre serta CSS/worker client dilakukan sebelum F1.3. Tidak ada peta atau koordinat stasiun buatan pada F0.
+MapLibre belum dipasang; dipasang sebelum F1.3. Tidak ada peta atau koordinat stasiun buatan.
 
-## Pembagian kepemilikan
+## Sumber data
 
-Branch kita: `feat/f0-shell`. Branch teman: `feat/f0-data`.
+Default memakai mock repository (data DEMO sintetis, tidak butuh backend). Untuk memakai backend:
 
-| Bagian kita | Bagian teman |
-| --- | --- |
-| Konfigurasi, package.json/lockfile | `src/types/` |
-| `src/app/`, `src/components/` | `src/lib/schemas/`, `src/lib/mock/`, `src/lib/api/` |
-| Tes shell dan dokumentasi tampilan | Tes data dan dokumentasi kontrak |
-
-Tidak ada duplicate fixture atau kontrak entitas dalam branch shell. F0 lengkap memerlukan penggabungan branch data. Mutasi/persistensi tugas dan laporan tetap menunggu F1.5.
-
-## Integrasi provider berikutnya
-
-`src/components/providers/repository-context.tsx` menyediakan factory Context generic. Setelah branch data digabungkan, buat binding **sekali di module scope**:
-
-```tsx
-"use client";
-
-import type { GambutOpsRepository } from "@/lib/api";
-import { createRepositoryContext } from "@/components/providers/repository-context";
-
-export const { RepositoryProvider, useRepository } =
-  createRepositoryContext<GambutOpsRepository>();
+```bash
+NEXT_PUBLIC_DATA_SOURCE=rest
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-Di AppProviders, buat instance `createMockRepository` secara stabil melalui lazy `useState`, lalu bungkus aplikasi dengan `RepositoryProvider`. Hook fitur memakai `useRepository()` dan `useMonitoring()`; perubahan mode harus membatalkan/mengabaikan respons request lama sebelum menampilkan hasil baru. Komponen tidak membaca fixture atau localStorage langsung.
+Mode `rest` hanya aktif bila URL terisi. Kebutuhan endpoint untuk backend tercatat di [docs/data-contract.md](docs/data-contract.md#kebutuhan-api-untuk-backend).
 
-Nilai mode UI mengikuti kontrak yang disepakati: `HISTORICAL_REPLAY` dan `CURRENT_MONITORING`. `DemoMode` merupakan tipe konteks tampilan sementara; gunakan tipe mode bersama dari branch data ketika tersedia. Jangan membuat schema entitas kedua.
+Komponen memakai hook dari `src/components/providers/data-hooks.ts` (`useHotspots`, `usePriorities`, `useTasks`, `useRepositoryMutation`, dst.). Jangan mengimpor fixture, `fetch`, atau `localStorage` langsung dari komponen.
 
-Belum ada REST adapter. Backend berikutnya membutuhkan endpoint API v1 PRD, validasi payload, autentikasi/otorisasi server, provenance data nyata, sinkronisasi FIRMS server-side, serta persistensi. Factory Context menerima mock atau REST repository dengan interface yang sama.
+## Tes data
+
+```bash
+npm run test:data
+```
+
+Mencakup schema, state machine, mock repository (mode, as_of, determinisme, persistensi, localStorage rusak, abort), dan REST adapter (payload invalid, pemetaan HTTP, guard mode).
 
 ## Pengujian browser
 

@@ -5,8 +5,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "GambutOps — Prevent, Detect, Act", template: "%s | GambutOps" },
-  description: "Prototype DEMO pemantauan gambut, anomali panas, dan koordinasi pemeriksaan. F0 — fondasi frontend.",
+  title: { default: "GambutOps — Cegah, Deteksi, Tindak", template: "%s | GambutOps" },
+  description: "Versi uji coba pemantauan lahan gambut, titik panas satelit, dan koordinasi pemeriksaan lapangan.",
   robots: { index: false, follow: false },
 };
 

@@ -12,8 +12,8 @@ Pembaruan terakhir: **14 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari*
 | Design system dan application shell | IMPLEMENTED | Sidebar, drawer mobile, topbar, tema terang, identitas demo |
 | Routing dan mode switcher | IMPLEMENTED | Enam route, redirect root, Historical Replay default, toast dan konteks lintas halaman |
 | Shared states dan provenance | IMPLEMENTED | Komponen loading/empty/error/retry, badge, dan sumber/waktu |
-| Kontrak data dan mock repository | WAITING | Milik teman; `src/types/` dan `src/lib/` belum tersedia dalam checkout ini; progres di checkout teman belum diketahui |
-| Integrasi provider ke shell | TODO | Factory Context tersedia; instance repository belum dihubungkan |
+| Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository, tes data 27/27; lihat bagian 10 |
+| Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | PARTIAL | Lint/typecheck/build lulus; browser dan instalasi bersih belum terverifikasi |
 | F1.1–F1.7 | TODO | Seluruh halaman fitur masih berupa penanda fase |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
@@ -86,9 +86,9 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 - [x] Setup, design system, shell, routing, mode switcher.
 - [x] Shared states, dokumentasi setup, dan factory Context repository.
 - [x] Lint/typecheck/build shell dijalankan dan lulus.
-- [ ] Kontrak tujuh entitas dan Zod schema teman direview.
-- [ ] Fixture historis/terkini serta mock provider tersedia dan terintegrasi.
-- [ ] Tes filter, referensi, nilai nullable, determinisme, dan as_of lulus.
+- [x] Kontrak tujuh entitas dan Zod schema tersedia (`feat/f0-data`); review backend menunggu.
+- [x] Fixture historis/terkini serta mock provider tersedia dan terintegrasi.
+- [x] Tes filter, referensi, nilai nullable, determinisme, dan as_of lulus (`test:data` 27/27).
 - [ ] MapLibre tersedia sebelum F1.3.
 - [ ] Instalasi bersih dan smoke browser pada lingkungan normal lulus.
 - [ ] Gate F0 diterima sebelum lanjut F1.1.
@@ -159,6 +159,9 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 | 2026-10-14 | `npm ci --dry-run` offline | PASS | Validasi manifest/lockfile; bukan instalasi bersih |
 | 2026-10-14 | Inspeksi HTML route | PASS | Bahasa Indonesia, label DEMO/F0 tersedia |
 | 2026-10-14 | Browser smoke shell | FAIL — ENVIRONMENT | Chromium gagal diluncurkan: socket sandbox ditolak; belum menguji interaksi |
+| 2026-10-14 | `feat/f0-data`: lint, typecheck, build | PASS | Lingkungan lokal teman |
+| 2026-10-14 | `feat/f0-data`: `npm run test:data` | PASS | 27/27 |
+| 2026-10-14 | `feat/f0-data`: `npm run test:shell` (`next start` port 3100) | PASS | 1/1; screenshot 1440 px & 375 px tanpa error console/hydration |
 
 Hasil ini bersifat historis. Setelah perubahan kode berikutnya, jalankan ulang pemeriksaan yang relevan dan tambahkan hasil baru; jangan menyebut hasil lama sebagai bukti versi terbaru sudah lulus.
 
@@ -190,6 +193,8 @@ Status: TODO = belum dimulai; IN_PROGRESS = dikerjakan; IMPLEMENTED = kode terse
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-14 | F0 shell / IMPLEMENTED | Kita | `main` lokal, `f3177ea` | Shell tersedia; lint/typecheck/build PASS; browser FAIL karena lingkungan | Integrasi provider teman dan QA browser |
 | 2026-10-14 | Backend data / IMPLEMENTED | Kita | `feat/backend-data` | Audit GWT/VIIRS nyata; migration PostGIS upgrade/downgrade PASS; Ruff PASS; 20 pytest PASS | Adapter REST tiga endpoint read; FIRMS/rules berikutnya |
+| 2026-10-14 | F0 data / IMPLEMENTED | Teman | `feat/f0-data` | Kontrak, mock/REST repository, provider; lint/typecheck/build/test:data/test:shell PASS | `feat/frontend-monitoring` setelah merge |
+| — | — | — | — | — | — |
 
 ## 9. Definisi aplikasi selesai
 
@@ -212,3 +217,62 @@ Selesai berarti gate frontend dan backend terpenuhi: API/DB nyata digunakan dala
 Di luar scope: validasi ilmiah baru atas rule engine, prediksi kebakaran nasional, deteksi api bawah tanah, sensor GWT live, rute patroli, chatbot. Deployment mengikuti target hosting yang disepakati; CHIRPS opsional.
 
 Referensi: [README setup](../README.md), [hasil F0 shell](implementation-plan.md), dan [PRD roadmap](../../../prdFiles/prd-roadmap.md).
+
+## 10. Sesi frontend 2026-10-14 — `feat/f0-data`
+
+**Status:** selesai, menunggu review. Belum di-push dan belum di-merge.
+
+**Scope sesi:** kontrak data, mock + REST repository, integrasi provider, penyesuaian UI ke `style.md`.
+
+#### Commit
+
+| Commit | Isi |
+| --- | --- |
+| `99204b7` | Schema Zod + tipe, state machine tugas, area, periode, label, komposisi dashboard |
+| `5b02166` | `createMockRepository()`, `createRestRepository()`, fixture deterministik, localStorage store, tes data, dependency `tsx` |
+| `381bece` | RepositoryProvider, cache query per mode, filter periode/area per mode, panel konteks memakai provider |
+| `9e664f8` | `style.md`; Sheet `shadow-sm` tanpa blur; tanpa shadow pada segmen aktif; gradasi kartu dihapus; hover kartu `border-primary/25` |
+| (commit docs) | README, `.env.example`, `docs/data-contract.md`, plan, tracker |
+
+#### Tes yang benar-benar dijalankan
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` | Lulus |
+| `npm run typecheck` | Lulus |
+| `npm run build` | Lulus |
+| `npm run test:data` | 27/27 lulus |
+| `npm run test:shell` terhadap `next start` port 3100 | 1/1 lulus |
+| Screenshot dashboard 1440 px & 375 px | Tidak ada error console/hydration |
+
+#### Belum dikerjakan / risiko
+
+- Halaman F1 (dashboard, groundwater, hotspots, priorities, tasks, ML) masih placeholder.
+- Persistensi tugas melalui UI belum bisa diuji di browser karena UI tugas baru dibangun pada F1.5. Persistensi sudah diuji di level repository.
+- Prioritas mock memakai `demo-rules-0.1`, bukan decision engine backend. Bentuk output mengikuti PRD agar bisa diganti dengan REST.
+- `GET /api/v1/users` belum ada di rencana API. REST mode membutuhkan endpoint ini untuk pemilihan petugas.
+- MapLibre belum dipasang (F1.3).
+
+#### Handoff berikutnya
+
+Branch `feat/frontend-monitoring` dari `main` setelah `feat/f0-data` digabung: dashboard (F1.1), groundwater (F1.2), hotspots + MapLibre (F1.3) memakai `useDashboardSummary`, `useGroundwater`, `useHotspots`.
+
+## 11. Sesi frontend 2026-10-14 — UX pengguna awam + panduan (lanjutan di `feat/f0-data`)
+
+**Status:** selesai, menunggu review. Belum push/merge.
+
+- Modal panduan (Radix Dialog): auto-open sekali per browser, tab dengan navigasi panah/Home/End, fokus kembali ke tombol pembuka, label "Segera tersedia" untuk modul yang belum siap, catatan darurat 112/BPBD.
+- Bahasa awam: kode fase (F0/F1/P1) dan judul Inggris dihapus dari UI; mode jadi "Riwayat"/"Terkini"; tagline "Cegah · Deteksi · Tindak".
+- Pengatur periode (input tanggal native) + wilayah + "Kembalikan ke awal"; di layar kecil panel ini tampil sebelum kartu placeholder.
+- Tes browser diperluas: panduan pertama kali, tidak muncul ulang, fokus kembali, filter per mode, panduan dari drawer, overflow 768/375.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 27/27 lulus |
+| `npm run test:shell` (production, port 3100) | 1/1 lulus |
+| Screenshot 1440/375 (panduan + ringkasan) | Tanpa error/warning console |
+
+Temuan yang diperbaiki saat tes: fokus tidak kembali ke tombol Panduan setelah modal ditutup; peringatan aksesibilitas Radix `aria-describedby`; nama aksesibel link "Uji prediksi" ganda.
+
+Belum: halaman fitur (F1.1–F1.6) masih placeholder — UX inti baru lengkap setelah modul dibangun.
