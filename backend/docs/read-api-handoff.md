@@ -4,6 +4,10 @@ Keputusan: Pydantic/OpenAPI backend menjadi acuan bentuk JSON HTTP. Teman fronte
 schema Zod respons API, pemetaan REST adapter, dan model UI. Endpoint priorities, tasks/reports,
 users dan ML tidak termasuk integrasi ini; endpoint tersebut belum siap untuk alur aplikasi.
 
+Pembaruan BE-04: Current Monitoring kini memiliki cache dari sync NASA nyata. Status/waktu
+global tersedia melalui endpoint terpisah; lihat [firms-handoff.md](firms-handoff.md).
+Angka dan contoh kosong di bawah adalah snapshot sebelum BE-04, bukan kondisi database terbaru.
+
 ## Database aplikasi yang diverifikasi
 
 - Docker PostgreSQL 16/PostGIS 3.5: `127.0.0.1:5433`, database `gambutops`.

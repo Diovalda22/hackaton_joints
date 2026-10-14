@@ -27,6 +27,21 @@ berjalan bersama PostgreSQL lokal pada port 5432. Jika `.env` sudah ada, sesuaik
 Handoff frontend yang mengikuti kontrak backend tersedia di
 [read-api-handoff.md](docs/read-api-handoff.md), termasuk contoh respons database aplikasi.
 
+## FIRMS live (BE-04)
+
+Sync manual NASA, cache Current Monitoring, dan status global sudah tersedia.
+Panduan konfigurasi key, endpoint coordinator, CLI, cooldown dan contoh respons nyata:
+[firms-handoff.md](docs/firms-handoff.md).
+
+```bash
+.venv/bin/alembic upgrade head
+.venv/bin/python scripts/configure_firms_key.py
+.venv/bin/python -m app.cli sync-hotspots --area batanghari --product VIIRS_SNPP_NRT --apply
+```
+
+`GET /api/v1/hotspots/sync-status` membaca status sync; `GET /api/v1/hotspots?mode=CURRENT_MONITORING`
+membaca cache. Keduanya tidak memanggil NASA. Cooldown berlaku sepuluh menit per area/produk.
+
 ## Autentikasi demo
 
 Endpoint write memakai `Authorization: Bearer <token>`. Pada development/test saja tersedia
@@ -107,6 +122,7 @@ Migration pertama mengaktifkan PostGIS dan `pgcrypto`, lalu membuat:
 - `priority_assessments` dengan snapshot JSON dan versi rule;
 - `users`, `inspection_tasks`, `field_reports`, serta `task_status_history`.
 - `data_import_runs` untuk audit dan hasil import; kolom mode membedakan observasi historis/terkini.
+- `firms_sync_runs` untuk status/riwayat percobaan sync, cooldown dan sumber respons.
 
 Koordinat stasiun harus lengkap dan memiliki `coordinate_source`. Status, role, mode, prioritas,
 dan kualitas data dibatasi oleh constraint database. Menjalankan migration offline tanpa database:

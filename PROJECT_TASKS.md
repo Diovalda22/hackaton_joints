@@ -1,6 +1,6 @@
 # GambutOps — Daftar Fitur dan Tugas Proyek
 
-Pembaruan: 14 Oktober 2026. Baseline kode: `feat/backend-data`, commit `085023b`.
+Pembaruan: 15 Oktober 2026. Baseline data historis: `feat/backend-data`, commit `085023b`.
 Daftar ini mencakup backend milik kita, frontend milik teman, dan pekerjaan bersama sampai submission.
 Status frontend berdasarkan checkout ini; pekerjaan di branch teman belum diperiksa.
 
@@ -41,7 +41,7 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | BE-01 | PRD, roadmap, pembagian task, tracker dan kontrak OpenAPI | Tersedia; review kontrak/frontend dan deadline masih terbuka |
 | BE-02 | FastAPI, auth/role, CORS, environment, SQLAlchemy, migration PostGIS dan seed demo | Implementasi/tes tersedia |
 | BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia; database aplikasi diseed dan handoff kontrak siap, adaptasi frontend menunggu teman |
-| BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Belum; branch `feat/backend-firms-priorities` |
+| BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Implementasi tersedia; uji live Batanghari/SNPP berhasil 11 hotspot; review dan integrasi UI menunggu |
 | BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Belum; branch `feat/backend-firms-priorities` |
 | BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Belum; branch `feat/backend-tasks` |
 | BE-07 | Baseline ML, fitur tanpa leakage, split kronologis, training Random Forest dan evaluasi | Belum; branch `feat/backend-ml` |
@@ -86,11 +86,12 @@ integrasi, review, atau deployment.
 | --- | --- | --- |
 | Shell aplikasi | Sidebar/drawer, topbar, enam route, mode switcher, toast, shared states | Halaman domain frontend masih placeholder |
 | Backend foundation | FastAPI, Pydantic/OpenAPI, health, CORS, identitas dua role demo | Auth memakai bearer token demo; workflow bisnis belum aktif |
-| Database | PostgreSQL/PostGIS, dua migration, sepuluh tabel domain/import, indeks geospasial | Database aplikasi/deployment belum disiapkan |
+| Database | PostgreSQL/PostGIS, tiga migration, sebelas tabel domain/import/sync, indeks geospasial | Database aplikasi lokal siap; deployment menunggu |
 | Audit dan ETL GWT | Hash sumber, JSON audit, CSV normalisasi, null/gap/duplikat, import transaksional | Historis; koordinat stasiun null; `wrc` hanya arsip |
 | API stasiun/GWT | Daftar stasiun, query UUID/tanggal/mode, provenance, nilai null | Grafik dan adapter frontend belum terintegrasi |
-| Import VIIRS historis | Streaming/COPY, waktu UTC, key stabil, dedup, riwayat import, dry-run | NASA FIRMS live belum diimplementasikan |
-| API hotspot | Filter tanggal/bbox/satelit/produk/mode, pagination, confidence mentah, FRP | Peta frontend belum tersedia; Current Monitoring masih kosong |
+| Import VIIRS historis | Streaming/COPY, waktu UTC, key stabil, dedup, riwayat import, dry-run | Terpisah dari produk/mode NRT |
+| FIRMS live | Sync coordinator/CLI, lock/cooldown, cache NRT, status/riwayat; satu uji live berhasil | Target lain dan integrasi UI menunggu |
+| API hotspot | Filter tanggal/bbox/satelit/produk/mode, pagination, confidence mentah, FRP | Current Monitoring berisi cache NRT; peta frontend belum diverifikasi |
 | Verifikasi backend data | 20 tes lulus termasuk PostGIS, rollback COPY, migration upgrade/downgrade | E2E lintas frontend/backend belum tersedia |
 
 Import nyata pada database tes: delapan stasiun, 3.928 GWT unik, 809.523 hotspot.
@@ -152,11 +153,12 @@ Gate: pengguna dapat menelusuri GWT dan hotspot historis melalui browser.
 
 ## 4. NASA FIRMS live — milik kita
 
-- [ ] Client FIRMS server-side dengan key dari environment, timeout dan validasi respons.
-- [ ] Endpoint sync terautentikasi dan role yang berwenang; pembatas panggilan/import.
-- [ ] Dedup CSV/API konsisten, cache database, mode terkini dan provenance sumber produk.
-- [ ] Simpan status/waktu sync; error NASA mempertahankan data cache yang sudah ada.
-- [ ] Tes client/error/dedup dan uji live ketika akses tersedia; catat hasil aktual.
+- [x] Client FIRMS server-side dengan key dari environment, timeout dan validasi respons.
+- [x] Endpoint sync terautentikasi dan role coordinator; lock/cooldown target dan pembatas respons.
+- [x] Dedup/upsert CSV/API per produk identik, cache database, mode terkini dan provenance produk.
+- [x] Simpan status/waktu sync; error NASA mempertahankan data cache yang sudah ada.
+- [x] Tes client/error/dedup dan uji live Batanghari/SNPP: 11 hotspot tersimpan.
+- [ ] Review PR BE-04 dan integrasi frontend; uji tambahan target lain sesuai kebutuhan demo.
 - [ ] Teman: tampilkan mode terkini, waktu sync, error/fallback dan label sumber.
 
 Gate: hotspot terkini nyata tampil dengan timestamp/sensor; CSV historis tetap fallback berlabel.
