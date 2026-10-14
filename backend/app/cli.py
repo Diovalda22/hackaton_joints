@@ -1,0 +1,157 @@
+import argparse
+import json
+from collections.abc import Sequence
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+from app.data.groundwater import (
+    audit_groundwater,
+    import_groundwater,
+    write_groundwater_outputs,
+)
+from app.data.hotspots import audit_hotspots, import_hotspots, parse_bbox
+from app.db.session import SessionLocal
+
+
+def iso_date(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("date must use YYYY-MM-DD") from exc
+
+
+def _print_json(value: Any) -> None:
+    print(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _add_hotspot_filters(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--from", dest="date_from", type=iso_date)
+    parser.add_argument("--to", dest="date_to", type=iso_date)
+    parser.add_argument("--bbox", type=parse_bbox, metavar="WEST,SOUTH,EAST,NORTH")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="gambutops")
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    audit_gwt = commands.add_parser("audit-gwt", help="Audit and normalize mmc1.xlsx")
+    audit_gwt.add_argument("file", type=Path)
+    audit_gwt.add_argument("--output-dir", type=Path, default=Path("var/audits"))
+
+    import_gwt = commands.add_parser("import-gwt", help="Import audited GWT observations")
+    import_gwt.add_argument("file", type=Path)
+    import_gwt.add_argument("--apply", action="store_true")
+
+    audit_viirs = commands.add_parser("audit-hotspots", help="Audit VIIRS CSV files")
+    audit_viirs.add_argument("files", nargs="+", type=Path)
+    audit_viirs.add_argument("--output", type=Path)
+    _add_hotspot_filters(audit_viirs)
+
+    import_viirs = commands.add_parser("import-hotspots", help="Import VIIRS CSV files")
+    import_viirs.add_argument("files", nargs="+", type=Path)
+    import_viirs.add_argument("--apply", action="store_true")
+    import_viirs.add_argument("--allow-full-dataset", action="store_true")
+    _add_hotspot_filters(import_viirs)
+    return parser
+
+
+def _validate_dates(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if args.date_from and args.date_to and args.date_from > args.date_to:
+        parser.error("--from must be on or before --to")
+
+
+def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    if args.command == "audit-gwt":
+        audit = audit_groundwater(args.file)
+        output_dir: Path = args.output_dir
+        audit_path = output_dir / f"{args.file.stem}.audit.json"
+        normalized_path = output_dir / f"{args.file.stem}.normalized.csv"
+        write_groundwater_outputs(audit, audit_path, normalized_path)
+        _print_json(
+            {
+                "audit": audit.report,
+                "audit_json": audit_path.as_posix(),
+                "normalized_csv": normalized_path.as_posix(),
+            }
+        )
+        return 0
+
+    if args.command == "import-gwt":
+        if not args.apply:
+            _print_json(
+                {
+                    "dry_run": True,
+                    "audit": audit_groundwater(args.file).report,
+                    "message": "Run again with --apply to write to PostgreSQL",
+                }
+            )
+            return 0
+        with SessionLocal.begin() as session:
+            result = import_groundwater(session, args.file)
+        _print_json(result)
+        return 0
+
+    if args.command in {"audit-hotspots", "import-hotspots"}:
+        _validate_dates(parser, args)
+        if args.command == "import-hotspots" and args.apply and not (
+            args.date_from or args.date_to or args.bbox or args.allow_full_dataset
+        ):
+            parser.error(
+                "a date filter, --bbox, or --allow-full-dataset is required for hotspot import"
+            )
+        reports = [
+            audit_hotspots(
+                path,
+                date_from=args.date_from,
+                date_to=args.date_to,
+                bbox=args.bbox,
+            )
+            for path in args.files
+        ]
+        if args.command == "audit-hotspots":
+            payload = {"files": reports, "total_rows": sum(report["rows"] for report in reports)}
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+            _print_json(payload)
+            return 0
+
+        if not args.apply:
+            _print_json(
+                {
+                    "dry_run": True,
+                    "files": reports,
+                    "message": "Run again with --apply to write to PostgreSQL",
+                }
+            )
+            return 0
+        results = []
+        with SessionLocal.begin() as session:
+            for path in args.files:
+                results.append(
+                    import_hotspots(
+                        session,
+                        path,
+                        date_from=args.date_from,
+                        date_to=args.date_to,
+                        bbox=args.bbox,
+                    )
+                )
+        _print_json({"files": results})
+        return 0
+
+    parser.error(f"unknown command: {args.command}")
+    return 2
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = build_parser()
+    return run(parser.parse_args(argv), parser)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

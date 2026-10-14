@@ -1,4 +1,5 @@
 from app.models.entities import (
+    DataImportRun,
     DataSource,
     FieldReport,
     GroundwaterObservation,
@@ -12,6 +13,7 @@ from app.models.entities import (
 
 __all__ = [
     "DataSource",
+    "DataImportRun",
     "FieldReport",
     "GroundwaterObservation",
     "Hotspot",

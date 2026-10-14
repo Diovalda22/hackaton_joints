@@ -15,6 +15,7 @@ class Hotspot(BaseModel):
     acquired_at: datetime
     source_product: str
     sensor: str
+    satellite: str
     frp: float | None = None
     confidence_raw: str | None = None
     verification_status: VerificationStatus
@@ -22,4 +23,11 @@ class Hotspot(BaseModel):
     quality_flag: QualityFlag
     mode: MonitoringMode
     last_synced_at: datetime
+
+
+class HotspotPage(BaseModel):
+    items: list[Hotspot]
+    total: int = Field(ge=0)
+    limit: int = Field(ge=1, le=1000)
+    offset: int = Field(ge=0)
 
