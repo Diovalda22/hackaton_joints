@@ -104,6 +104,9 @@ def test_import_reimport_conflict_rollback_and_spatial_reads(
                 from uuid import UUID
 
                 brg6 = next(s for s in stations if s.code == "BRG6")
+                assert brg6.period_start == date(2018, 4, 11)
+                assert brg6.period_end == date(2019, 10, 7)
+                assert brg6.source == "mmc1.xlsx"
                 observations = await repository.list_groundwater(
                     UUID(brg6.id), date_from=date(2019, 1, 1), date_to=date(2019, 1, 3),
                     mode=MonitoringMode.HISTORICAL_REPLAY,
@@ -121,6 +124,11 @@ def test_import_reimport_conflict_rollback_and_spatial_reads(
                 )
                 assert page.total == 1
                 assert page.items[0].longitude == 103
+                session.add(Station(code="EMPTY", region=None))
+                await session.flush()
+                empty = next(s for s in await repository.list_stations() if s.code == "EMPTY")
+                assert empty.period_start is None and empty.period_end is None
+                assert empty.source is None
         finally:
             await async_engine.dispose()
 

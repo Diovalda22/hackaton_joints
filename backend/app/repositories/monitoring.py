@@ -18,7 +18,22 @@ class MonitoringRepository:
         self.session = session
 
     async def list_stations(self) -> list[StationSchema]:
-        rows = (await self.session.execute(select(Station).order_by(Station.code))).scalars()
+        metadata = (
+            select(
+                GroundwaterObservation.station_id,
+                func.min(GroundwaterObservation.observed_date).label("period_start"),
+                func.max(GroundwaterObservation.observed_date).label("period_end"),
+                func.array_agg(func.distinct(DataSource.name)).label("sources"),
+            )
+            .join(DataSource, DataSource.id == GroundwaterObservation.source_id)
+            .group_by(GroundwaterObservation.station_id)
+            .subquery()
+        )
+        rows = (await self.session.execute(
+            select(Station, metadata.c.period_start, metadata.c.period_end, metadata.c.sources)
+            .outerjoin(metadata, metadata.c.station_id == Station.id)
+            .order_by(Station.code)
+        )).all()
         return [
             StationSchema(
                 id=str(station.id),
@@ -27,8 +42,11 @@ class MonitoringRepository:
                 latitude=station.latitude,
                 longitude=station.longitude,
                 coordinate_source=station.coordinate_source,
+                period_start=period_start,
+                period_end=period_end,
+                source=", ".join(sorted(sources)) if sources else None,
             )
-            for station in rows
+            for station, period_start, period_end, sources in rows
         ]
 
     async def station_exists(self, station_id: UUID) -> bool:

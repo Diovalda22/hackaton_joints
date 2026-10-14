@@ -17,6 +17,7 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 | Frontend UX pengguna awam | IMPLEMENTED — menunggu review | `feat/f0-data` | Modal panduan penggunaan, bahasa awam (tanpa kode fase/Inggris), pengatur periode & wilayah per mode | lint/typecheck/build PASS; `test:data` 27/27 PASS; `test:shell` 1/1 PASS | Detail di `frontend/docs/progress.md` |
 | Backend foundation | IMPLEMENTED | `feat/backend-foundation` | FastAPI, OpenAPI v1, auth dua role, CORS, SQLAlchemy, migration PostgreSQL/PostGIS, 9 tabel | Ruff PASS; pytest 10 PASS; Alembic offline SQL PASS | Review kontrak frontend; uji migration pada PostGIS nyata; lanjut ETL GWT/API read |
 | Backend data/read API | IMPLEMENTED | `feat/backend-data` | Audit/ETL GWT, importer COPY VIIRS idempotent, provenance/import runs, stations/GWT/hotspots API, mode/filter/pagination | Ruff PASS; 20 pytest PASS termasuk PostGIS nyata; migration upgrade/downgrade PASS; audit dataset nyata PASS | Frontend integrasikan tiga endpoint read; berikutnya FIRMS live dan priorities |
+| Database aplikasi / handoff read API | IMPLEMENTED — frontend menunggu adaptasi | `feat/backend-read-contract` | PostGIS aplikasi port 5433, seed GWT dan hotspot dua bbox DEMO, metadata periode/sumber stations, 14 snapshot respons API nyata | Reimport GWT/dua sampel hotspot menambah 0 observasi; smoke filter/mode/pagination PASS | Teman menyesuaikan Zod/REST adapter menurut `backend/docs/read-api-handoff.md` |
 
 ## Catatan integrasi backend
 
@@ -30,11 +31,19 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 - ID entitas berbentuk UUID string. Semua waktu bertimezone; waktu FIRMS nantinya disimpan UTC.
 - GWT nullable tetap `null`, bukan nol. Koordinat stasiun nullable dan tidak boleh dibuat tanpa
   `coordinate_source`.
+- Keputusan integrasi read API: OpenAPI backend menjadi acuan respons HTTP; teman mengubah
+  schema respons/REST adapter frontend. Field stations menambah `period_start`, `period_end`,
+  dan `source` nullable dari database. Panduan pemetaan dan contoh nyata tersedia di
+  [handoff read API](backend/docs/read-api-handoff.md).
 
 ## Blocker / risiko terbuka
 
 - Migration upgrade/downgrade serta idempotensi import sudah lulus pada PostGIS 16/3.5 terisolasi.
-  Konfigurasi database aplikasi/deployment tetap perlu ditentukan.
+  Verifikasi metadata stations (termasuk stasiun tanpa observasi) lulus; 20 tes backend dan Ruff
+  lulus pada sesi integrasi read API. Konfigurasi deployment tetap perlu ditentukan.
+- Database aplikasi lokal kini sudah dikonfigurasi dan diseed: delapan stasiun, 3.928 GWT,
+  dan 6.403 hotspot untuk 2019-08-17–2019-09-15 pada dua bbox DEMO. Migration mencapai
+  `20261014_0002`. Deployment masih belum ditentukan.
 - Import penuh terverifikasi: 3.928 GWT dan 809.523 hotspot; reimport seluruh CSV menambah
   0 baris. Smoke API pada dataset tersebut mengembalikan delapan stasiun, filter GWT sesuai,
   total hotspot 809.523, dan mode terkini kosong. Ini verifikasi database tes lokal.
@@ -42,7 +51,11 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
   perlu direview terhadap `/openapi.json` sebelum adapter REST diaktifkan.
 - File kredensial lokal harus tetap tidak terlacak; secret yang pernah dibagikan harus dirotasi.
 
-## Kebutuhan API dari frontend (`feat/f0-data`)
+## Kebutuhan awal frontend (`feat/f0-data`)
+
+Daftar berikut adalah usulan awal frontend, bukan kontrak HTTP backend yang sudah berlaku.
+Untuk stations/GWT/hotspots, keputusan terbaru adalah frontend memetakan respons backend
+sesuai handoff di atas. Kontrak write/priorities/ML akan dibahas pada milestone masing-masing.
 
 Ringkas, lengkapnya di `frontend/docs/data-contract.md#kebutuhan-api-untuk-backend`:
 
