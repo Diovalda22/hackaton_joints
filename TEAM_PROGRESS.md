@@ -6,6 +6,7 @@ Pembaruan terakhir: **14 Oktober 2026**.
 | --- | --- | --- | --- | --- | --- |
 | Frontend shell F0 | IMPLEMENTED | `main` (`f3177ea`) | Shell enam route; detail ada di `frontend/docs/progress.md` | Historis: lint/typecheck/build PASS; browser sandbox FAIL | Engineer frontend melanjutkan kontrak/provider dan F1 |
 | Frontend data F0 | IMPLEMENTED — menunggu review | `feat/f0-data` | Kontrak Zod + tipe, `GambutOpsRepository`, mock (deterministik, localStorage) + REST adapter, provider + cache per mode, UI sesuai `frontend/style.md` | lint/typecheck/build PASS; `test:data` 27/27 PASS; `test:shell` 1/1 PASS | `feat/frontend-monitoring` setelah `feat/f0-data` digabung |
+| Frontend UX pengguna awam | IMPLEMENTED — menunggu review | `feat/f0-data` | Modal panduan penggunaan, bahasa awam (tanpa kode fase/Inggris), pengatur periode & wilayah per mode | lint/typecheck/build PASS; `test:data` 27/27 PASS; `test:shell` 1/1 PASS | Detail di `frontend/docs/progress.md` |
 | Backend foundation | IMPLEMENTED | `feat/backend-foundation` | FastAPI, OpenAPI v1, auth dua role, CORS, SQLAlchemy, migration PostgreSQL/PostGIS, 9 tabel | Ruff PASS; pytest 10 PASS; Alembic offline SQL PASS | Review kontrak frontend; uji migration pada PostGIS nyata; lanjut ETL GWT/API read |
 
 ## Catatan integrasi backend

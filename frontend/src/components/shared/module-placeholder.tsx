@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { ArrowUpRight, CircleDashed, Check, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, CircleDashed, ShieldCheck } from "lucide-react";
 import { navigation } from "@/components/layout/navigation";
+import { GuideButton } from "@/components/guide/guide-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MonitoringContextPanel } from "./monitoring-context-panel";
+
+const quickStart = [
+  { title: "Pilih jenis data", text: "Riwayat atau Terkini, di bagian atas layar." },
+  { title: "Atur periode dan wilayah", text: "Di panel Data yang ditampilkan." },
+  { title: "Buka menu", text: "Mulai dari Muka air tanah atau Titik panas." },
+];
 
 export function ModulePlaceholder({ href }: { href: string }) {
   const item = navigation.find((entry) => entry.href === href);
@@ -13,36 +20,64 @@ export function ModulePlaceholder({ href }: { href: string }) {
 
   return (
     <div className="space-y-7">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl"><p className="text-[10px] font-semibold tracking-[0.17em] text-teal">{item.eyebrow.toUpperCase()}</p><h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{item.title}</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{item.description}</p></div>
-        <Badge variant="outline" className="mt-1">F0 · FONDASI</Badge>
+      <div className="max-w-2xl">
+        <p className="text-[11px] font-semibold tracking-[0.16em] text-teal">{item.eyebrow}</p>
+        <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{item.title}</h1>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.description}</p>
       </div>
+
+      {dashboard && (
+        <section aria-labelledby="quick-start-title" className="rounded-xl border bg-card p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="quick-start-title" className="text-base font-semibold">Mulai dari sini</h2>
+            <GuideButton tab="steps" variant="outline" size="sm">Lihat panduan lengkap</GuideButton>
+          </div>
+          <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+            {quickStart.map((step, index) => (
+              <li key={step.title} className="flex gap-3 rounded-lg bg-muted/60 p-3.5">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-card text-sm font-semibold text-primary" aria-hidden="true">{index + 1}</span>
+                <div><p className="text-sm font-medium">{step.title}</p><p className="mt-0.5 text-xs leading-5 text-muted-foreground">{step.text}</p></div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="gap-4 p-5 sm:p-7">
-            <div className="flex items-center justify-between gap-3"><span className="flex size-12 items-center justify-center rounded-xl border border-primary/10 bg-secondary"><Icon className="size-6 text-primary" aria-hidden="true" /></span><Badge variant="outline">{item.phase} · TAHAP BERIKUTNYA</Badge></div>
-            <div><CardTitle className="text-xl">{dashboard ? "Navigasi siap. Pemantauan menyusul." : "Modul akan tersedia pada fase " + item.phase}</CardTitle><CardDescription className="mt-2">{dashboard ? "Jelajahi struktur aplikasi dan ubah mode pemantauan. Provider data sudah terhubung; ringkasan operasional ditampilkan pada F1.1." : "Route dan konteks mode sudah tersedia. Interaksi operasional berikut akan dibangun pada tahap modul ini."}</CardDescription></div>
+            <div className="flex items-center justify-between gap-3"><span className="flex size-12 items-center justify-center rounded-xl border border-primary/10 bg-secondary"><Icon className="size-6 text-primary" aria-hidden="true" /></span><Badge variant="outline">Segera tersedia</Badge></div>
+            <div>
+              <CardTitle className="text-xl">{dashboard ? "Ringkasan sedang disiapkan" : "Halaman ini sedang disiapkan"}</CardTitle>
+              <CardDescription className="mt-2">Sementara itu, Anda sudah bisa mengganti jenis data, mengatur periode dan wilayah, serta membaca panduan.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="px-5 pb-5 sm:px-7 sm:pb-7">
-            <p className="mb-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground">TERSEDIA PADA {item.phase}</p>
+            <h3 className="mb-3 text-sm font-medium">Nanti di halaman ini Anda bisa:</h3>
             <ul className="space-y-3">{item.capabilities.map((capability) => <li key={capability} className="flex items-start gap-2.5 text-sm leading-6"><CircleDashed className="mt-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><span>{capability}</span></li>)}</ul>
           </CardContent>
-          <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 border-t bg-muted/40 px-5 py-3.5 text-xs text-muted-foreground sm:px-7"><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Navigasi tersedia</span><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Mode dapat diubah</span><span className="flex items-center gap-1.5"><Check className="size-3.5 text-primary" aria-hidden="true" />Provider data terhubung</span></div>
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t bg-muted/40 px-5 py-3.5 sm:px-7">
+            <span className="text-xs text-muted-foreground">Belum tahu harus mulai dari mana?</span>
+            <GuideButton tab="steps" variant="ghost" size="sm">Buka panduan</GuideButton>
+          </div>
         </Card>
-        <MonitoringContextPanel />
+        {/* Di layar kecil, panel pengaturan tampil lebih dulu agar langkah "atur periode" langsung terlihat. */}
+        <div className="order-first xl:order-none"><MonitoringContextPanel /></div>
       </div>
 
       {dashboard && (
         <section id="modul" aria-labelledby="module-list-title" className="scroll-mt-6">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 id="module-list-title" className="text-base font-semibold">Modul operasional</h2><span className="text-xs text-muted-foreground">Implementasi bertahap · F1.2–F1.6</span></div>
+          <h2 id="module-list-title" className="mb-4 text-base font-semibold">Menu</h2>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {navigation.filter((entry) => entry.href !== "/dashboard").map((entry) => {
               const ModuleIcon = entry.icon;
               return (
                 <Link key={entry.href} href={entry.href} className="group flex items-start gap-3 rounded-xl border bg-card p-4 transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-teal"><ModuleIcon className="size-[18px]" aria-hidden="true" /></span>
-                  <div className="min-w-0 flex-1"><h3 className="text-sm font-semibold">{entry.label}</h3><p className="mt-1 text-xs text-muted-foreground">{entry.phase} · Menunggu implementasi</p></div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold">{entry.label}</h3>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{entry.available ? "Tersedia" : entry.experimental ? "Uji coba · segera tersedia" : "Segera tersedia"}</p>
+                  </div>
                   <ArrowUpRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
                 </Link>
               );
@@ -51,9 +86,9 @@ export function ModulePlaceholder({ href }: { href: string }) {
         </section>
       )}
 
-      <div className="flex items-start gap-3 rounded-lg border border-primary/15 bg-secondary/40 p-4 text-xs leading-5">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-        <p><span className="font-semibold text-primary">Keputusan yang dapat ditelusuri.</span> Prioritas pemeriksaan bersifat heuristik. Data yang kurang tidak berarti kondisi aman; sumber, waktu, dan batasan data akan disertakan pada setiap modul.</p>
+      <div className="flex items-start gap-3 rounded-lg border border-primary/15 bg-secondary/40 p-4 text-sm leading-6">
+        <ShieldCheck className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" />
+        <p><span className="font-semibold text-primary">Bisa ditelusuri.</span> Setiap prioritas akan disertai alasan, sumber, dan waktu datanya. Data yang kurang bukan berarti aman.</p>
       </div>
     </div>
   );

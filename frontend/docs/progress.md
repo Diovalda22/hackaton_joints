@@ -254,3 +254,23 @@ Referensi: [README setup](../README.md), [hasil F0 shell](implementation-plan.md
 #### Handoff berikutnya
 
 Branch `feat/frontend-monitoring` dari `main` setelah `feat/f0-data` digabung: dashboard (F1.1), groundwater (F1.2), hotspots + MapLibre (F1.3) memakai `useDashboardSummary`, `useGroundwater`, `useHotspots`.
+
+## 11. Sesi frontend 2026-10-14 — UX pengguna awam + panduan (lanjutan di `feat/f0-data`)
+
+**Status:** selesai, menunggu review. Belum push/merge.
+
+- Modal panduan (Radix Dialog): auto-open sekali per browser, tab dengan navigasi panah/Home/End, fokus kembali ke tombol pembuka, label "Segera tersedia" untuk modul yang belum siap, catatan darurat 112/BPBD.
+- Bahasa awam: kode fase (F0/F1/P1) dan judul Inggris dihapus dari UI; mode jadi "Riwayat"/"Terkini"; tagline "Cegah · Deteksi · Tindak".
+- Pengatur periode (input tanggal native) + wilayah + "Kembalikan ke awal"; di layar kecil panel ini tampil sebelum kartu placeholder.
+- Tes browser diperluas: panduan pertama kali, tidak muncul ulang, fokus kembali, filter per mode, panduan dari drawer, overflow 768/375.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 27/27 lulus |
+| `npm run test:shell` (production, port 3100) | 1/1 lulus |
+| Screenshot 1440/375 (panduan + ringkasan) | Tanpa error/warning console |
+
+Temuan yang diperbaiki saat tes: fokus tidak kembali ke tombol Panduan setelah modal ditutup; peringatan aksesibilitas Radix `aria-describedby`; nama aksesibel link "Uji prediksi" ganda.
+
+Belum: halaman fitur (F1.1–F1.6) masih placeholder — UX inti baru lengkap setelah modul dibangun.

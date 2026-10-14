@@ -1,21 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { PanelLeftClose, PanelLeftOpen, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { BookOpen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Brand } from "./brand";
 import { navigation } from "./navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/components/ui/utils";
+import { useGuide } from "@/components/guide/guide-provider";
 
 export function SidebarContent({ pathname, compact = false, onNavigate, onToggle }: {
   pathname: string; compact?: boolean; onNavigate?: () => void; onToggle?: () => void;
 }) {
+  const { openGuide } = useGuide();
   return (
     <>
       <div className={cn("flex h-24 shrink-0 items-center border-b px-6", compact && "px-0")}><Brand compact={compact} onNavigate={onNavigate} /></div>
       <div className={cn("flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-7", compact && "px-3")}>
-        <p className={cn("mb-3 px-3 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground", compact && "sr-only")}>RUANG KERJA</p>
+        <p className={cn("mb-3 px-3 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground", compact && "sr-only")}>MENU</p>
         <nav aria-label="Navigasi utama" className="space-y-1.5">
           {navigation.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -26,8 +27,9 @@ export function SidebarContent({ pathname, compact = false, onNavigate, onToggle
               >
                 <Icon className="size-[18px] shrink-0" aria-hidden="true" />
                 <span className={cn("flex-1", compact && "sr-only")}>{item.label}</span>
-                {!compact && item.href === "/experiments/ml" && <span aria-hidden="true" className="rounded border border-border px-1.5 py-0.5 text-[9px]">P1</span>}
-                {!compact && active && item.href !== "/experiments/ml" && <span aria-hidden="true" className="size-1.5 rounded-full bg-primary" />}
+                {item.experimental && <span className="sr-only"> (uji coba)</span>}
+                {!compact && item.experimental && <span aria-hidden="true" className="rounded border border-border px-1.5 py-0.5 text-[10px]">Uji coba</span>}
+                {!compact && active && !item.experimental && <span aria-hidden="true" className="size-1.5 rounded-full bg-primary" />}
               </Link>
             );
           })}
@@ -35,10 +37,10 @@ export function SidebarContent({ pathname, compact = false, onNavigate, onToggle
         {!compact && (
           <div className="mt-auto pt-10 pb-5">
             <div className="rounded-lg border bg-card p-4">
-              <div className="flex items-center justify-between"><ShieldCheck className="size-5 text-primary" aria-hidden="true" /><Badge variant="outline">F0</Badge></div>
-              <p className="mt-3 text-sm font-semibold">Fondasi prototype</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">Navigasi dan konteks siap. Modul operasional dibangun bertahap.</p>
-              <Link href="/dashboard#modul" onClick={onNavigate} className="mt-3 inline-flex items-center gap-1.5 rounded text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Lihat tahap berikutnya<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
+              <BookOpen className="size-5 text-primary" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold">Baru pertama kali?</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Pelajari cara memakai GambutOps dan arti istilah penting.</p>
+              <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => { onNavigate?.(); openGuide("steps"); }}>Buka panduan</Button>
             </div>
           </div>
         )}

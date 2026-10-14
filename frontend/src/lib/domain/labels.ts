@@ -1,8 +1,14 @@
 import type { FieldReportResult, HotspotVerificationStatus, MonitoringMode, PriorityDecision, PriorityLevel, TaskStatus, UserRole } from "@/types";
 
 export const modeLabels: Record<MonitoringMode, string> = {
-  HISTORICAL_REPLAY: "Historical Replay",
-  CURRENT_MONITORING: "Current Monitoring",
+  HISTORICAL_REPLAY: "Mode riwayat",
+  CURRENT_MONITORING: "Mode terkini",
+};
+
+/** Penjelasan singkat mode untuk pengguna awam. */
+export const modeDescriptions: Record<MonitoringMode, string> = {
+  HISTORICAL_REPLAY: "Memutar ulang data 2018–2019 untuk latihan dan evaluasi.",
+  CURRENT_MONITORING: "Simulasi kondisi saat ini. Data muka air terbaru belum tersedia.",
 };
 
 export const taskStatusLabels: Record<TaskStatus, string> = {

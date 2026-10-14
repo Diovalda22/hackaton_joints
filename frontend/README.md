@@ -31,6 +31,9 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - **Lapisan data (F0 data):** schema Zod + tipe, `GambutOpsRepository`, `createMockRepository()` (deterministik, localStorage untuk tugas/laporan), `createRestRepository()` (validasi payload, pemetaan error, guard mode), state machine tugas, dan hook data dengan cache per mode serta pembatalan respons lama. Detail: [docs/data-contract.md](docs/data-contract.md).
 - Komponen bersama untuk provenance, DEMO/SIMULASI, loading, empty, error/retry, dan toast.
 - Panduan gaya UI: [style.md](style.md) — flat, tanpa shadow berlebih, hover halus.
+- **Panduan penggunaan dalam aplikasi** (modal): muncul otomatis pada kunjungan pertama, bisa dibuka lagi lewat tombol **Panduan** di header, kartu sidebar, atau kartu "Mulai dari sini". Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
+- Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
+- Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
 
 MapLibre belum dipasang; dipasang sebelum F1.3. Tidak ada peta atau koordinat stasiun buatan.
 

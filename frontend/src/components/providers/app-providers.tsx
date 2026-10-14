@@ -7,6 +7,7 @@ import { RepositoryProvider } from "./gambutops-repository";
 import { MonitoringProvider } from "./monitoring-context";
 import { QueryCacheProvider } from "./query-cache";
 import { Toaster } from "@/components/ui/sonner";
+import { GuideProvider } from "@/components/guide/guide-provider";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   // Satu instance stabil selama aplikasi berjalan.
@@ -21,8 +22,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <RepositoryProvider repository={repository}>
       <QueryCacheProvider>
         <MonitoringProvider>
-          {children}
-          <Toaster />
+          <GuideProvider>
+            {children}
+            <Toaster />
+          </GuideProvider>
         </MonitoringProvider>
       </QueryCacheProvider>
     </RepositoryProvider>
