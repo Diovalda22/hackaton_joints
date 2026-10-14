@@ -1,0 +1,88 @@
+import type { ModeBounds } from "@/lib/domain/periods";
+import type {
+  Area, Bbox, CreateReportInput, CreateTaskInput, DashboardSummary, FieldReport, GroundwaterSeries, HotspotCollection,
+  InspectionTask, InspectionTaskDetail, MlForecastInput, MlForecastResponse, MlMetricsResponse, MonitoringMode,
+  PriorityAssessment, Station, TaskStatus, UpdateTaskInput, User,
+} from "@/types";
+
+export interface RequestOptions {
+  signal?: AbortSignal;
+}
+
+export interface GroundwaterQuery {
+  mode: MonitoringMode;
+  station_id: string;
+  from: string;
+  to: string;
+}
+
+export interface HotspotQuery {
+  mode: MonitoringMode;
+  from: string;
+  to: string;
+  area_id?: string | null;
+  bbox?: Bbox | null;
+  source_product?: string | null;
+}
+
+export interface PriorityQuery {
+  mode: MonitoringMode;
+  as_of: string;
+  area_id?: string | null;
+}
+
+export interface TaskQuery {
+  mode?: MonitoringMode;
+  status?: readonly TaskStatus[];
+  assignee_id?: string | null;
+}
+
+export interface DashboardQuery {
+  mode: MonitoringMode;
+  from: string;
+  to: string;
+  /** Batas informasi; pada Historical Replay sama dengan `to`. */
+  as_of: string;
+  area_id: string | null;
+}
+
+/** Aktor demo. Pada REST, identitas final ditentukan oleh autentikasi server. */
+export interface MutationContext {
+  actor: User;
+}
+
+export interface HealthStatus {
+  status: "ok" | "unavailable";
+  detail: string | null;
+}
+
+/**
+ * Satu-satunya pintu data untuk UI. Mock dan REST mengimplementasikan kontrak yang sama
+ * sehingga komponen tidak perlu tahu sumber datanya.
+ */
+export interface GambutOpsRepository {
+  readonly kind: "mock" | "rest";
+
+  /** Batas tanggal per mode. Current Monitoring memakai tanggal hari ini sumber data. */
+  getModeBounds(mode: MonitoringMode): ModeBounds;
+
+  health(options?: RequestOptions): Promise<HealthStatus>;
+  listAreas(options?: RequestOptions): Promise<Area[]>;
+  listUsers(options?: RequestOptions): Promise<User[]>;
+
+  listStations(options?: RequestOptions): Promise<Station[]>;
+  getGroundwater(query: GroundwaterQuery, options?: RequestOptions): Promise<GroundwaterSeries>;
+  listHotspots(query: HotspotQuery, options?: RequestOptions): Promise<HotspotCollection>;
+  listPriorities(query: PriorityQuery, options?: RequestOptions): Promise<PriorityAssessment[]>;
+
+  listTasks(query?: TaskQuery, options?: RequestOptions): Promise<InspectionTask[]>;
+  getTask(id: string, options?: RequestOptions): Promise<InspectionTaskDetail>;
+  createTask(input: CreateTaskInput, context: MutationContext, options?: RequestOptions): Promise<InspectionTask>;
+  updateTask(id: string, input: UpdateTaskInput, context: MutationContext, options?: RequestOptions): Promise<InspectionTask>;
+  createReport(taskId: string, input: CreateReportInput, context: MutationContext, options?: RequestOptions): Promise<FieldReport>;
+
+  getMlMetrics(options?: RequestOptions): Promise<MlMetricsResponse>;
+  forecastGroundwater(input: MlForecastInput, options?: RequestOptions): Promise<MlForecastResponse>;
+
+  getDashboardSummary(query: DashboardQuery, options?: RequestOptions): Promise<DashboardSummary>;
+}
