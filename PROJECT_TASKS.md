@@ -6,10 +6,10 @@ Status frontend berdasarkan checkout ini; pekerjaan di branch teman belum diperi
 
 ## Pembagian untuk dua orang
 
-**Orang 1 — teman Anda:** seluruh frontend, integrasi REST di browser, tes UI/E2E,
+**Orang 1 — farkhan:** seluruh frontend, integrasi REST di browser, tes UI/E2E,
 dan deployment frontend. Kepemilikan file: `frontend/**`, termasuk package/lockfile.
 
-**Orang 2 — Anda:** seluruh pekerjaan lainnya: backend, database, ETL, NASA FIRMS,
+**Orang 2 — ferren:** seluruh pekerjaan lainnya: backend, database, ETL, NASA FIRMS,
 decision engine, workflow server, ML, infrastruktur backend/database, dan submission.
 Kepemilikan file: `backend/**`, konfigurasi infrastruktur, dan dokumen proyek tingkat root.
 
@@ -17,7 +17,7 @@ Tugas bertanda “Bersama” pada checklist detail di bawah tetap memiliki satu 
 utama sesuai tabel ini. Orang lainnya membantu verifikasi/review. Perubahan tracker dilakukan
 bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebelum adapter berubah.
 
-### Task teman Anda — frontend
+### Task farkhan — frontend
 
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | FE-11 | README/env frontend, URL API publik, deployment frontend, smoke incognito | Belum; tunggu URL backend dari BE-10 |
 | FE-12 | Siapkan tampilan/alur demo untuk rekaman, screenshot dan dukung reviewer frontend | Belum; hasil diberikan ke Anda untuk submission |
 
-### Task Anda — backend dan pekerjaan lainnya
+### Task ferren — backend dan pekerjaan lainnya
 
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
