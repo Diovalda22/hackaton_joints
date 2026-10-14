@@ -8,7 +8,7 @@ ETL GWT, importer VIIRS historis, dan read API untuk monitoring.
 Gunakan Python 3.12+ dan Docker. Dari direktori `backend/`:
 
 ```bash
-cp .env.example .env
+[ -f .env ] || cp .env.example .env
 docker compose up -d postgres
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
@@ -19,6 +19,13 @@ python3 -m venv .venv
 API tersedia di `http://localhost:8000`, dokumentasi interaktif di `/docs`, kontrak mesin
 di `/openapi.json`, dan liveness di `/health`. Konfigurasi memakai prefix
 `GAMBUTOPS_`; jangan commit `.env` atau kunci FIRMS.
+
+PostgreSQL Docker diekspos pada `127.0.0.1:5433` (port container tetap 5432), sehingga dapat
+berjalan bersama PostgreSQL lokal pada port 5432. Jika `.env` sudah ada, sesuaikan port
+`GAMBUTOPS_DATABASE_URL` ke 5433; file tersebut tidak ditimpa otomatis.
+
+Handoff frontend yang mengikuti kontrak backend tersedia di
+[read-api-handoff.md](docs/read-api-handoff.md), termasuk contoh respons database aplikasi.
 
 ## Autentikasi demo
 

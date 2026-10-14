@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     app_env: Environment = "development"
     database_url: str = (
-        "postgresql+psycopg://gambutops:gambutops@localhost:5432/gambutops"
+        "postgresql+psycopg://gambutops:gambutops@127.0.0.1:5433/gambutops"
     )
     cors_allowed_origins: str = "http://localhost:3000"
     coordinator_token: str | None = None

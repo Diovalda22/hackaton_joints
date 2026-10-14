@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -10,4 +12,7 @@ class Station(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     coordinate_source: str | None = None
+    period_start: date | None = None
+    period_end: date | None = None
+    source: str | None = None
 

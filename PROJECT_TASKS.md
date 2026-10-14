@@ -40,7 +40,7 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | --- | --- | --- |
 | BE-01 | PRD, roadmap, pembagian task, tracker dan kontrak OpenAPI | Tersedia; review kontrak/frontend dan deadline masih terbuka |
 | BE-02 | FastAPI, auth/role, CORS, environment, SQLAlchemy, migration PostGIS dan seed demo | Implementasi/tes tersedia |
-| BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia pada `085023b`; review/merge data masih terbuka |
+| BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia; database aplikasi diseed dan handoff kontrak siap, adaptasi frontend menunggu teman |
 | BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Belum; branch `feat/backend-firms-priorities` |
 | BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Belum; branch `feat/backend-firms-priorities` |
 | BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Belum; branch `feat/backend-tasks` |
@@ -131,7 +131,9 @@ Gate: fondasi frontend/backend dapat dijalankan bersama dan kontrak diterima ked
 - [x] Backend: mode terpisah; CSV lokal historis; koordinat stasiun tanpa sumber tetap null.
 - [x] Backend: tes dan smoke API pada data nyata; commit/push `085023b`.
 - [ ] Bersama: review dan merge branch data setelah pemeriksaan reviewer.
-- [ ] Bersama: siapkan database aplikasi dan seed/import dataset demo yang disepakati.
+- [x] Anda: siapkan database aplikasi lokal dan seed GWT/sampel hotspot dua bbox DEMO; reimport tanpa duplikasi.
+- [x] Anda: publikasikan handoff OpenAPI read API dan snapshot JSON nyata untuk teman frontend.
+- [ ] Teman: sesuaikan schema respons/REST adapter dengan handoff backend dan uji payload nyata.
 
 Gate: frontend memakai data historis dari API/database dengan provenance dan missing yang benar.
 
