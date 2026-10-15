@@ -67,7 +67,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
     ["Prioritas pemeriksaan", "/priorities", "Prioritas pemeriksaan"],
     ["Tugas lapangan", "/tasks", "Tugas & laporan lapangan"],
     ["Uji prediksi (uji coba)", "/experiments/ml", "Uji prediksi muka air tanah"],
-    ["Ringkasan (segera tersedia)", "/dashboard", "Ringkasan pemantauan"],
+    ["Ringkasan", "/dashboard", "Ringkasan pemantauan"],
   ];
   for (const [label, path, title] of modules) {
     await page.locator("aside").getByRole("link", { name: label, exact: true }).click();

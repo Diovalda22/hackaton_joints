@@ -1,7 +1,7 @@
 import type { DashboardQuery, GambutOpsRepository, RequestOptions } from "@/lib/api/repository";
 import type { Activity, DashboardSummary, InspectionTask } from "@/types";
 import { findArea } from "./areas";
-import { ACTIVE_STATUSES, TERMINAL_STATUSES } from "./task-state-machine";
+import { ACTIVE_STATUSES, TERMINAL_STATUSES, orderedHistory } from "./task-state-machine";
 
 const ACTIVITY_LIMIT = 8;
 
@@ -66,7 +66,8 @@ export async function composeDashboardSummary(repo: SummarySources, query: Dashb
 
 export function buildActivity(tasks: readonly InspectionTask[], limit = ACTIVITY_LIMIT): Activity[] {
   return tasks
-    .flatMap((task) => task.history.map((change, index): Activity => ({
+    // Urutan riwayat dinormalisasi (pembuatan lebih dulu bila waktunya sama) sebelum diberi nomor.
+    .flatMap((task) => orderedHistory(task.history).map((change, index): Activity => ({
       id: `${task.id}:${index}`,
       at: change.at,
       kind: change.from === null ? "TASK_CREATED" : change.to === "SUBMITTED" ? "REPORT_SUBMITTED" : "TASK_STATUS",
@@ -76,6 +77,6 @@ export function buildActivity(tasks: readonly InspectionTask[], limit = ACTIVITY
       actor_id: change.actor_id,
       is_simulation: task.is_simulation,
     })))
-    .sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at) || a.task_id.localeCompare(b.task_id) || Number(b.id.split(":").at(-1)) - Number(a.id.split(":").at(-1)))
     .slice(0, limit);
 }
