@@ -25,9 +25,9 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     href: "/groundwater", label: "Muka air tanah", title: "Muka air tanah",
-    eyebrow: "CEGAH · MUKA AIR TANAH", phase: "F1.2", available: false, icon: Waves,
+    eyebrow: "CEGAH · MUKA AIR TANAH", phase: "F1.2", available: true, icon: Waves,
     description: "Pantau seberapa dalam air di bawah permukaan gambut. Gambut yang makin kering makin mudah terbakar.",
-    capabilities: ["Memilih stasiun pengukuran, misalnya BRG6 atau BRG3", "Melihat grafik ketinggian air tanah (dalam meter) dan mengatur rentang tanggal", "Hari tanpa pengukuran tetap terlihat kosong, tidak dianggap nol"],
+    capabilities: ["Memilih stasiun pengukuran, misalnya BRG6 atau BRG3", "Melihat grafik muka air tanah (dalam meter) dan mengatur rentang tanggal", "Hari tanpa pengukuran tetap terlihat kosong, tidak dianggap nol"],
   },
   {
     href: "/hotspots", label: "Titik panas", title: "Titik panas satelit",

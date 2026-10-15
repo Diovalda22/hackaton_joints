@@ -17,7 +17,8 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository; REST stations/GWT/hotspots disesuaikan dengan read API backend di `feat/fe-read-contract`, tes data 38/38; lihat bagian 12 |
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | PARTIAL | Lint/typecheck/build lulus; browser dan instalasi bersih belum terverifikasi |
-| F1.1–F1.7 | TODO | Seluruh halaman fitur masih berupa penanda fase |
+| F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
+| F1.1, F1.3–F1.7 | TODO | Halaman fitur lain masih berupa penanda fase |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
 | FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
@@ -104,10 +105,10 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 
 ### F1.2 — Groundwater
 
-- [ ] Pilihan stasiun BRG6/BRG3/lainnya, filter tanggal, grafik dan tooltip.
-- [ ] Statistik/tren dihitung hanya dari observasi valid; missing tetap gap/null.
-- [ ] Satuan meter, nilai negatif, sumber sintetis, dan keterbatasan jelas.
-- [ ] Current Monitoring menampilkan GWT terkini tidak tersedia.
+- [x] Pilihan stasiun BRG6/BRG3/lainnya, filter tanggal, grafik dan tooltip.
+- [x] Statistik/tren dihitung hanya dari observasi valid; missing tetap gap/null.
+- [x] Satuan meter, nilai negatif, sumber sintetis, dan keterbatasan jelas.
+- [x] Current Monitoring menampilkan GWT terkini tidak tersedia.
 
 ### F1.3 — Hotspots
 
@@ -308,4 +309,30 @@ Catatan:
 - `getDashboardSummary` pada REST masih gagal (HTTP 501) karena `/priorities` belum diimplementasikan; sesuai handoff.
 - Halaman groundwater/hotspots/dashboard masih placeholder, jadi belum ada pemeriksaan browser pada mode REST. Saat FE-04/FE-05 dibangun: tampilkan `code`, batas periode stasiun, beda MISSING vs duplikat, label “waktu import pada hasil halaman ini”, dan reset offset ketika filter/mode berubah.
 - CORS backend default hanya `http://localhost:3000`; buka frontend REST lewat `localhost`.
+
+## 13. Sesi frontend 2026-10-15 — halaman Muka air tanah (FE-04, `feat/fe-groundwater`)
+
+**Status:** IMPLEMENTED, sudah di-push ke `feat/fe-groundwater`; menunggu review. Dibangun di atas `feat/fe-read-contract` (PR #5).
+
+Keputusan UX:
+
+- Pengguna awam harus bisa menjawab dalam ±10 detik: seberapa dalam air sekarang, makin kering atau basah, dan seberapa lengkap datanya.
+- Stasiun dipilih lewat dropdown native per wilayah, label `code` (bukan UUID), tersimpan di URL `?stasiun=BRG6`. Filter wilayah menyaring stasiun.
+- Periode memakai filter global + pintasan 30 hari / 90 hari / Seluruh data stasiun. Tautan "Ubah tanggal" menuju panel pengaturan (di bawah konten pada layar kecil).
+- Kartu: pengukuran terakhir (+ "cm di bawah permukaan"), perubahan 7 dan 14 hari (pasangan valid ±1 hari; selain itu "Belum bisa dihitung"), rata-rata, paling dalam. Semua hanya dari pengukuran valid.
+- Grafik: sumbu-Y meter dengan garis 0 m (permukaan) dan garis acuan −0,4 m (PP 57/2016, konteks bukan ambang bahaya). Hari tanpa nilai memutus garis dan diarsir: amber = tidak ada pengukuran, oranye = data ganda, abu-abu = di luar periode stasiun. Tooltip menjelaskan setiap hari, termasuk hari kosong. Tabel alternatif menampilkan semua hari.
+- Kondisi: memuat (skeleton), gagal (coba lagi), stasiun tak dikenal di URL, periode tanpa data (+ tombol seluruh periode stasiun), semua hari tanpa nilai, periode melewati masa stasiun, dan mode Terkini (tanpa grafik, tombol ke riwayat).
+- Label DEMO global (banner, panel, footer, header halaman) hanya tampil saat mock; REST menampilkan "SERVER".
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 48/48 lulus (10 tes baru `groundwater-domain`) |
+| `npm run test:shell` (production, port 3000, mock) | 2/2 lulus (tes baru `groundwater.test.mjs`, termasuk tanpa error console dan tanpa overflow 768/375) |
+| Browser mode REST ke backend `:8000` (dev, `localhost:3000`) | BRG6 dan BRG5 Mar 2019 tampil; data ganda 21 Mar dan kosong 22 Mar diarsir terpisah; tanpa badge DEMO |
+
+Catatan:
+
+- Peringatan hydration di mode dev muncul pada kunjungan pertama saat panduan terbuka otomatis (Radix memasang `aria-hidden` sebelum halaman selesai hydrate). Juga terjadi di `/hotspots`, jadi bukan dari halaman ini; tidak muncul di build production. Perlu ditangani terpisah.
+- Mengubah periode lewat pintasan juga mengubah `as_of` global untuk halaman lain (perilaku filter global yang sudah ada).
 

@@ -1,3 +1,4 @@
+import type { GwtDayStatus, GwtDirection } from "./groundwater";
 import type { FieldReportResult, HotspotVerificationStatus, MonitoringMode, PriorityDecision, PriorityLevel, TaskStatus, UserRole } from "@/types";
 
 export const modeLabels: Record<MonitoringMode, string> = {
@@ -89,4 +90,20 @@ export const missingInputLabels: Record<string, string> = {
   GWT_TREND_7D: "Tren muka air tanah 7 hari",
   HOTSPOT_OBSERVATIONS: "Pengamatan anomali panas",
   CHIRPS_RAINFALL: "Curah hujan CHIRPS (P1, belum terintegrasi)",
+};
+
+/** Status harian muka air tanah dengan bahasa awam. */
+export const gwtDayStatusLabels: Record<GwtDayStatus, string> = {
+  VALID: "Terukur",
+  MISSING: "Tidak ada pengukuran",
+  DUPLICATE: "Data ganda bertentangan",
+  SUSPECT: "Perlu dicek, tidak dipakai",
+  NO_RECORD: "Tidak tercatat di sumber",
+  OUTSIDE_STATION: "Di luar periode stasiun",
+};
+
+export const gwtDirectionLabels: Record<GwtDirection, string> = {
+  DRIER: "Makin kering",
+  WETTER: "Makin basah",
+  STABLE: "Relatif tetap",
 };
