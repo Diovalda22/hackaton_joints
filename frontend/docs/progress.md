@@ -18,9 +18,10 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | IMPLEMENTED | `feat/f0-foundation`: `npm ci` bersih, lint/typecheck/build, test:data 51/51, test:shell 9/9 (production), responsif 320–1280; menunggu review gate; lihat bagian 14 |
 | F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
-| F1.4 Priorities + F1.5 Tasks | IMPLEMENTED | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
-| F1.3 Hotspots | IMPLEMENTED | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
-| F1.1, F1.6, F1.7 | TODO | Ringkasan, ML, dan QA akhir |
+| F1.4 Priorities + F1.5 Tasks | MERGED (PR #10) | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
+| F1.3 Hotspots | MERGED (PR #10) | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
+| F1.1 Dashboard | IMPLEMENTED | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
+| F1.6, F1.7 | TODO | ML dan QA akhir |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
 | FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
@@ -100,10 +101,10 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 
 ### F1.1 — Dashboard
 
-- [ ] Area/periode/mode memengaruhi data provider.
-- [ ] Ringkasan hotspot, tugas, kelengkapan data, prioritas, aktivitas, dan provenance tampil.
-- [ ] Loading/empty/error/retry tersedia untuk query data.
-- [ ] Peta ringkasan terintegrasi setelah komponen F1.3 tersedia.
+- [x] Area/periode/mode memengaruhi data provider.
+- [x] Ringkasan hotspot, tugas, kelengkapan data, prioritas, aktivitas, dan provenance tampil.
+- [x] Loading/empty/error/retry tersedia untuk query data.
+- [x] Peta ringkasan terintegrasi setelah komponen F1.3 tersedia.
 
 ### F1.2 — Groundwater
 
@@ -421,3 +422,24 @@ Catatan:
 - Tanpa filter wilayah, REST mengembalikan semua hotspot yang diimpor (mis. 14.261 untuk periode default, termasuk di luar kotak DEMO); pilih wilayah untuk fokus.
 - Uji klik langsung pada titik peta belum otomatis (posisi piksel kanvas); dicek manual lewat screenshot.
 - DB uji belum berisi data NRT (status NOT_SYNCED); tombol sinkron belum dicoba ke NASA dari frontend.
+
+## 17. Sesi frontend 2026-10-15 — halaman Ringkasan (FE-03, `feat/frontend-dashboard`)
+
+**Status:** IMPLEMENTED, belum commit/push. Branch dari `main` setelah PR #10 (Tasks + Hotspots).
+
+- **Perlu perhatian:** wilayah prioritas tertinggi (keputusan, penjelasan, catatan "bukan peluang kebakaran") dan **Tugas yang menunggu Anda** sesuai peran demo (koordinator: baru/menunggu tinjauan/tindak lanjut; petugas: tugas miliknya yang ditugaskan/dikerjakan).
+- **Empat angka** yang dapat diklik: titik panas (total server + belum diverifikasi, dengan cakupan halaman), wilayah prioritas tinggi/sedang, tugas aktif, dan kelengkapan muka air tanah (% hari terukur atau pemberitahuan data terkini tidak tersedia).
+- **Peta ringkas** memakai `HotspotMap` dan kunci cache yang sama dengan halaman Titik panas (halaman pertama).
+- **Kegiatan terbaru** dengan nama aktor dan label SIMULASI; **provenance** (batas data/as_of, sumber dan waktu pembaruan hotspot). Panel periode/wilayah di samping (tautan "Ubah periode/wilayah").
+- `buildActivity` memakai `orderedHistory`, sehingga pembuatan tugas tampil sebelum penugasan pada waktu yang sama.
+- `ModulePlaceholder` disederhanakan (bagian khusus dashboard dihapus); kini hanya dipakai `/experiments/ml`.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 58/58 lulus (urutan kegiatan) |
+| `npm run test:shell` (production, mock) | 12/12 lulus (tes baru `dashboard.test.mjs`) |
+| `dashboard.test.mjs` di dev REST ke backend `:8000` | Lulus |
+| Sapuan responsif 6 halaman × 320–1280 | Tanpa overflow |
+
+Catatan: tanpa filter wilayah, jumlah titik panas REST mencakup semua hotspot yang diimpor (termasuk di luar kotak DEMO), sedangkan peta dibingkai ke dua wilayah DEMO.

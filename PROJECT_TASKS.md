@@ -21,13 +21,13 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
-| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | IMPLEMENTED di `feat/f0-foundation`: MapLibre + fallback + layar penuh, responsif 320–1280, `npm ci` bersih, smoke browser 9/9; menunggu review gate F0 |
-| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | IMPLEMENTED: mock/provider di `main` (`feat/f0-data`); REST disesuaikan dengan read API + pagination hotspot di `feat/fe-read-contract` (PR #5), menunggu merge |
-| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | Belum; komposisikan data dari API, lengkapi saat priorities/tasks siap |
-| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | IMPLEMENTED di `feat/fe-groundwater` (mock + REST diuji); menunggu review |
-| FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | IMPLEMENTED di `feat/frontend-hotspots`: peta/daftar sinkron, pagination, filter satelit, tugas dari titik, status + sync FIRMS; menunggu review |
-| FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | IMPLEMENTED di `feat/frontend-tasks`: REST BE-05 + mock, alasan/snapshot/missing, buat tugas; menunggu review |
-| FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | IMPLEMENTED di `feat/frontend-tasks`: REST BE-06 dengan Bearer token + mock, role demo, follow-up, E2E reload lulus; menunggu review |
+| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | MERGED (PR #7): shell, mode, panduan, MapLibre + fallback + layar penuh, responsif 320–1280 |
+| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | MERGED (PR #5): Zod/tipe, mock + REST adapter, provider, validasi payload, pagination hotspot |
+| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | IMPLEMENTED di `feat/frontend-dashboard`: perhatian utama per peran, 4 angka, peta ringkas, kegiatan, provenance; menunggu review |
+| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | MERGED (PR #7): stasiun, grafik gap/null, statistik valid, kelengkapan data, mode terkini; mock + REST diuji |
+| FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | MERGED (PR #10) dari `feat/frontend-hotspots`: peta/daftar sinkron, pagination, filter satelit, tugas dari titik, status + sync FIRMS |
+| FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-05 + mock, alasan/snapshot/missing, buat tugas |
+| FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-06 dengan Bearer token + mock, role demo, follow-up, E2E reload lulus |
 | FE-08 | ML UI: grafik actual/predicted, metrik/baseline, versi model dan batasan | Belum; hasil nyata setelah BE-07/08 |
 | FE-09 | Integrasi semua read/write API, loading/error/retry dan respons filter lama | Belum; dikerjakan bertahap bersama halaman terkait |
 | FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | Shell checks tersedia; QA final dan workflow E2E belum |

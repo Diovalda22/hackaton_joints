@@ -19,7 +19,7 @@ export interface NavigationItem {
 export const navigation: readonly NavigationItem[] = [
   {
     href: "/dashboard", label: "Ringkasan", title: "Ringkasan pemantauan",
-    eyebrow: "GAMBUTOPS · RINGKASAN", phase: "F1.1", available: false, icon: LayoutDashboard,
+    eyebrow: "GAMBUTOPS · RINGKASAN", phase: "F1.1", available: true, icon: LayoutDashboard,
     description: "Lihat kondisi lahan gambut, titik panas, dan tugas pemeriksaan dalam satu halaman.",
     capabilities: ["Melihat jumlah titik panas, tugas, dan kelengkapan data sesuai periode dan wilayah", "Melihat peta ringkas dan daftar lokasi yang perlu diperiksa", "Melihat kegiatan terbaru beserta sumber dan waktu datanya"],
   },
