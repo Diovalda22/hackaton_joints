@@ -60,6 +60,38 @@ class DataImportRun(Base):
     )
 
 
+class FirmsSyncRun(Base):
+    __tablename__ = "firms_sync_runs"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    area_id: Mapped[str] = mapped_column(String(30), nullable=False)
+    source_product: Mapped[str] = mapped_column(String(40), nullable=False)
+    day_range: Mapped[int] = mapped_column(nullable=False)
+    date_from: Mapped[date] = mapped_column(Date, nullable=False)
+    date_to: Mapped[date] = mapped_column(Date, nullable=False)
+    actor_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rows_received: Mapped[int] = mapped_column(nullable=False, default=0)
+    rows_inserted: Mapped[int] = mapped_column(nullable=False, default=0)
+    rows_conflicts: Mapped[int] = mapped_column(nullable=False, default=0)
+    error_code: Mapped[str | None] = mapped_column(String(50))
+    source_sha256: Mapped[str | None] = mapped_column(String(64))
+
+    __table_args__ = (
+        CheckConstraint("status IN ('RUNNING', 'SUCCESS', 'FAILED')", name="status_value"),
+        CheckConstraint("day_range BETWEEN 1 AND 5", name="day_range_value"),
+        CheckConstraint("area_id IN ('batanghari', 'kubu-raya')", name="area_value"),
+        CheckConstraint(
+            "source_product IN ('VIIRS_SNPP_NRT', 'VIIRS_NOAA20_NRT')", name="product_value"
+        ),
+        Index("ix_firms_sync_runs_target_started", "area_id", "source_product", "started_at"),
+    )
+
+
 class Station(Base, TimestampMixin):
     __tablename__ = "stations"
 

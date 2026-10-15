@@ -10,6 +10,8 @@ class PriorityAssessment(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    area_id: Literal["batanghari", "kubu-raya"]
+    decision: Literal["REVIEW", "MONITOR", "ESCALATE", "INSUFFICIENT_DATA"]
     mode: MonitoringMode
     as_of: datetime
     priority: PriorityLevel

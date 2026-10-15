@@ -131,48 +131,16 @@ def iter_hotspots(
             raise HotspotDataError(f"Missing required CSV columns: {sorted(missing_columns)}")
 
         for row_number, row in enumerate(reader, start=2):
-            try:
-                latitude = float(row["latitude"])
-                longitude = float(row["longitude"])
-            except (TypeError, ValueError) as exc:
-                raise HotspotDataError(f"Invalid coordinates at CSV row {row_number}") from exc
-            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
-                raise HotspotDataError(f"Coordinates out of range at CSV row {row_number}")
+            from app.data.viirs_rows import normalize_viirs_row
 
-            acquired_at = _parse_acquired_at(row["acq_date"], row["acq_time"], row_number)
-            if date_from and acquired_at.date() < date_from:
+            record = normalize_viirs_row(row, row_number, source_product)
+            if date_from and record.acquired_at.date() < date_from:
                 continue
-            if date_to and acquired_at.date() > date_to:
+            if date_to and record.acquired_at.date() > date_to:
                 continue
-            if bbox and not bbox.contains(latitude, longitude):
+            if bbox and not bbox.contains(record.latitude, record.longitude):
                 continue
-
-            satellite = row["satellite"].strip()
-            instrument = row["instrument"].strip()
-            if not satellite or not instrument:
-                raise HotspotDataError(f"Missing satellite or instrument at CSV row {row_number}")
-            raw_frp = row["frp"].strip()
-            try:
-                frp = float(raw_frp) if raw_frp else None
-            except ValueError as exc:
-                raise HotspotDataError(f"Invalid FRP at CSV row {row_number}") from exc
-            if frp is not None and (not math.isfinite(frp) or frp < 0):
-                raise HotspotDataError(f"Invalid FRP at CSV row {row_number}")
-            confidence = row["confidence"].strip() or None
-            yield HotspotRecord(
-                external_key=stable_external_key(
-                    source_product, acquired_at, latitude, longitude, satellite
-                ),
-                source_product=source_product,
-                acquired_at=acquired_at,
-                latitude=latitude,
-                longitude=longitude,
-                satellite=satellite,
-                instrument=instrument,
-                confidence_raw=confidence,
-                frp=frp,
-                source_row_number=row_number,
-            )
+            yield record
 
 
 def audit_hotspots(

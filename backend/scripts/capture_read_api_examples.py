@@ -91,8 +91,8 @@ async def capture() -> dict:
         for row in first["items"] + second["items"]:
             assert 102.9 <= row["longitude"] <= 104 and -2.2 <= row["latitude"] <= -1.3
             assert row["mode"] == "HISTORICAL_REPLAY" and row["satellite"] == "N"
-        current = await get("hotspots_current_empty", "/api/v1/hotspots?mode=CURRENT_MONITORING")
-        assert current["total"] == 0 and current["items"] == []
+        current = await get("hotspots_current", "/api/v1/hotspots?mode=CURRENT_MONITORING&limit=2")
+        assert all(row["mode"] == "CURRENT_MONITORING" for row in current["items"])
         empty = await get("hotspots_bbox_empty", "/api/v1/hotspots?bbox=0,0,1,1")
         assert empty["total"] == 0
         await get("invalid_bbox", "/api/v1/hotspots?bbox=104,0,100,-3", 422)
