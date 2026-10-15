@@ -21,10 +21,10 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
-| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | Tersedia; browser smoke masih perlu ditutup |
+| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | IMPLEMENTED di `feat/f0-foundation`: MapLibre + fallback + layar penuh, responsif 320–1280, `npm ci` bersih, smoke browser 9/9; menunggu review gate F0 |
 | FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | Belum; selaraskan dengan OpenAPI dan pagination hotspot |
 | FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | Belum; komposisikan data dari API, lengkapi saat priorities/tasks siap |
-| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | Belum; stations/GWT API sudah siap |
+| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | IMPLEMENTED di `feat/fe-groundwater` (mock + REST diuji); menunggu review |
 | FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | Belum; CSV/read API siap, status live menyusul BE-04 |
 | FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | Belum; mock dahulu, REST setelah BE-05/06 |
 | FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | Belum; REST setelah BE-06; localStorage hanya pada mock |

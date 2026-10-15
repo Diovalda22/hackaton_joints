@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { AlertCircle, Inbox, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,12 +14,13 @@ export function LoadingState({ label = "Memuat informasi…" }: { label?: string
   );
 }
 
-export function EmptyState({ title = "Belum ada data", description = "Belum ada pengamatan untuk konteks yang dipilih." }: { title?: string; description?: string }) {
+export function EmptyState({ title = "Belum ada data", description = "Belum ada pengamatan untuk konteks yang dipilih.", action }: { title?: string; description?: ReactNode; action?: ReactNode }) {
   return (
     <div role="status" className="flex flex-col items-center rounded-xl border bg-card px-6 py-12 text-center">
       <Inbox className="mb-4 size-8 text-muted-foreground" aria-hidden="true" />
       <h2 className="text-base font-semibold">{title}</h2>
       <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{description}</p>
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }

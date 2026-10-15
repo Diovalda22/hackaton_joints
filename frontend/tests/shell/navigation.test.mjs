@@ -63,11 +63,11 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
 
   const modules = [
     ["Muka air tanah", "/groundwater", "Muka air tanah"],
-    ["Titik panas", "/hotspots", "Titik panas satelit"],
-    ["Prioritas pemeriksaan", "/priorities", "Prioritas pemeriksaan"],
-    ["Tugas lapangan", "/tasks", "Tugas & laporan lapangan"],
+    ["Titik panas (segera tersedia)", "/hotspots", "Titik panas satelit"],
+    ["Prioritas pemeriksaan (segera tersedia)", "/priorities", "Prioritas pemeriksaan"],
+    ["Tugas lapangan (segera tersedia)", "/tasks", "Tugas & laporan lapangan"],
     ["Uji prediksi (uji coba)", "/experiments/ml", "Uji prediksi muka air tanah"],
-    ["Ringkasan", "/dashboard", "Ringkasan pemantauan"],
+    ["Ringkasan (segera tersedia)", "/dashboard", "Ringkasan pemantauan"],
   ];
   for (const [label, path, title] of modules) {
     await page.locator("aside").getByRole("link", { name: label, exact: true }).click();
@@ -86,7 +86,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   assert.equal(await page.getByRole("button", { name: "Riwayat", exact: true }).getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("main").getByText("Data muka air terkini tidak tersedia", { exact: true }).count(), 0);
 
-  for (const width of [768, 375]) {
+  for (const width of [768, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });
     const trigger = page.getByRole("button", { name: "Buka navigasi" });
     await trigger.click();
@@ -103,12 +103,15 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
     await drawer.getByRole("button", { name: "Buka panduan" }).click();
     await guide.waitFor();
     await guide.getByRole("tab", { name: "Cara pakai" }).waitFor();
+    const tabList = await guide.getByRole("tablist").boundingBox();
+    const lastTab = await guide.getByRole("tab", { name: "Penting" }).boundingBox();
+    assert.ok(lastTab.x + lastTab.width <= tabList.x + tabList.width + 1, `Semua tab panduan terlihat pada ${width}px`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `Panduan tidak overflow pada ${width}px`);
     await guide.getByRole("button", { name: "Tutup panduan" }).click();
     await guide.waitFor({ state: "hidden" });
 
     await trigger.click();
-    await drawer.getByRole("link", { name: "Titik panas", exact: true }).click();
+    await drawer.getByRole("link", { name: "Titik panas (segera tersedia)", exact: true }).click();
     await page.waitForURL("**/hotspots");
     await drawer.waitFor({ state: "hidden" });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);

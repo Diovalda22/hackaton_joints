@@ -35,7 +35,11 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
 - Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
 
-MapLibre belum dipasang; dipasang sebelum F1.3. Tidak ada peta atau koordinat stasiun buatan.
+- **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Pratinjau kotak wilayah DEMO tampil di `/hotspots` dan mengikuti filter wilayah. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
+
+### Peta dasar dan worker MapLibre
+
+Peta dasar default: OpenFreeMap Positron (tanpa API key). Ganti lewat `NEXT_PUBLIC_MAP_STYLE_URL` bila perlu. `npm run dev`/`npm run build` otomatis menjalankan `scripts/copy-maplibre-worker.mjs`, yang menyalin worker MapLibre ke `public/vendor/` (di-ignore Git). Bila menjalankan `next` langsung tanpa npm script, jalankan `node scripts/copy-maplibre-worker.mjs` lebih dulu.
 
 ## Sumber data
 
@@ -56,7 +60,7 @@ Komponen memakai hook dari `src/components/providers/data-hooks.ts` (`useHotspot
 npm run test:data
 ```
 
-Mencakup schema, state machine, mock repository (mode, as_of, determinisme, persistensi, localStorage rusak, abort), dan REST adapter (payload invalid, pemetaan HTTP, guard mode).
+Mencakup schema, state machine, konfigurasi peta, mock repository (mode, as_of, determinisme, persistensi, localStorage rusak, abort), dan REST adapter (payload invalid, pemetaan HTTP, guard mode).
 
 ## Pengujian browser
 
@@ -74,7 +78,7 @@ Di terminal kedua:
 npm run test:shell
 ```
 
-Opsional: `SHELL_BASE_URL` mengubah alamat server; `PLAYWRIGHT_EXECUTABLE_PATH` memakai Chromium yang sudah terpasang. Test mencakup redirect, keenam route, navigasi aktif, konteks mode lintas halaman, collapse, drawer/keyboard/fokus, 404, dan overflow pada desktop/tablet/mobile. Server dan browser harus dapat dijalankan pada lingkungan pengujian.
+Opsional: `SHELL_BASE_URL` mengubah alamat server; `PLAYWRIGHT_EXECUTABLE_PATH` memakai Chromium yang sudah terpasang. Test mencakup redirect, keenam route, peta (filter wilayah, peta dasar diblokir, tanpa WebGL), navigasi aktif, konteks mode lintas halaman, collapse, drawer/keyboard/fokus, 404, dan overflow pada desktop/tablet/mobile. Server dan browser harus dapat dijalankan pada lingkungan pengujian.
 
 Hasil verifikasi aktual dan batas lingkungan dicatat dalam `docs/implementation-plan.md`. Jangan menganggap tes browser berhasil hanya karena build berhasil.
 

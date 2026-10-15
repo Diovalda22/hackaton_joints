@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DemoNotice } from "@/components/shared/demo-notice";
 import { useGuide } from "@/components/guide/guide-provider";
+import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { cn } from "@/components/ui/utils";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -18,6 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [compact, setCompact] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { openGuide } = useGuide();
+  const demo = useIsDemoData();
 
   return (
     <div className="flex min-h-dvh">
@@ -53,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-4 text-[11px] text-muted-foreground md:px-8">
           <span>GambutOps · Cegah, Deteksi, Tindak</span>
-          <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden="true" />Versi uji coba · Data contoh berlabel DEMO/SIMULASI</span>
+          <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden="true" />{demo ? "Versi uji coba · Data contoh berlabel DEMO/SIMULASI" : "Versi uji coba · Data server; laporan uji coba berlabel SIMULASI"}</span>
         </footer>
       </div>
     </div>

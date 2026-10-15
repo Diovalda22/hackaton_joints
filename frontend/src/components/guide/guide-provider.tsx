@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GuideDialog, type GuideTab } from "./guide-dialog";
 
 const SEEN_KEY = "gambutops:guide-seen:v1";
@@ -22,7 +22,22 @@ function markSeen() {
   }
 }
 
-const subscribe = () => () => {};
+/** Jalankan setelah halaman selesai dimuat dan browser senggang. */
+function afterPageSettles(callback: () => void): () => void {
+  let idleId: number | undefined;
+  let timeoutId: number | undefined;
+  const schedule = () => {
+    if (typeof window.requestIdleCallback === "function") idleId = window.requestIdleCallback(callback, { timeout: 1500 });
+    else timeoutId = window.setTimeout(callback, 200);
+  };
+  if (document.readyState === "complete") schedule();
+  else window.addEventListener("load", schedule, { once: true });
+  return () => {
+    window.removeEventListener("load", schedule);
+    if (idleId !== undefined) window.cancelIdleCallback(idleId);
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  };
+}
 
 interface GuideContextValue {
   openGuide: (tab?: GuideTab) => void;
@@ -31,12 +46,18 @@ interface GuideContextValue {
 const GuideContext = createContext<GuideContextValue | null>(null);
 
 export function GuideProvider({ children }: { children: ReactNode }) {
-  // Server menganggap panduan sudah dilihat agar HTML awal sama; klien membaca localStorage.
-  const seen = useSyncExternalStore(subscribe, readSeen, () => true);
+  // Panduan otomatis baru dibuka setelah seluruh halaman selesai hydrate. Dialog Radix menandai
+  // elemen lain `aria-hidden`; bila terbuka lebih awal, HTML server dan klien tidak lagi sama.
+  const [firstVisitPending, setFirstVisitPending] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [manual, setManual] = useState<{ open: boolean; tab: GuideTab }>({ open: false, tab: "start" });
 
-  const firstVisit = !seen && !dismissed;
+  useEffect(() => {
+    if (readSeen()) return;
+    return afterPageSettles(() => setFirstVisitPending(true));
+  }, []);
+
+  const firstVisit = firstVisitPending && !dismissed;
   const open = manual.open || firstVisit;
 
   // Panduan dibuka tanpa DialogTrigger, jadi elemen pembuka dicatat agar fokus bisa dikembalikan.

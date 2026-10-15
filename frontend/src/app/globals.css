@@ -60,3 +60,9 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Kontrol peta MapLibre: target sentuh 40px di perangkat layar sentuh, gaya flat sesuai style.md. */
+.maplibregl-ctrl-group { border: 1px solid var(--color-border); box-shadow: none !important; border-radius: 0.375rem; }
+@media (pointer: coarse) {
+  .maplibregl-ctrl-group button { width: 40px; height: 40px; }
+}
