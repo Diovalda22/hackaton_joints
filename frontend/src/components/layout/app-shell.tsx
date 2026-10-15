@@ -6,10 +6,12 @@ import { ChevronRight, CircleHelp, Menu, ShieldCheck } from "lucide-react";
 import { findNavigationItem } from "./navigation";
 import { SidebarContent } from "./sidebar";
 import { ModeSwitcher } from "./mode-switcher";
+import { RoleSwitcher } from "./role-switcher";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DemoNotice } from "@/components/shared/demo-notice";
 import { useGuide } from "@/components/guide/guide-provider";
+import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { cn } from "@/components/ui/utils";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -18,6 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [compact, setCompact] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { openGuide } = useGuide();
+  const demo = useIsDemoData();
 
   return (
     <div className="flex min-h-dvh">
@@ -35,16 +38,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SidebarContent pathname={pathname} onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
-          <div className="flex flex-1 items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground">
             <span className="hidden sm:inline">{active?.experimental ? "Eksperimen" : "GambutOps"}</span>
             <ChevronRight className="hidden size-3.5 sm:block" aria-hidden="true" />
-            <span className="font-medium text-foreground">{active?.label ?? "GambutOps"}</span>
+            <span className="truncate font-medium text-foreground">{active?.label ?? "GambutOps"}</span>
           </div>
           <Button variant="outline" onClick={() => openGuide()} aria-label="Buka panduan penggunaan" className="px-3 sm:px-4"><CircleHelp aria-hidden="true" /><span className="hidden sm:inline">Panduan</span></Button>
-          <div className="hidden items-center gap-3 border-l pl-4 md:flex">
-            <span className="flex size-9 items-center justify-center rounded-full bg-secondary text-xs font-bold text-primary" aria-hidden="true">KD</span>
-            <div><p className="text-xs font-semibold">Koordinator demo</p><p className="mt-0.5 text-[10px] text-muted-foreground">Identitas simulasi</p></div>
-          </div>
+          <RoleSwitcher />
           <div className="w-full sm:w-auto"><ModeSwitcher /></div>
         </header>
         <DemoNotice />
@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-4 text-[11px] text-muted-foreground md:px-8">
           <span>GambutOps · Cegah, Deteksi, Tindak</span>
-          <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden="true" />Versi uji coba · Data contoh berlabel DEMO/SIMULASI</span>
+          <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" aria-hidden="true" />{demo ? "Versi uji coba · Data contoh berlabel DEMO/SIMULASI" : "Versi uji coba · Data server; laporan uji coba berlabel SIMULASI"}</span>
         </footer>
       </div>
     </div>

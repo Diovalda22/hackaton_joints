@@ -63,9 +63,12 @@ function GuideBody({ initialTab, firstVisit, onClose }: { initialTab: GuideTab; 
 
   return (
     <>
-      <div className="border-b px-5 pt-5 pr-14 sm:px-6 sm:pt-6">
-        <DialogTitle>Panduan penggunaan GambutOps</DialogTitle>
-        <DialogDescription className="mt-1">Kenali cara memakai aplikasi ini dalam beberapa menit.</DialogDescription>
+      <div className="border-b px-5 pt-5 sm:px-6 sm:pt-6">
+        {/* Ruang kanan hanya untuk judul (tombol tutup); baris tab memakai lebar penuh. */}
+        <div className="pr-9">
+          <DialogTitle>Panduan penggunaan GambutOps</DialogTitle>
+          <DialogDescription className="mt-1">Kenali cara memakai aplikasi ini dalam beberapa menit.</DialogDescription>
+        </div>
         <div role="tablist" aria-label="Bagian panduan" className="-mx-1 mt-4 flex overflow-x-auto pb-px sm:gap-1">
           {tabs.map((item) => (
             <button
@@ -80,7 +83,8 @@ function GuideBody({ initialTab, firstVisit, onClose }: { initialTab: GuideTab; 
               onClick={() => setTab(item.id)}
               onKeyDown={onTabKeyDown}
               className={cn(
-                "min-h-11 shrink-0 border-b-2 px-2.5 text-sm sm:px-3 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                // Layar 320px: keempat tab tetap terlihat tanpa perlu digeser.
+                "min-h-11 shrink-0 whitespace-nowrap border-b-2 px-1.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-[360px]:px-2.5 sm:px-3 sm:text-sm",
                 tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >

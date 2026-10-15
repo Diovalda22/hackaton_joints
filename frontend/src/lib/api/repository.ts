@@ -1,6 +1,6 @@
 import type { ModeBounds } from "@/lib/domain/periods";
 import type {
-  Area, Bbox, CreateReportInput, CreateTaskInput, DashboardSummary, FieldReport, GroundwaterSeries, HotspotCollection,
+  Area, Bbox, CreateReportInput, CreateTaskInput, DashboardSummary, FieldReport, GroundwaterSeries, HotspotCollection, HotspotSyncAttempt, HotspotSyncInput, HotspotSyncStatus,
   InspectionTask, InspectionTaskDetail, MlForecastInput, MlForecastResponse, MlMetricsResponse, MonitoringMode,
   PriorityAssessment, Station, TaskStatus, UpdateTaskInput, User,
 } from "@/types";
@@ -23,6 +23,11 @@ export interface HotspotQuery {
   area_id?: string | null;
   bbox?: Bbox | null;
   source_product?: string | null;
+  satellite?: string | null;
+  /** Default 200, maksimum 1000. Satu halaman saja; tidak ada pengambilan seluruh dataset otomatis. */
+  limit?: number;
+  /** Reset ke 0 ketika mode/filter berubah. */
+  offset?: number;
 }
 
 export interface PriorityQuery {
@@ -73,6 +78,10 @@ export interface GambutOpsRepository {
   listStations(options?: RequestOptions): Promise<Station[]>;
   getGroundwater(query: GroundwaterQuery, options?: RequestOptions): Promise<GroundwaterSeries>;
   listHotspots(query: HotspotQuery, options?: RequestOptions): Promise<HotspotCollection>;
+  /** Status sync FIRMS NRT (mode terkini). Tidak memanggil NASA. */
+  getHotspotSyncStatus(options?: RequestOptions): Promise<HotspotSyncStatus[]>;
+  /** Sync manual FIRMS oleh koordinator. Hanya tersedia pada REST. */
+  syncHotspots(input: HotspotSyncInput, context: MutationContext, options?: RequestOptions): Promise<HotspotSyncAttempt>;
   listPriorities(query: PriorityQuery, options?: RequestOptions): Promise<PriorityAssessment[]>;
 
   listTasks(query?: TaskQuery, options?: RequestOptions): Promise<InspectionTask[]>;

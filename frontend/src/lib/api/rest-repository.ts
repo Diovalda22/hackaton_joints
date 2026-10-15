@@ -1,15 +1,17 @@
 import { z } from "zod";
 import { AREAS, findArea } from "@/lib/domain/areas";
-import { CURRENT_GWT_NOTICE, composeDashboardSummary } from "@/lib/domain/dashboard";
+import { composeDashboardSummary } from "@/lib/domain/dashboard";
 import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
-  createReportInputSchema, createTaskInputSchema, fieldReportSchema, groundwaterSeriesSchema, hotspotCollectionSchema,
+  createReportInputSchema, createTaskInputSchema, fieldReportSchema, hotspotSyncAttemptSchema, hotspotSyncInputSchema, hotspotSyncStatusSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
-  priorityAssessmentSchema, stationSchema, updateTaskInputSchema, userSchema,
+  updateTaskInputSchema, userSchema,
 } from "@/lib/schemas";
-import type { User } from "@/types";
+import type { User, UserRole } from "@/types";
 import { RepositoryError, isAbortError } from "./errors";
 import type { GambutOpsRepository, RequestOptions } from "./repository";
+import { priorityCutoff, toGroundwaterSeries, toHotspotCollection, toPriorityAssessment, toStation } from "./rest-mappers";
+import { apiGroundwaterObservationSchema, apiHotspotPageSchema, apiPriorityAssessmentSchema, apiStationSchema } from "./rest-schemas";
 
 export interface RestRepositoryOptions {
   /** Contoh: http://localhost:8000/api/v1 */
@@ -17,6 +19,13 @@ export interface RestRepositoryOptions {
   fetch?: typeof fetch;
   /** Tanggal hari ini (YYYY-MM-DD) untuk batas Current Monitoring. */
   today?: () => string;
+  /** Waktu sekarang (ms) untuk cutoff priorities yang tidak boleh di masa depan. */
+  now?: () => number;
+  /**
+   * Bearer token per peran demo. Backend menentukan identitas dan peran dari token; frontend
+   * hanya memilih token sesuai peran yang sedang ditampilkan.
+   */
+  authTokens?: Partial<Record<UserRole, string | null>>;
 }
 
 type QueryValue = string | number | null | undefined;
@@ -41,6 +50,7 @@ function errorFromResponse(status: number, detail: string | null): RepositoryErr
   if (status === 404) return new RepositoryError("NOT_FOUND", detail ?? undefined, { status });
   if (status === 401 || status === 403) return new RepositoryError("FORBIDDEN", detail ?? undefined, { status });
   if (status === 409) return new RepositoryError("ILLEGAL_TRANSITION", detail ?? undefined, { status });
+  if (status === 429) return new RepositoryError("HTTP", detail ?? "Terlalu sering. Tunggu beberapa menit sebelum mencoba lagi.", { status });
   if (status === 400 || status === 422) return new RepositoryError("VALIDATION", detail ?? undefined, { status });
   return new RepositoryError("HTTP", detail ?? `Server mengembalikan status ${status}.`, { status });
 }
@@ -58,6 +68,13 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+  const now = options.now ?? (() => Date.now());
+
+  function authorization(actor: User): string {
+    const token = options.authTokens?.[actor.role]?.trim();
+    if (!token) throw new RepositoryError("FORBIDDEN", "Token peran demo belum dikonfigurasi di frontend. Lihat .env.example.");
+    return `Bearer ${token}`;
+  }
 
   async function request<T extends z.ZodType>(url: string, schema: T, config: RequestConfig = {}): Promise<z.infer<T>> {
     const target = new URL(url);
@@ -66,8 +83,8 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
     }
     const headers: Record<string, string> = { Accept: "application/json" };
     if (config.body !== undefined) headers["Content-Type"] = "application/json";
-    // Identitas demo; backend tetap wajib memverifikasi peran melalui autentikasi.
-    if (config.actor) headers["X-Actor-Id"] = config.actor.id;
+    // Identitas ditentukan server dari token; tidak ada header identitas buatan klien.
+    if (config.actor) headers.Authorization = authorization(config.actor);
 
     let response: Response;
     try {
@@ -114,39 +131,42 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
 
     listAreas: async () => [...AREAS],
     listUsers: ({ signal }: RequestOptions = {}) => request(api("/users"), z.array(userSchema), { signal }),
-    listStations: ({ signal }: RequestOptions = {}) => request(api("/stations"), z.array(stationSchema), { signal }),
+    async listStations({ signal }: RequestOptions = {}) {
+      const stations = await request(api("/stations"), z.array(apiStationSchema), { signal });
+      return stations.map(toStation);
+    },
 
     async getGroundwater(query, { signal } = {}) {
-      const series = await request(api(`/stations/${encodeURIComponent(query.station_id)}/groundwater`), groundwaterSeriesSchema, {
+      const rows = await request(api(`/stations/${encodeURIComponent(query.station_id)}/groundwater`), z.array(apiGroundwaterObservationSchema), {
         query: { from: query.from, to: query.to, mode: query.mode }, signal,
       });
-      if (series.mode !== query.mode) throw new RepositoryError("INVALID_PAYLOAD", "Mode data GWT tidak sesuai permintaan.");
-      if (query.mode === "CURRENT_MONITORING") {
-        // Guard: observasi lama tidak boleh tampil sebagai kondisi terkini.
-        const minDate = currentBounds(today()).min_date;
-        const recent = series.observations.filter((obs) => obs.observed_at >= minDate);
-        if (recent.length === 0) return { ...series, availability: "NOT_AVAILABLE", notice: series.notice ?? CURRENT_GWT_NOTICE, observations: [] };
-        return { ...series, observations: recent };
-      }
-      return series;
+      return toGroundwaterSeries(query, rows, today());
     },
 
     async listHotspots(query, { signal } = {}) {
       const bbox = query.bbox ?? findArea(query.area_id)?.bbox ?? null;
-      const collection = await request(api("/hotspots"), hotspotCollectionSchema, {
-        query: { from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","), source_product: query.source_product }, signal,
+      const page = await request(api("/hotspots"), apiHotspotPageSchema, {
+        query: {
+          from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","),
+          source_product: query.source_product, satellite: query.satellite, limit: query.limit, offset: query.offset,
+        },
+        signal,
       });
-      if (collection.mode !== query.mode || collection.items.some((item) => item.mode !== query.mode)) {
-        throw new RepositoryError("INVALID_PAYLOAD", "Data hotspot berisi mode yang tidak sesuai permintaan.");
-      }
-      return collection;
+      return toHotspotCollection(query, page);
+    },
+
+    getHotspotSyncStatus: ({ signal }: RequestOptions = {}) => request(api("/hotspots/sync-status"), z.array(hotspotSyncStatusSchema), { signal }),
+
+    async syncHotspots(input, { actor }, { signal } = {}) {
+      return request(api("/admin/hotspots/sync"), hotspotSyncAttemptSchema, { method: "POST", body: validateInput(hotspotSyncInputSchema, input), actor, signal });
     },
 
     async listPriorities(query, { signal } = {}) {
-      const items = await request(api("/priorities"), z.array(priorityAssessmentSchema), {
-        query: { mode: query.mode, as_of: query.as_of, area_id: query.area_id }, signal,
+      const rows = await request(api("/priorities"), z.array(apiPriorityAssessmentSchema), {
+        query: { mode: query.mode, as_of: priorityCutoff(query.as_of, now()), area_id: query.area_id }, signal,
       });
-      if (items.some((item) => item.mode !== query.mode || item.as_of > query.as_of)) {
+      const items = rows.map((row) => toPriorityAssessment(row, query));
+      if (items.some((item) => item.as_of > query.as_of)) {
         throw new RepositoryError("INVALID_PAYLOAD", "Assessment berisi mode atau as_of yang tidak sesuai permintaan.");
       }
       return query.area_id ? items.filter((item) => item.area_id === query.area_id) : items;

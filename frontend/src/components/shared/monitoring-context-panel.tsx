@@ -13,20 +13,21 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const fieldClass = "h-10 w-full min-w-0 rounded-md border bg-card px-3 text-sm transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-export function MonitoringContextPanel() {
+export function MonitoringContextPanel({ id: sectionId }: { id?: string } = {}) {
   const { mode, bounds, filter, asOf, setFilter, resetFilter } = useMonitoring();
   const repository = useRepository();
   const areas = useAreas();
   const id = useId();
   const historical = mode === "HISTORICAL_REPLAY";
+  const demo = repository.kind === "mock";
   const Icon = historical ? History : Satellite;
   const isDefault = filter.from === bounds.default_from && filter.to === bounds.default_to && filter.area_id === null;
 
   return (
-    <section aria-labelledby={`${id}-title`} className="overflow-hidden rounded-xl border bg-card">
+    <section id={sectionId} aria-labelledby={`${id}-title`} className="scroll-mt-6 overflow-hidden rounded-xl border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
         <h2 id={`${id}-title`} className="flex items-center gap-2 text-sm font-semibold"><Icon className="size-4 text-teal" aria-hidden="true" />Data yang ditampilkan</h2>
-        <Badge variant={historical ? "teal" : "warning"}>{historical ? "RIWAYAT · DEMO" : "TERKINI · DEMO"}</Badge>
+        <Badge variant={historical ? "teal" : "warning"}>{historical ? "RIWAYAT" : "TERKINI"}{demo ? " · DEMO" : " · SERVER"}</Badge>
       </div>
 
       <div className="space-y-5 p-5">
@@ -37,7 +38,8 @@ export function MonitoringContextPanel() {
 
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium">Periode dan wilayah</legend>
-          <div className="grid grid-cols-2 gap-3">
+          {/* Di layar sangat sempit input tanggal ditumpuk agar tanggal tidak terpotong. */}
+          <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
             <label className="space-y-1.5 text-xs text-muted-foreground" htmlFor={`${id}-from`}>
               <span>Dari tanggal</span>
               <input id={`${id}-from`} type="date" className={fieldClass} value={filter.from} min={bounds.min_date} max={bounds.max_date}
@@ -67,7 +69,7 @@ export function MonitoringContextPanel() {
 
         <div className="border-t pt-4">
           <p className="text-xs font-medium">Sumber data</p>
-          <p className="mt-1 flex items-start gap-1.5 text-xs leading-5 text-muted-foreground"><Database className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{repository.kind === "mock" ? "Data contoh (DEMO). Tugas dan laporan uji coba tersimpan di browser ini." : "Server GambutOps."}</p>
+          <p className="mt-1 flex items-start gap-1.5 text-xs leading-5 text-muted-foreground"><Database className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{demo ? "Data contoh (DEMO). Tugas dan laporan uji coba tersimpan di browser ini." : "Server GambutOps (data riwayat dari database aplikasi)."}</p>
         </div>
       </div>
     </section>

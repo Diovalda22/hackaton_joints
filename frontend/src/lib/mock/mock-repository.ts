@@ -3,6 +3,7 @@ import { RepositoryError, throwIfAborted } from "@/lib/api/errors";
 import type { GambutOpsRepository, RequestOptions } from "@/lib/api/repository";
 import { AREAS, findArea, isInBbox } from "@/lib/domain/areas";
 import { CURRENT_GWT_NOTICE, composeDashboardSummary } from "@/lib/domain/dashboard";
+import { HOTSPOT_DEFAULT_LIMIT, HOTSPOT_MAX_LIMIT } from "@/lib/domain/pagination";
 import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import { canSubmitReport, canTransition } from "@/lib/domain/task-state-machine";
 import { createReportInputSchema, createTaskInputSchema, updateTaskInputSchema } from "@/lib/schemas";
@@ -118,6 +119,7 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
   function groundwaterByRegion(): Map<string, GroundwaterObservation[][]> {
     const byRegion = new Map<string, GroundwaterObservation[][]>();
     for (const station of STATIONS) {
+      if (!station.region) continue;
       const list = byRegion.get(station.region) ?? [];
       list.push(GROUNDWATER.get(station.id) ?? []);
       byRegion.set(station.region, list);
@@ -153,7 +155,7 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
         return {
           station_id: station.id, mode: query.mode, from: query.from, to: query.to,
           availability: observations.length > 0 ? "AVAILABLE" as const : "NOT_AVAILABLE" as const,
-          notice: observations.length > 0 ? null : `Tidak ada pengamatan ${station.id} pada periode ini. Data stasiun tersedia ${station.period_start} s.d. ${station.period_end}.`,
+          notice: observations.length > 0 ? null : `Tidak ada pengamatan ${station.code} pada periode ini. Data stasiun tersedia ${station.period_start} s.d. ${station.period_end}.`,
           observations,
         };
       });
@@ -162,15 +164,44 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
     listHotspots(query, { signal } = {}) {
       return respond(signal, () => {
         assertDateRange(query.from, query.to);
+        const limit = query.limit ?? HOTSPOT_DEFAULT_LIMIT;
+        const offset = query.offset ?? 0;
+        if (!Number.isInteger(limit) || limit < 1 || limit > HOTSPOT_MAX_LIMIT) throw new RepositoryError("VALIDATION", `limit harus 1–${HOTSPOT_MAX_LIMIT}.`);
+        if (!Number.isInteger(offset) || offset < 0) throw new RepositoryError("VALIDATION", "offset tidak boleh negatif.");
         const bbox = query.bbox ?? findArea(query.area_id)?.bbox ?? null;
-        const items = hotspotsFor(query.mode).filter((hotspot) => {
-          const date = hotspot.observed_at.slice(0, 10);
-          if (date < query.from || date > query.to) return false;
-          if (bbox && !isInBbox(hotspot.longitude, hotspot.latitude, bbox)) return false;
-          if (query.source_product && hotspot.source_product !== query.source_product) return false;
-          return true;
-        });
-        return { mode: query.mode, items, last_synced_at: query.mode === "CURRENT_MONITORING" ? CURRENT_DEMO_LAST_SYNC : HISTORICAL_DEMO_LAST_SYNC };
+        const matches = hotspotsFor(query.mode)
+          .filter((hotspot) => {
+            const date = hotspot.observed_at.slice(0, 10);
+            if (date < query.from || date > query.to) return false;
+            if (bbox && !isInBbox(hotspot.longitude, hotspot.latitude, bbox)) return false;
+            if (query.source_product && hotspot.source_product !== query.source_product) return false;
+            if (query.satellite && hotspot.satellite !== query.satellite) return false;
+            return true;
+          })
+          // Urutan sama dengan backend: waktu akuisisi turun, lalu ID.
+          .sort((a, b) => b.observed_at.localeCompare(a.observed_at) || a.id.localeCompare(b.id));
+        return {
+          mode: query.mode,
+          items: matches.slice(offset, offset + limit),
+          total: matches.length,
+          limit,
+          offset,
+          last_synced_at: query.mode === "CURRENT_MONITORING" ? CURRENT_DEMO_LAST_SYNC : HISTORICAL_DEMO_LAST_SYNC,
+          last_synced_scope: "SYNC" as const,
+        };
+      });
+    },
+
+    getHotspotSyncStatus({ signal } = {}) {
+      // Status DEMO: satu waktu sync tetap untuk setiap target, tanpa menghubungi NASA.
+      return respond(signal, () => AREAS.flatMap((area) => (["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"] as const).map((product) => ({
+        area_id: area.id, source_product: product, status: "SUCCESS" as const, last_attempt: null, last_successful_at: CURRENT_DEMO_LAST_SYNC,
+      }))));
+    },
+
+    syncHotspots(_input, _context, { signal } = {}) {
+      return respond(signal, () => {
+        throw new RepositoryError("HTTP", "Sinkronisasi NASA FIRMS hanya tersedia saat terhubung ke server GambutOps.");
       });
     },
 

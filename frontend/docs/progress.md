@@ -10,14 +10,18 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 
 | Bagian | Status | Bukti / pekerjaan tersisa |
 | --- | --- | --- |
-| Setup project dan dependency dasar | IMPLEMENTED | Next.js, TypeScript strict, Tailwind, shadcn/ui, Lucide, formulir/grafik; MapLibre belum dipasang |
+| Setup project dan dependency dasar | IMPLEMENTED | Next.js, TypeScript strict, Tailwind, shadcn/ui, Lucide, formulir/grafik, MapLibre 6.11.2 (`feat/f0-foundation`) |
 | Design system dan application shell | IMPLEMENTED | Sidebar, drawer mobile, topbar, tema terang, identitas demo |
 | Routing dan mode switcher | IMPLEMENTED | Enam route, redirect root, Historical Replay default, toast dan konteks lintas halaman |
 | Shared states dan provenance | IMPLEMENTED | Komponen loading/empty/error/retry, badge, dan sumber/waktu |
-| Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository, tes data 27/27; lihat bagian 10 |
+| Kontrak data dan mock repository | IMPLEMENTED | `feat/f0-data`: Zod + tipe, mock + REST repository; REST stations/GWT/hotspots disesuaikan dengan read API backend di `feat/fe-read-contract`, tes data 38/38; lihat bagian 12 |
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
-| QA F0 | PARTIAL | Lint/typecheck/build lulus; browser dan instalasi bersih belum terverifikasi |
-| F1.1–F1.7 | TODO | Seluruh halaman fitur masih berupa penanda fase |
+| QA F0 | IMPLEMENTED | `feat/f0-foundation`: `npm ci` bersih, lint/typecheck/build, test:data 51/51, test:shell 9/9 (production), responsif 320–1280; menunggu review gate; lihat bagian 14 |
+| F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
+| F1.4 Priorities + F1.5 Tasks | MERGED (PR #10) | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
+| F1.3 Hotspots | MERGED (PR #10) | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
+| F1.1 Dashboard | IMPLEMENTED | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
+| F1.6, F1.7 | TODO | ML dan QA akhir |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
 | FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
@@ -91,46 +95,46 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 - [x] Kontrak tujuh entitas dan Zod schema tersedia (`feat/f0-data`); review backend menunggu.
 - [x] Fixture historis/terkini serta mock provider tersedia dan terintegrasi.
 - [x] Tes filter, referensi, nilai nullable, determinisme, dan as_of lulus (`test:data` 27/27).
-- [ ] MapLibre tersedia sebelum F1.3.
-- [ ] Instalasi bersih dan smoke browser pada lingkungan normal lulus.
-- [ ] Gate F0 diterima sebelum lanjut F1.1.
+- [x] MapLibre tersedia sebelum F1.3 (`BaseMap` + fallback peta dasar/WebGL; pratinjau wilayah di `/hotspots`).
+- [x] Instalasi bersih dan smoke browser pada lingkungan normal lulus (15 Okt 2026, macOS, Node 26.5.0).
+- [ ] Gate F0 diterima sebelum lanjut F1.1 — siap direview di `feat/f0-foundation`.
 
 ### F1.1 — Dashboard
 
-- [ ] Area/periode/mode memengaruhi data provider.
-- [ ] Ringkasan hotspot, tugas, kelengkapan data, prioritas, aktivitas, dan provenance tampil.
-- [ ] Loading/empty/error/retry tersedia untuk query data.
-- [ ] Peta ringkasan terintegrasi setelah komponen F1.3 tersedia.
+- [x] Area/periode/mode memengaruhi data provider.
+- [x] Ringkasan hotspot, tugas, kelengkapan data, prioritas, aktivitas, dan provenance tampil.
+- [x] Loading/empty/error/retry tersedia untuk query data.
+- [x] Peta ringkasan terintegrasi setelah komponen F1.3 tersedia.
 
 ### F1.2 — Groundwater
 
-- [ ] Pilihan stasiun BRG6/BRG3/lainnya, filter tanggal, grafik dan tooltip.
-- [ ] Statistik/tren dihitung hanya dari observasi valid; missing tetap gap/null.
-- [ ] Satuan meter, nilai negatif, sumber sintetis, dan keterbatasan jelas.
-- [ ] Current Monitoring menampilkan GWT terkini tidak tersedia.
+- [x] Pilihan stasiun BRG6/BRG3/lainnya, filter tanggal, grafik dan tooltip.
+- [x] Statistik/tren dihitung hanya dari observasi valid; missing tetap gap/null.
+- [x] Satuan meter, nilai negatif, sumber sintetis, dan keterbatasan jelas.
+- [x] Current Monitoring menampilkan GWT terkini tidak tersedia.
 
 ### F1.3 — Hotspots
 
-- [ ] MapLibre zoom/pan, marker/popup, serta sinkronisasi selection peta/daftar.
-- [ ] Filter tanggal/sensor/area; sumber, waktu, confidence mentah, FRP, dan verifikasi.
-- [ ] Label DEMO pada data sintetis; fallback ketika basemap/WebGL gagal.
-- [ ] Empty/error state dan keterangan anomali panas, bukan kebakaran terkonfirmasi.
+- [x] MapLibre zoom/pan, marker/popup, serta sinkronisasi selection peta/daftar.
+- [x] Filter tanggal/sensor/area; sumber, waktu, confidence mentah, FRP, dan verifikasi.
+- [x] Label DEMO pada data sintetis; fallback ketika basemap/WebGL gagal.
+- [x] Empty/error state dan keterangan anomali panas, bukan kebakaran terkonfirmasi.
 
 ### F1.4 — Priorities
 
-- [ ] Assessment deterministik, tingkat prioritas, alasan, rekomendasi, sumber/waktu.
-- [ ] Input snapshot, missing inputs, rule_version, dan status heuristik tersedia.
+- [x] Assessment deterministik, tingkat prioritas, alasan, rekomendasi, sumber/waktu.
+- [x] Input snapshot, missing inputs, rule_version, dan status heuristik tersedia.
 - [ ] Tidak ada data setelah as_of atau campuran GWT historis dengan hotspot terkini.
-- [ ] Aksi buat tugas berfungsi setelah integrasi F1.5.
+- [x] Aksi buat tugas berfungsi setelah integrasi F1.5.
 
 ### F1.5 — Field Verification
 
-- [ ] Daftar/filter/detail tugas dan form pembuatan RHF/Zod.
-- [ ] Tampilan koordinator/petugas dan validasi tindakan sesuai role demo.
-- [ ] Transisi OPEN → ASSIGNED → IN_PROGRESS → SUBMITTED tervalidasi.
-- [ ] Review VERIFIED / DISMISSED / NEEDS_FOLLOWUP dan penugasan ulang follow-up.
-- [ ] Laporan SIMULASI, validasi form, riwayat status/aktor, dan toast.
-- [ ] Tugas/laporan bertahan setelah reload: localStorage pada mode mock dan database melalui REST pada mode backend.
+- [x] Daftar/filter/detail tugas dan form pembuatan RHF/Zod.
+- [x] Tampilan koordinator/petugas dan validasi tindakan sesuai role demo.
+- [x] Transisi OPEN → ASSIGNED → IN_PROGRESS → SUBMITTED tervalidasi.
+- [x] Review VERIFIED / DISMISSED / NEEDS_FOLLOWUP dan penugasan ulang follow-up.
+- [x] Laporan SIMULASI, validasi form, riwayat status/aktor, dan toast.
+- [x] Tugas/laporan bertahan setelah reload: localStorage pada mode mock dan database melalui REST pada mode backend.
 - [ ] Error storage atau data tersimpan tidak valid ditangani dengan pesan yang jelas.
 
 ### F1.6 — ML Experiment UI
@@ -164,6 +168,16 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 | 2026-10-14 | `feat/f0-data`: lint, typecheck, build | PASS | Lingkungan lokal teman |
 | 2026-10-14 | `feat/f0-data`: `npm run test:data` | PASS | 27/27 |
 | 2026-10-14 | `feat/f0-data`: `npm run test:shell` (`next start` port 3100) | PASS | 1/1; screenshot 1440 px & 375 px tanpa error console/hydration |
+| 2026-10-15 | `feat/fe-read-contract`: lint, typecheck, build | PASS | Tanpa warning |
+| 2026-10-15 | `feat/fe-read-contract`: `npm run test:data` | PASS | 38/38, termasuk 10 tes kontrak dari `backend/docs/examples/read-api.json` |
+| 2026-10-15 | `feat/fe-read-contract`: `npm run test:shell` (`next start` port 3000, mock) | PASS | 1/1 |
+| 2026-10-15 | REST repository vs backend lokal `:8000` | PASS | Stations/GWT/hotspots/error 404–422 lolos; lihat bagian 12 |
+| 2026-10-15 | `feat/f0-foundation`: `rm -rf node_modules && npm ci` | PASS | Node 26.5.0 / npm 11.17.0, macOS |
+| 2026-10-15 | `feat/f0-foundation`: lint, typecheck, build | PASS | Tanpa warning |
+| 2026-10-15 | `feat/f0-foundation`: `npm run test:data` | PASS | 51/51 (3 tes baru `map-config`) |
+| 2026-10-15 | `feat/f0-foundation`: `npm run test:shell` (`next start` port 3000, mock) | PASS | 9/9: shell (+320px), groundwater, peta (normal, layar penuh ×3, peta dasar diblokir, tanpa WebGL) |
+| 2026-10-15 | `feat/f0-foundation`: sapuan responsif 7 route × 6 lebar (320–1280) | PASS | Tanpa overflow/elemen keluar layar |
+| 2026-10-15 | Dev server: peringatan hydration panduan | PASS | Tidak muncul lagi di `/dashboard`, `/groundwater`, `/hotspots` |
 
 Hasil ini bersifat historis. Setelah perubahan kode berikutnya, jalankan ulang pemeriksaan yang relevan dan tambahkan hasil baru; jangan menyebut hasil lama sebagai bukti versi terbaru sudah lulus.
 
@@ -278,3 +292,154 @@ Branch `feat/frontend-monitoring` dari `main` setelah `feat/f0-data` digabung: d
 Temuan yang diperbaiki saat tes: fokus tidak kembali ke tombol Panduan setelah modal ditutup; peringatan aksesibilitas Radix `aria-describedby`; nama aksesibel link "Uji prediksi" ganda.
 
 Belum: halaman fitur (F1.1–F1.6) masih placeholder — UX inti baru lengkap setelah modul dibangun.
+
+## 12. Sesi frontend 2026-10-15 — adaptasi read API backend (`feat/fe-read-contract`)
+
+**Status:** IMPLEMENTED, belum commit/push. Mengikuti [handoff read API](../../backend/docs/read-api-handoff.md) dari commit backend `de27be9`.
+
+- Schema respons backend baru (`src/lib/api/rest-schemas.ts`) dan mapper murni (`src/lib/api/rest-mappers.ts`); REST adapter tidak lagi memvalidasi payload dengan schema model UI.
+- Stations: tambah `code` (label), `id` tetap UUID, `latitude/longitude → lat/lon`, `region`/`source` nullable.
+- GWT: array dibungkus menjadi series; `observed_date → observed_at`; `DUPLICATE → DUPLICATE_FLAGGED` dengan nilai tetap null; `source_id`/`source_sha256` dipertahankan; diurutkan per tanggal tanpa mengisi gap; hasil kosong → `NOT_AVAILABLE` + notice sesuai mode; mode/stasiun yang tidak sesuai → `INVALID_PAYLOAD`.
+- Hotspots: envelope `{items,total,limit,offset}`; `acquired_at/sensor/frp → observed_at/instrument/frp_mw`; `imported_at` per item; `last_synced_at` koleksi = waktu import terbaru di halaman (`last_synced_scope: "PAGE_IMPORT"`); `daynight` null; `area_id` lookup bbox DEMO; query `limit/offset/satellite`.
+- Dashboard: `total` dari server; `unverified_scope` (`PAGE` bila hanya satu halaman yang dimuat); `duplicate_days` terpisah dari `missing_days`.
+- Mock: pagination + urutan seperti backend (akuisisi turun, lalu ID), validasi limit 1–1000, kode satelit `N`/`N20`, `code` stasiun.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 38/38 lulus |
+| `npm run test:shell` (production, port 3000, mock) | 1/1 lulus |
+| Uji mutasi mapper (DUPLICATE→MISSING, total=items.length) | Keduanya tertangkap tes kontrak |
+| Smoke REST repository ke backend lokal `127.0.0.1:8000` | 8 stasiun; GWT BRG6/BRG3 2019-08-17..09-15 (BRG3 berhenti 2019-08-27); seluruh GWT 2018–2019 lolos dengan 393 MISSING + 1 DUPLICATE (BRG5 2019-03-21, null); hotspot halaman 1/2 tanpa tumpang tindih; Current kosong; 404/422 → NOT_FOUND/VALIDATION |
+
+Catatan:
+
+- Backend `:8000` yang dipakai smoke bukan database aplikasi port 5433 dari handoff (port 5433 tidak aktif): total hotspot Batanghari 604 dan Kubu Raya 448, bukan 3.439/2.964, dan hotspot terbaru 2019-08-31. Ulangi smoke pada database handoff.
+- `getDashboardSummary` pada REST masih gagal (HTTP 501) karena `/priorities` belum diimplementasikan; sesuai handoff.
+- Halaman groundwater/hotspots/dashboard masih placeholder, jadi belum ada pemeriksaan browser pada mode REST. Saat FE-04/FE-05 dibangun: tampilkan `code`, batas periode stasiun, beda MISSING vs duplikat, label “waktu import pada hasil halaman ini”, dan reset offset ketika filter/mode berubah.
+- CORS backend default hanya `http://localhost:3000`; buka frontend REST lewat `localhost`.
+
+## 13. Sesi frontend 2026-10-15 — halaman Muka air tanah (FE-04, `feat/fe-groundwater`)
+
+**Status:** IMPLEMENTED, sudah di-push ke `feat/fe-groundwater`; menunggu review. Dibangun di atas `feat/fe-read-contract` (PR #5).
+
+Keputusan UX:
+
+- Pengguna awam harus bisa menjawab dalam ±10 detik: seberapa dalam air sekarang, makin kering atau basah, dan seberapa lengkap datanya.
+- Stasiun dipilih lewat dropdown native per wilayah, label `code` (bukan UUID), tersimpan di URL `?stasiun=BRG6`. Filter wilayah menyaring stasiun.
+- Periode memakai filter global + pintasan 30 hari / 90 hari / Seluruh data stasiun. Tautan "Ubah tanggal" menuju panel pengaturan (di bawah konten pada layar kecil).
+- Kartu: pengukuran terakhir (+ "cm di bawah permukaan"), perubahan 7 dan 14 hari (pasangan valid ±1 hari; selain itu "Belum bisa dihitung"), rata-rata, paling dalam. Semua hanya dari pengukuran valid.
+- Grafik: sumbu-Y meter dengan garis 0 m (permukaan) dan garis acuan −0,4 m (PP 57/2016, konteks bukan ambang bahaya). Hari tanpa nilai memutus garis dan diarsir: amber = tidak ada pengukuran, oranye = data ganda, abu-abu = di luar periode stasiun. Tooltip menjelaskan setiap hari, termasuk hari kosong. Tabel alternatif menampilkan semua hari.
+- Kondisi: memuat (skeleton), gagal (coba lagi), stasiun tak dikenal di URL, periode tanpa data (+ tombol seluruh periode stasiun), semua hari tanpa nilai, periode melewati masa stasiun, dan mode Terkini (tanpa grafik, tombol ke riwayat).
+- Label DEMO global (banner, panel, footer, header halaman) hanya tampil saat mock; REST menampilkan "SERVER".
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 48/48 lulus (10 tes baru `groundwater-domain`) |
+| `npm run test:shell` (production, port 3000, mock) | 2/2 lulus (tes baru `groundwater.test.mjs`, termasuk tanpa error console dan tanpa overflow 768/375) |
+| Browser mode REST ke backend `:8000` (dev, `localhost:3000`) | BRG6 dan BRG5 Mar 2019 tampil; data ganda 21 Mar dan kosong 22 Mar diarsir terpisah; tanpa badge DEMO |
+
+Catatan:
+
+- Peringatan hydration di mode dev muncul pada kunjungan pertama saat panduan terbuka otomatis (Radix memasang `aria-hidden` sebelum halaman selesai hydrate). Juga terjadi di `/hotspots`, jadi bukan dari halaman ini; tidak muncul di build production. Perlu ditangani terpisah.
+- Mengubah periode lewat pintasan juga mengubah `as_of` global untuk halaman lain (perilaku filter global yang sudah ada).
+
+## 14. Sesi frontend 2026-10-15 — penutupan F0 (`feat/f0-foundation`)
+
+**Status:** IMPLEMENTED, menunggu review gate F0. Branch dibuat dari `feat/fe-groundwater` (berisi FE-04).
+
+- **MapLibre 6.11.2** dengan `BaseMap` (`src/components/maps/`): dimuat lazy, kontrol berbahasa Indonesia, geser dua jari/Ctrl+gulir, rotasi dimatikan, atribusi diciutkan di layar sempit. Peta dasar gagal/timeout 10 dtk → latar polos + pemberitahuan (lapisan data tetap tampil). WebGL tidak ada → pesan + "Coba lagi". Peta dasar default OpenFreeMap (tanpa key), bisa diganti `NEXT_PUBLIC_MAP_STYLE_URL`.
+- Worker MapLibre v6 tidak bisa di-resolve webpack (`import.meta.url`), jadi `scripts/copy-maplibre-worker.mjs` (predev/prebuild) menyalinnya ke `public/vendor/maplibre-gl-<versi>/` (di-ignore Git), lalu `setWorkerUrl` diarahkan ke sana.
+- `/hotspots` menampilkan pratinjau **Wilayah pemantauan** (kotak DEMO) yang ikut filter wilayah, sebagai titik awal F1.3.
+- **Peta layar penuh** (desktop dan mobile): bingkai peta menutup seluruh layar (overlay CSS, ditambah Fullscreen API bila tersedia; iPhone memakai overlay). Esc/tombol "Keluar layar penuh" untuk kembali, gulir halaman dikunci, geser satu jari aktif selama layar penuh. Tombol zoom 40px pada layar sentuh.
+- **Responsif:** semua route diperiksa di 320/375/414/768/1024/1280 px (tanpa overflow). Diperbaiki: input tanggal ditumpuk di bawah 400px, kartu statistik GWT satu kolom di bawah 360px, label tanggal grafik dikurangi di layar sempit, keterangan grafik rata kiri saat terlipat, keempat tab panduan terlihat di 320px, keterangan "Segera tersedia" di sidebar pada baris kedua.
+- Perbaikan hydration: panduan pertama kali baru dibuka setelah halaman selesai dimuat dan browser senggang (sebelumnya Radix memasang `aria-hidden` sebelum hydrate selesai).
+- UX shell: sidebar memberi tanda "Segera" pada modul yang belum siap (nama aksesibel "… (segera tersedia)"); Ringkasan menampilkan **Pilih menu** tepat setelah "Mulai dari sini", modul siap dipakai ditaruh paling depan dengan tanda "Siap dipakai".
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm ci` (setelah `rm -rf node_modules`) | Lulus |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 51/51 lulus |
+| `npm run test:shell` (production, port 3000, mock) | 9/9 lulus (termasuk layar penuh desktop/mobile/tanpa Fullscreen API dan tab panduan 320px) |
+| Screenshot 1440/768/375 `/dashboard`, `/hotspots` | Tanpa overflow, tanpa error console |
+
+Catatan / tindak lanjut:
+
+- `npm audit --omit=dev` melaporkan advisory pada `next` 16.2.10 (sebagian kritis, sebagian hanya Turbopack/Server Actions yang tidak dipakai), `nanoid`, dan `baseline-browser-mapping`. Sudah ada sebelum sesi ini; upgrade Next sebaiknya PR terpisah dan diuji ulang.
+- Node Homebrew sempat rusak setelah `simdjson` di-upgrade (`libsimdjson.33.dylib` hilang); diperbaiki dengan `brew upgrade node` (26.5.0 → 26.11.1). Lint/test:data diulang di Node baru: lulus.
+- ESLint mengabaikan `public/vendor/**` (salinan worker MapLibre).
+- Peta dasar membutuhkan internet. Saat offline, tampilan otomatis memakai latar polos.
+- Waktu muat peta `/hotspots` (diukur Playwright, mesin lokal): production ±0,6–0,9 dtk sampai style siap, ±1,1–1,5 dtk sampai tile selesai; dev pada kunjungan pertama ±4–5 dtk karena webpack mengompilasi halaman + MapLibre. MapLibre kini diunduh sejajar dengan hydrate dan koneksi ke server peta dibuka lebih awal (`preconnect`); sisa waktu didominasi rantai style → tile OpenFreeMap. Batas tunggu style sebelum latar polos: 8 dtk.
+
+## 15. Sesi frontend 2026-10-15 — Prioritas + Tugas terhubung REST (`feat/frontend-tasks`)
+
+**Status:** IMPLEMENTED, belum commit/push. Mengikuti [tasks-handoff](../../backend/docs/tasks-handoff.md) (branch backend `feat/backend-tasks`, `63830a3`) dan [priorities-handoff](../../backend/docs/priorities-handoff.md).
+
+- **Auth:** REST adapter mengirim `Authorization: Bearer <token>` sesuai peran demo; `X-Actor-Id` dihapus. Token dari `NEXT_PUBLIC_DEMO_COORDINATOR_TOKEN` / `NEXT_PUBLIC_DEMO_FIELD_OFFICER_TOKEN`; tanpa token, mutasi gagal dengan pesan jelas tanpa request.
+- **Peran demo:** pemilih "Masuk sebagai" di header (semua lebar layar), tersimpan di localStorage; daftar dari `GET /users` (REST) atau fixture (mock).
+- **Priorities REST:** schema API + mapper; `as_of` → cutoff UTC akhir hari yang tidak pernah di masa depan; snapshot objek → indikator (jendela, jumlah/hari/belum diperiksa hotspot, tren GWT per stasiun, laporan); snapshot asli dapat dibuka untuk audit.
+- **Halaman Prioritas:** ringkasan per tingkat, kartu per wilayah (alasan, data belum tersedia, data yang dipakai, rekomendasi, aturan/heuristik, tugas terkait) dan dialog **Buat tugas** (RHF + Zod) untuk koordinator.
+- **Halaman Tugas:** saringan "Perlu tindakan saya"/Aktif/Menunggu tinjauan/Selesai/Semua, detail via `?tugas=`, panel tindakan per peran (tugaskan, mulai, kirim laporan SIMULASI, verifikasi/tindak lanjut/tutup, penugasan ulang follow-up), laporan, dan riwayat status urut waktu.
+- Backend mengirim entri `OPEN → ASSIGNED` sebelum entri pembuatan bila timestamp sama; frontend mengurutkan (`orderedHistory`) dan usulan dicatat di `data-contract.md`.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 55/55 lulus (Bearer per peran, token kosong, cutoff/mapping priorities, urutan riwayat) |
+| `npm run test:shell` (production, mock) | 10/10 lulus, termasuk `workflow.test.mjs` |
+| `workflow.test.mjs` pada build production REST ke backend `feat/backend-tasks` (`:8000`) | Lulus; DB mencatat 9 riwayat + 2 laporan SIMULASI, semua tulis memakai Bearer |
+
+Catatan:
+
+- Pengujian REST memakai salinan database lokal `gambutops_fe` (dimigrasi ke `20261015_0005`); database `gambutops` milik backend tidak diubah. PostgreSQL lokal sempat tidak bisa start karena `postmaster.pid` basi; file dipindah ke `postmaster.pid.stale-20261015`.
+- Data hotspot historis lokal berakhir 31 Agu 2019, sehingga periode default (s.d. 15 Sep) menghasilkan MONITOR; pilih "Sampai" ≤ 31 Agu 2019 untuk melihat REVIEW/HIGH.
+- REST hanya punya satu petugas demo; mock punya dua.
+
+## 16. Sesi frontend 2026-10-15 — halaman Titik panas (FE-05, `feat/frontend-hotspots`)
+
+**Status:** IMPLEMENTED, belum commit/push. Branch dari `feat/frontend-tasks` + `main` terbaru (backend Tasks/ML). Kontrak: [read-api-handoff](../../backend/docs/read-api-handoff.md), [firms-handoff](../../backend/docs/firms-handoff.md).
+
+- **Peta:** titik GeoJSON berwarna status verifikasi, cincin titik terpilih, popup (isi via `textContent`), garis kotak wilayah DEMO, peta mengikuti filter wilayah, layar penuh dan fallback dari F0.
+- **Daftar ↔ peta:** pilih di daftar → sorot + popup (peta bergeser bila titik di luar layar); klik titik di peta → baris tersorot dan digulir (layar lebar).
+- **Pagination server:** 100 titik/halaman, total dari `total`, kembali ke halaman 1 saat mode/periode/wilayah/satelit berubah. Di HP daftar diringkas 10 baris + "Tampilkan semua", ada tautan "Ubah tanggal/wilayah".
+- **Detail titik:** waktu WIB dan UTC, wilayah, koordinat, satelit, confidence mentah (bukan peluang), FRP, sumber, waktu pembaruan server; koordinator dapat **membuat tugas dari titik** (dialog tugas kini menerima assessment atau hotspot).
+- **Sinkron FIRMS (mode Terkini):** status per wilayah × produk (`GET /hotspots/sync-status`), tombol "Sinkronkan" untuk koordinator pada REST (`POST /admin/hotspots/sync`, Bearer, 3 hari); 429/502/503 tampil sebagai pesan. Mock menampilkan status DEMO dan menolak sync (tidak berpura-pura live).
+- Perbaikan `BaseMap`: pembaruan data tidak lagi bergantung pada `isStyleLoaded()` (false saat source GeoJSON memuat ulang) sehingga pilihan beruntun tidak terlewat.
+- Pratinjau "Wilayah pemantauan" F0 dihapus karena digantikan halaman ini.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 57/57 lulus (sync REST + Bearer + 429, sync mock ditolak) |
+| `npm run test:shell` (production, mock) | 11/11 lulus (tes baru `hotspots.test.mjs`) |
+| `hotspots.test.mjs` di dev REST ke backend `main` (`:8000`, DB `gambutops_fe`) | Lulus, termasuk membuat tugas dari titik |
+| Sapuan responsif 6 halaman × 320/375/414/768/1024/1280 | Tanpa overflow |
+
+Catatan:
+
+- Tanpa filter wilayah, REST mengembalikan semua hotspot yang diimpor (mis. 14.261 untuk periode default, termasuk di luar kotak DEMO); pilih wilayah untuk fokus.
+- Uji klik langsung pada titik peta belum otomatis (posisi piksel kanvas); dicek manual lewat screenshot.
+- DB uji belum berisi data NRT (status NOT_SYNCED); tombol sinkron belum dicoba ke NASA dari frontend.
+
+## 17. Sesi frontend 2026-10-15 — halaman Ringkasan (FE-03, `feat/frontend-dashboard`)
+
+**Status:** IMPLEMENTED, belum commit/push. Branch dari `main` setelah PR #10 (Tasks + Hotspots).
+
+- **Perlu perhatian:** wilayah prioritas tertinggi (keputusan, penjelasan, catatan "bukan peluang kebakaran") dan **Tugas yang menunggu Anda** sesuai peran demo (koordinator: baru/menunggu tinjauan/tindak lanjut; petugas: tugas miliknya yang ditugaskan/dikerjakan).
+- **Empat angka** yang dapat diklik: titik panas (total server + belum diverifikasi, dengan cakupan halaman), wilayah prioritas tinggi/sedang, tugas aktif, dan kelengkapan muka air tanah (% hari terukur atau pemberitahuan data terkini tidak tersedia).
+- **Peta ringkas** memakai `HotspotMap` dan kunci cache yang sama dengan halaman Titik panas (halaman pertama).
+- **Kegiatan terbaru** dengan nama aktor dan label SIMULASI; **provenance** (batas data/as_of, sumber dan waktu pembaruan hotspot). Panel periode/wilayah di samping (tautan "Ubah periode/wilayah").
+- `buildActivity` memakai `orderedHistory`, sehingga pembuatan tugas tampil sebelum penugasan pada waktu yang sama.
+- `ModulePlaceholder` disederhanakan (bagian khusus dashboard dihapus); kini hanya dipakai `/experiments/ml`.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 58/58 lulus (urutan kegiatan) |
+| `npm run test:shell` (production, mock) | 12/12 lulus (tes baru `dashboard.test.mjs`) |
+| `dashboard.test.mjs` di dev REST ke backend `:8000` | Lulus |
+| Sapuan responsif 6 halaman × 320–1280 | Tanpa overflow |
+
+Catatan: tanpa filter wilayah, jumlah titik panas REST mencakup semua hotspot yang diimpor (termasuk di luar kotak DEMO), sedangkan peta dibingkai ke dua wilayah DEMO.

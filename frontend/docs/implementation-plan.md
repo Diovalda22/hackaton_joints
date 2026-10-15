@@ -12,7 +12,7 @@
 - [x] Titik integrasi repository generic tanpa kontrak tandingan.
 - [x] README, `.env.example`, dan smoke test browser.
 - [x] Kontrak, mock/REST repository, dan provider dibuat pada `feat/f0-data`, lalu dihubungkan ke AppProviders.
-- [ ] Pasang MapLibre saat paket tersedia, sebelum F1.3.
+- [x] Pasang MapLibre sebelum F1.3 (`maplibre-gl` 6.11.2, `BaseMap` + fallback; 15 Okt 2026).
 - [x] Verifikasi browser pada lingkungan yang mengizinkan server dan Chromium (14 Okt 2026, lihat di bawah).
 
 ## Keputusan PRD

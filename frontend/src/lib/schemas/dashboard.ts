@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { bboxSchema, isoDateSchema, isoDateTimeSchema, monitoringModeSchema } from "./common";
-import { groundwaterAvailabilitySchema } from "./monitoring";
+import { groundwaterAvailabilitySchema, lastSyncedScopeSchema } from "./monitoring";
 import { taskStatusSchema } from "./task";
 
 export const areaSchema = z.object({
@@ -30,9 +30,13 @@ export const dashboardSummarySchema = z.object({
   to: isoDateSchema,
   area_id: z.string().min(1).nullable(),
   hotspots: z.object({
+    /** Total seluruh hasil filter dari server (`total`), bukan jumlah item satu halaman. */
     total: z.number().int().nonnegative(),
     unverified: z.number().int().nonnegative(),
+    /** PAGE: `unverified` hanya dihitung dari halaman yang dimuat, bukan statistik seluruh hasil. */
+    unverified_scope: z.enum(["ALL", "PAGE"]),
     last_synced_at: isoDateTimeSchema.nullable(),
+    last_synced_scope: lastSyncedScopeSchema,
     source: z.string().nullable(),
   }),
   tasks: z.object({
@@ -51,6 +55,8 @@ export const dashboardSummarySchema = z.object({
     stations: z.number().int().nonnegative(),
     valid_days: z.number().int().nonnegative(),
     missing_days: z.number().int().nonnegative(),
+    /** Konflik duplikat: tanpa nilai, tetapi berbeda makna dari MISSING. */
+    duplicate_days: z.number().int().nonnegative(),
     notice: z.string().nullable(),
   }),
   activity: z.array(activitySchema),

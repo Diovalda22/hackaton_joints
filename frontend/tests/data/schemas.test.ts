@@ -4,7 +4,7 @@ import { CURRENT_HOTSPOTS, GROUNDWATER, HISTORICAL_HOTSPOTS, STATIONS, createSee
 import { createTaskInputSchema, fieldReportSchema, groundwaterObservationSchema, hotspotSchema, inspectionTaskSchema, stationSchema } from "@/lib/schemas";
 
 test("stasiun dengan koordinat wajib mencantumkan sumber koordinat", () => {
-  const base = { id: "BRG6", region: "Batanghari", lat: null, lon: null, coordinate_source: null, period_start: "2018-04-11", period_end: "2019-10-07", source: "x" };
+  const base = { id: "BRG6", code: "BRG6", region: "Batanghari", lat: null, lon: null, coordinate_source: null, period_start: "2018-04-11", period_end: "2019-10-07", source: "x" };
   assert.equal(stationSchema.safeParse(base).success, true);
   assert.equal(stationSchema.safeParse({ ...base, lat: -1.5, lon: 103.5 }).success, false);
   assert.equal(stationSchema.safeParse({ ...base, lat: -1.5, lon: null, coordinate_source: "GPS" }).success, false);
@@ -16,6 +16,8 @@ test("GWT kosong harus null dengan flag MISSING, tidak boleh nol", () => {
   assert.equal(groundwaterObservationSchema.safeParse(obs).success, true);
   assert.equal(groundwaterObservationSchema.safeParse({ ...obs, quality_flag: "VALID" }).success, false);
   assert.equal(groundwaterObservationSchema.safeParse({ ...obs, gwt_m: -0.5 }).success, false);
+  // Konflik duplikat boleh tanpa nilai, tetapi tetap berflag berbeda dari MISSING.
+  assert.equal(groundwaterObservationSchema.safeParse({ ...obs, quality_flag: "DUPLICATE_FLAGGED" }).success, true);
 });
 
 test("seluruh fixture valid terhadap schema dan berlabel DEMO/SIMULASI", () => {

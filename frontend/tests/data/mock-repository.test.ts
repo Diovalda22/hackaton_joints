@@ -163,7 +163,8 @@ test("ringkasan dashboard konsisten dengan operasi domain", async () => {
   const query = { mode: "HISTORICAL_REPLAY" as const, from: "2019-08-17", to: "2019-09-15", as_of: "2019-09-15", area_id: null };
   const summary = await repo.getDashboardSummary(query);
   const hotspots = await repo.listHotspots(query);
-  assert.equal(summary.hotspots.total, hotspots.items.length);
+  assert.equal(summary.hotspots.total, hotspots.total, "total memakai total server, bukan items.length");
+  assert.equal(summary.hotspots.unverified_scope, hotspots.total > hotspots.items.length ? "PAGE" : "ALL");
   assert.equal(Object.values(summary.priorities).reduce((sum, value) => sum + value, 0), 6);
   assert.equal(summary.tasks.awaiting_review, 1);
   assert.equal(summary.groundwater.availability, "AVAILABLE");
@@ -173,4 +174,35 @@ test("ringkasan dashboard konsisten dengan operasi domain", async () => {
   const current = await repo.getDashboardSummary({ ...query, mode: "CURRENT_MONITORING", from: "2026-10-06", to: "2026-10-12", as_of: "2026-10-12" });
   assert.equal(current.groundwater.availability, "NOT_AVAILABLE");
   assert.equal(current.tasks.awaiting_review, 0, "tugas historis tidak muncul di mode terkini");
+});
+
+test("hotspot mock: pagination dan urutan mengikuti backend", async () => {
+  const { repo } = setup();
+  const query = { mode: "HISTORICAL_REPLAY" as const, from: "2019-07-01", to: "2019-10-31" };
+  const all = await repo.listHotspots({ ...query, limit: 1000 });
+  assert.ok(all.total > 10);
+  const first = await repo.listHotspots({ ...query, limit: 5, offset: 0 });
+  const second = await repo.listHotspots({ ...query, limit: 5, offset: 5 });
+  assert.equal(first.total, all.total);
+  assert.equal(second.total, all.total);
+  assert.deepEqual([first.limit, first.offset, second.offset], [5, 0, 5]);
+  assert.equal(first.items.length, 5);
+  assert.equal(new Set([...first.items, ...second.items].map((item) => item.id)).size, 10, "halaman tidak tumpang tindih");
+  const ordered = [...first.items, ...second.items];
+  assert.ok(ordered.every((item, index) => index === 0 || ordered[index - 1]!.observed_at >= item.observed_at), "waktu akuisisi turun");
+  assert.equal((await repo.listHotspots(query)).limit, 200, "limit default 200");
+  await rejectsWith(repo.listHotspots({ ...query, limit: 1001 }), "VALIDATION");
+  await rejectsWith(repo.listHotspots({ ...query, offset: -1 }), "VALIDATION");
+  const snpp = await repo.listHotspots({ ...query, satellite: "N", limit: 1000 });
+  assert.ok(snpp.total > 0 && snpp.total < all.total, "filter satellite memakai kode seperti backend");
+  assert.ok(snpp.items.every((item) => item.satellite === "N"));
+});
+
+test("mock: status sync FIRMS berlabel DEMO dan sync manual ditolak (tidak berpura-pura live)", async () => {
+  const repo = createMockRepository({ storage: createMemoryStorage() });
+  const status = await repo.getHotspotSyncStatus();
+  assert.equal(status.length, 4);
+  assert.ok(status.every((item) => item.status === "SUCCESS"));
+  const coordinator = (await repo.listUsers()).find((user) => user.role === "coordinator")!;
+  await assert.rejects(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 3 }, { actor: coordinator }), /hanya tersedia saat terhubung ke server/);
 });

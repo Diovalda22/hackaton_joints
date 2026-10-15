@@ -21,13 +21,13 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
-| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | Tersedia; browser smoke masih perlu ditutup |
-| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | Belum; selaraskan dengan OpenAPI dan pagination hotspot |
-| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | Belum; komposisikan data dari API, lengkapi saat priorities/tasks siap |
-| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | Belum; stations/GWT API sudah siap |
-| FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | Belum; CSV/read API siap, status live menyusul BE-04 |
-| FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | Belum; mock dahulu, REST setelah BE-05/06 |
-| FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | Belum; REST setelah BE-06; localStorage hanya pada mock |
+| FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | MERGED (PR #7): shell, mode, panduan, MapLibre + fallback + layar penuh, responsif 320–1280 |
+| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | MERGED (PR #5): Zod/tipe, mock + REST adapter, provider, validasi payload, pagination hotspot |
+| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | IMPLEMENTED di `feat/frontend-dashboard`: perhatian utama per peran, 4 angka, peta ringkas, kegiatan, provenance; menunggu review |
+| FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | MERGED (PR #7): stasiun, grafik gap/null, statistik valid, kelengkapan data, mode terkini; mock + REST diuji |
+| FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | MERGED (PR #10) dari `feat/frontend-hotspots`: peta/daftar sinkron, pagination, filter satelit, tugas dari titik, status + sync FIRMS |
+| FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-05 + mock, alasan/snapshot/missing, buat tugas |
+| FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-06 dengan Bearer token + mock, role demo, follow-up, E2E reload lulus |
 | FE-08 | ML UI: grafik actual/predicted, metrik/baseline, versi model dan batasan | Belum; hasil nyata setelah BE-07/08 |
 | FE-09 | Integrasi semua read/write API, loading/error/retry dan respons filter lama | Belum; dikerjakan bertahap bersama halaman terkait |
 | FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | Shell checks tersedia; QA final dan workflow E2E belum |
@@ -137,7 +137,7 @@ Gate: fondasi frontend/backend dapat dijalankan bersama dan kontrak diterima ked
 - [ ] Bersama: review dan merge branch data setelah pemeriksaan reviewer.
 - [x] Anda: siapkan database aplikasi lokal dan seed GWT/sampel hotspot dua bbox DEMO; reimport tanpa duplikasi.
 - [x] Anda: publikasikan handoff OpenAPI read API dan snapshot JSON nyata untuk teman frontend.
-- [ ] Teman: sesuaikan schema respons/REST adapter dengan handoff backend dan uji payload nyata.
+- [x] Teman: sesuaikan schema respons/REST adapter dengan handoff backend dan uji payload nyata (`feat/fe-read-contract`; lihat `frontend/docs/progress.md` §12).
 
 Gate: frontend memakai data historis dari API/database dengan provenance dan missing yang benar.
 

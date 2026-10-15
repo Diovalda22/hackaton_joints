@@ -1,19 +1,25 @@
 "use client";
 
+import { useCallback } from "react";
 import { History, Satellite } from "lucide-react";
 import { toast } from "sonner";
 import { useMonitoring, type MonitoringMode } from "@/components/providers/monitoring-context";
 import { modeDescriptions, modeLabels } from "@/lib/domain/labels";
 import { cn } from "@/components/ui/utils";
 
-export function ModeSwitcher() {
+/** Pindah jenis data dengan umpan balik yang sama di semua tempat (header maupun tombol di halaman). */
+export function useSwitchMode() {
   const { mode, setMode } = useMonitoring();
-
-  function changeMode(next: MonitoringMode) {
+  return useCallback((next: MonitoringMode) => {
     if (next === mode) return;
     setMode(next);
     toast.info(`${modeLabels[next]} aktif`, { description: modeDescriptions[next] });
-  }
+  }, [mode, setMode]);
+}
+
+export function ModeSwitcher() {
+  const { mode } = useMonitoring();
+  const changeMode = useSwitchMode();
 
   return (
     <div role="group" aria-label="Jenis data" className="flex w-full rounded-lg border bg-muted/60 p-1 sm:inline-flex sm:w-auto">
