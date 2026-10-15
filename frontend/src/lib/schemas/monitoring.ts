@@ -124,3 +124,14 @@ export const hotspotSyncInputSchema = z.object({
   source_product: z.enum(["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"]),
   day_range: z.number().int().min(1).max(5),
 });
+
+
+export const hotspotMapPointSchema = hotspotSchema.pick({
+  id: true, latitude: true, longitude: true, observed_at: true,
+  frp_mw: true, verification_status: true,
+}).extend({ list_offset: z.number().int().nonnegative() });
+
+export const hotspotMapSchema = z.object({
+  mode: monitoringModeSchema,
+  items: z.array(hotspotMapPointSchema),
+});

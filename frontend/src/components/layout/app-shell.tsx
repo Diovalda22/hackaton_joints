@@ -9,7 +9,6 @@ import { ModeSwitcher } from "./mode-switcher";
 import { RoleSwitcher } from "./role-switcher";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { DemoNotice } from "@/components/shared/demo-notice";
 import { useGuide } from "@/components/guide/guide-provider";
 import { cn } from "@/components/ui/utils";
 
@@ -45,7 +44,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           <RoleSwitcher />
           <div className="w-full sm:w-auto"><ModeSwitcher /></div>
         </header>
-        <DemoNotice />
         <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-7 outline-none md:px-8 md:py-9">
           <div className="mx-auto max-w-[1280px]">{children}</div>
         </main>

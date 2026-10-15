@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { AREAS, findArea } from "@/lib/domain/areas";
+import { AREAS, INDONESIA_BBOX, findArea } from "@/lib/domain/areas";
 import { composeDashboardSummary } from "@/lib/domain/dashboard";
 import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
-  createReportInputSchema, createTaskInputSchema, fieldReportSchema, hotspotSyncAttemptSchema, hotspotSyncInputSchema, hotspotSyncStatusSchema,
+  createReportInputSchema, createTaskInputSchema, hotspotMapSchema, fieldReportSchema, hotspotSyncAttemptSchema, hotspotSyncInputSchema, hotspotSyncStatusSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
   updateTaskInputSchema, userSchema,
 } from "@/lib/schemas";
@@ -144,7 +144,9 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
     },
 
     async listHotspots(query, { signal } = {}) {
-      const bbox = query.bbox ?? findArea(query.area_id)?.bbox ?? null;
+      const bbox = query.mode === "CURRENT_MONITORING"
+        ? INDONESIA_BBOX
+        : query.bbox ?? findArea(query.area_id)?.bbox ?? null;
       const page = await request(api("/hotspots"), apiHotspotPageSchema, {
         query: {
           from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","),
@@ -153,6 +155,17 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
         signal,
       });
       return toHotspotCollection(query, page);
+    },
+
+    async getHotspotMap(query, { signal } = {}) {
+      const bbox = query.mode === "CURRENT_MONITORING"
+        ? INDONESIA_BBOX : query.bbox ?? findArea(query.area_id)?.bbox ?? null;
+      const result = await request(api("/hotspots/map"), hotspotMapSchema, {
+        query: { from: query.from, to: query.to, mode: query.mode, bbox: bbox?.join(","),
+          source_product: query.source_product, satellite: query.satellite }, signal,
+      });
+      if (result.mode !== query.mode) throw new RepositoryError("INVALID_PAYLOAD", "Mode peta tidak sesuai permintaan.");
+      return result;
     },
 
     getHotspotSyncStatus: ({ signal }: RequestOptions = {}) => request(api("/hotspots/sync-status"), z.array(hotspotSyncStatusSchema), { signal }),

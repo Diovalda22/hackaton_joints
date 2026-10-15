@@ -10,7 +10,7 @@ from app.db.session import get_async_db
 from app.repositories.monitoring import MonitoringRepository
 from app.schemas.common import MonitoringMode
 from app.schemas.groundwater import GroundwaterObservation
-from app.schemas.hotspot import HotspotPage
+from app.schemas.hotspot import HotspotMap, HotspotPage
 from app.schemas.station import Station
 
 router = APIRouter(prefix="/api/v1")
@@ -95,4 +95,21 @@ async def list_hotspots(
         mode=mode,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.get("/hotspots/map", response_model=HotspotMap, tags=["hotspots"])
+async def hotspot_map(
+    repository: Annotated[MonitoringRepository, Depends(get_monitoring_repository)],
+    date_from: Annotated[date | None, Query(alias="from")] = None,
+    date_to: Annotated[date | None, Query(alias="to")] = None,
+    bbox: str | None = None,
+    satellite: str | None = None,
+    source_product: str | None = None,
+    mode: MonitoringMode = MonitoringMode.HISTORICAL_REPLAY,
+) -> HotspotMap:
+    validate_date_range(date_from, date_to)
+    return await repository.hotspot_map(
+        date_from=date_from, date_to=date_to, bbox=parse_optional_bbox(bbox),
+        satellite=satellite, source_product=source_product, mode=mode,
     )

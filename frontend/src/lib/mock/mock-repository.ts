@@ -192,9 +192,19 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
       });
     },
 
+    async getHotspotMap(query, options = {}) {
+      const first = await repository.listHotspots({ ...query, limit: HOTSPOT_MAX_LIMIT, offset: 0 }, options);
+      const items = [...first.items];
+      for (let offset = first.items.length; offset < first.total; offset += HOTSPOT_MAX_LIMIT) {
+        const page = await repository.listHotspots({ ...query, limit: HOTSPOT_MAX_LIMIT, offset }, options);
+        items.push(...page.items);
+      }
+      return { mode: query.mode, items: items.map((item, list_offset) => ({ ...item, list_offset })) };
+    },
+
     getHotspotSyncStatus({ signal } = {}) {
       // Status DEMO: satu waktu sync tetap untuk setiap target, tanpa menghubungi NASA.
-      return respond(signal, () => AREAS.flatMap((area) => (["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"] as const).map((product) => ({
+      return respond(signal, () => [{ id: "indonesia" }].flatMap((area) => (["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"] as const).map((product) => ({
         area_id: area.id, source_product: product, status: "SUCCESS" as const, last_attempt: null, last_successful_at: CURRENT_DEMO_LAST_SYNC,
       }))));
     },

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { navigation } from "@/components/layout/navigation";
-import { useHotspots } from "@/components/providers/data-hooks";
+import { useHotspotMap, useHotspots } from "@/components/providers/data-hooks";
 import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { useMonitoring } from "@/components/providers/monitoring-context";
 import { EmptyState, ErrorState } from "@/components/shared/async-states";
@@ -24,7 +24,7 @@ import { HOTSPOT_STATUS_COLOR, HotspotMap } from "./hotspot-map";
 import { SyncStatusPanel } from "./sync-status";
 
 const page = navigation.find((item) => item.href === "/hotspots")!;
-/** Titik per halaman: cukup untuk peta yang tetap ringan di HP. */
+/** Jumlah baris per halaman daftar; peta memuat seluruh marker sesuai filter. */
 export const HOTSPOTS_PER_PAGE = 100;
 /** Di layar kecil daftar diringkas agar peta dan pengaturan tetap mudah dijangkau. */
 const COMPACT_ROWS = 10;
@@ -75,7 +75,7 @@ function HotspotRow({ hotspot, selected, onSelect }: { hotspot: Hotspot; selecte
         <span className="size-2.5 shrink-0 rounded-full" style={{ background: HOTSPOT_STATUS_COLOR[hotspot.verification_status] }} aria-hidden="true" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-medium">{formatDateTime(hotspot.observed_at)}</span>
-          <span className="block text-xs text-muted-foreground">{findArea(hotspot.area_id)?.region ?? "Luar wilayah DEMO"} · {satelliteLabel(hotspot.satellite)} · {hotspot.frp_mw === null ? "FRP –" : `FRP ${hotspot.frp_mw.toLocaleString("id-ID")} MW`}</span>
+          <span className="block text-xs text-muted-foreground">{findArea(hotspot.area_id)?.region ?? `${hotspot.latitude.toFixed(3)}, ${hotspot.longitude.toFixed(3)}`} · {satelliteLabel(hotspot.satellite)} · {hotspot.frp_mw === null ? "FRP –" : `FRP ${hotspot.frp_mw.toLocaleString("id-ID")} MW`}</span>
         </span>
         <span className="sr-only">{hotspotStatusLabels[hotspot.verification_status]}</span>
       </button>
@@ -94,10 +94,18 @@ export function HotspotsView() {
   const [selection, setSelection] = useState<{ key: string; id: string | null }>({ key: filterKey, id: null });
   const selectedId = selection.key === `${filterKey}:${offset}` ? selection.id : null;
   const hotspots = useHotspots({ satellite, limit: HOTSPOTS_PER_PAGE, offset });
+  const mapData = useHotspotMap(satellite);
   const listRef = useRef<HTMLUListElement>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const select = (id: string | null) => setSelection({ key: `${filterKey}:${offset}`, id });
+  const selectOnMap = (id: string) => {
+    const point = mapData.data?.items.find((item) => item.id === id);
+    if (!point) return;
+    const targetOffset = Math.floor(point.list_offset / HOTSPOTS_PER_PAGE) * HOTSPOTS_PER_PAGE;
+    setPaging({ key: filterKey, offset: targetOffset });
+    setSelection({ key: `${filterKey}:${targetOffset}`, id });
+  };
   const goTo = (next: number) => setPaging({ key: filterKey, offset: next });
 
   // Pilihan dari peta: tampilkan baris di daftar (hanya di layar lebar agar halaman HP tidak melompat).
@@ -109,7 +117,7 @@ export function HotspotsView() {
   const data = hotspots.data;
   const items = data?.items ?? [];
   const selected = items.find((item) => item.id === selectedId) ?? null;
-  const area = findArea(filter.area_id);
+  const area = mode === "CURRENT_MONITORING" ? undefined : findArea(filter.area_id);
 
   return (
     <div className="min-w-0 space-y-5">
@@ -130,7 +138,7 @@ export function HotspotsView() {
         </div>
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {data ? (data.total === 0 ? "Tidak ada titik" : <>Titik <span className="font-medium text-foreground">{formatCount(offset + 1)}–{formatCount(offset + items.length)}</span> dari <span className="font-medium text-foreground">{formatCount(data.total)}</span></>) : "Memuat…"}
-          <span className="hidden sm:inline"> · {area?.label ?? "semua wilayah"} · {formatDateRange(filter.from, filter.to)}</span>
+          <span className="hidden sm:inline"> · {area?.label ?? (mode === "CURRENT_MONITORING" ? "Seluruh Indonesia" : "semua wilayah")} · {formatDateRange(filter.from, filter.to)}</span>
           {" · "}<a href={`#${SETTINGS_ANCHOR}`} className="font-medium text-primary underline-offset-4 hover:underline xl:hidden">Ubah tanggal/wilayah</a>
         </p>
       </div>
@@ -140,7 +148,14 @@ export function HotspotsView() {
       ) : (
         <>
           <div className="space-y-2">
-            <HotspotMap hotspots={items} selectedId={selectedId} onSelect={select} areaId={filter.area_id} className="h-[340px] sm:h-[460px]" />
+            {mapData.status === "error" ? (
+              <ErrorState title="Peta titik panas belum dapat dimuat" description={errorMessage(mapData.error)} onRetry={mapData.refetch} />
+            ) : (
+              <HotspotMap hotspots={mapData.data?.items ?? []} selectedId={selectedId} onSelect={selectOnMap} areaId={filter.area_id} national={mode === "CURRENT_MONITORING"} className="h-[340px] sm:h-[460px]" />
+            )}
+            <p role="status" className="text-xs text-muted-foreground">
+              {mapData.data ? `Peta menampilkan ${formatCount(mapData.data.items.length)} titik sesuai filter, mencakup semua halaman daftar.` : mapData.status === "loading" ? "Memuat seluruh titik pada peta…" : ""}
+            </p>
             <Legend />
           </div>
 

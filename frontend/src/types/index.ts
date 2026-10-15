@@ -45,3 +45,6 @@ export type MlForecastResponse = z.infer<typeof s.mlForecastResponseSchema>;
 export type Area = z.infer<typeof s.areaSchema>;
 export type Activity = z.infer<typeof s.activitySchema>;
 export type DashboardSummary = z.infer<typeof s.dashboardSummarySchema>;
+
+export type HotspotMapPoint = z.infer<typeof s.hotspotMapPointSchema>;
+export type HotspotMapData = z.infer<typeof s.hotspotMapSchema>;

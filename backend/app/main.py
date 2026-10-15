@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.contracts import router as contracts_router
@@ -28,6 +29,7 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
+    application.add_middleware(GZipMiddleware, minimum_size=1000)
     application.include_router(health_router)
     application.include_router(auth_router)
     application.include_router(firms_router)

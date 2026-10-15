@@ -84,7 +84,7 @@ class FirmsSyncRun(Base):
     __table_args__ = (
         CheckConstraint("status IN ('RUNNING', 'SUCCESS', 'FAILED')", name="status_value"),
         CheckConstraint("day_range BETWEEN 1 AND 5", name="day_range_value"),
-        CheckConstraint("area_id IN ('batanghari', 'kubu-raya')", name="area_value"),
+        CheckConstraint("area_id IN ('batanghari', 'kubu-raya', 'indonesia')", name="area_value"),
         CheckConstraint(
             "source_product IN ('VIIRS_SNPP_NRT', 'VIIRS_NOAA20_NRT')", name="product_value"
         ),

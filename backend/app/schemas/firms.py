@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-AreaId = Literal["batanghari", "kubu-raya"]
+AreaId = Literal["batanghari", "kubu-raya", "indonesia"]
 FirmsProduct = Literal["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"]
 
 

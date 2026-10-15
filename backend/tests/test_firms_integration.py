@@ -38,7 +38,7 @@ def test_persistent_sync_upsert_cooldown_failure_and_lock(database, monkeypatch)
                                    clock=lambda: now)
         try:
             initial = await service.statuses(None, None)
-            assert len(initial) == 4 and all(s.status == "NOT_SYNCED" for s in initial)
+            assert len(initial) == 2 and all(s.status == "NOT_SYNCED" for s in initial)
             first = await service.sync(REQUEST, DEMO_COORDINATOR_ID)
             assert (first.rows_received, first.rows_inserted, first.rows_conflicts) == (2, 1, 1)
             with pytest.raises(FirmsError) as caught:

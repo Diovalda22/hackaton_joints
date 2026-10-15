@@ -34,8 +34,17 @@ export function useHotspots(options: { source_product?: string | null; satellite
   const sourceProduct = options.source_product ?? null;
   const satellite = options.satellite ?? null;
   const page = { limit: options.limit ?? HOTSPOT_DEFAULT_LIMIT, offset: options.offset ?? 0 };
-  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, satellite, ...page }, (repo, signal) =>
-    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, satellite, ...page }, { signal }));
+  const areaId = mode === "CURRENT_MONITORING" ? null : filter.area_id;
+  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: areaId, source_product: sourceProduct, satellite, ...page }, (repo, signal) =>
+    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: areaId, source_product: sourceProduct, satellite, ...page }, { signal }));
+}
+
+/** Seluruh marker sesuai filter; tidak mengikuti halaman daftar. */
+export function useHotspotMap(satellite: string | null = null) {
+  const { mode, filter } = useMonitoring();
+  const query = { mode, from: filter.from, to: filter.to,
+    area_id: mode === "CURRENT_MONITORING" ? null : filter.area_id, satellite };
+  return useModeQuery(mode, "hotspot-map", query, (repo, signal) => repo.getHotspotMap(query, { signal }));
 }
 
 /** Status sync FIRMS NRT; hanya relevan untuk mode terkini. */

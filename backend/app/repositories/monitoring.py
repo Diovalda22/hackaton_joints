@@ -9,8 +9,29 @@ from app.models.entities import DataSource, GroundwaterObservation, Hotspot, Sta
 from app.schemas.common import MonitoringMode
 from app.schemas.groundwater import GroundwaterObservation as GroundwaterObservationSchema
 from app.schemas.hotspot import Hotspot as HotspotSchema
-from app.schemas.hotspot import HotspotPage
+from app.schemas.hotspot import HotspotMap, HotspotMapPoint, HotspotPage
 from app.schemas.station import Station as StationSchema
+
+
+def hotspot_filters(*, date_from, date_to, bbox, satellite, source_product, mode):
+    filters = [Hotspot.mode == mode.value]
+    if date_from is not None:
+        filters.append(Hotspot.acquired_at >= datetime.combine(date_from, time.min, tzinfo=UTC))
+    if date_to is not None:
+        filters.append(
+            Hotspot.acquired_at
+            < datetime.combine(date_to + timedelta(days=1), time.min, tzinfo=UTC)
+        )
+    if bbox is not None:
+        envelope = func.ST_MakeEnvelope(
+            bbox.west, bbox.south, bbox.east, bbox.north, 4326
+        )
+        filters.append(func.ST_Intersects(Hotspot.geom, envelope))
+    if satellite is not None:
+        filters.append(Hotspot.satellite == satellite)
+    if source_product is not None:
+        filters.append(Hotspot.source_product == source_product)
+    return filters
 
 
 class MonitoringRepository:
@@ -103,23 +124,10 @@ class MonitoringRepository:
         limit: int,
         offset: int,
     ) -> HotspotPage:
-        filters = [Hotspot.mode == mode.value]
-        if date_from is not None:
-            filters.append(Hotspot.acquired_at >= datetime.combine(date_from, time.min, tzinfo=UTC))
-        if date_to is not None:
-            filters.append(
-                Hotspot.acquired_at
-                < datetime.combine(date_to + timedelta(days=1), time.min, tzinfo=UTC)
-            )
-        if bbox is not None:
-            envelope = func.ST_MakeEnvelope(
-                bbox.west, bbox.south, bbox.east, bbox.north, 4326
-            )
-            filters.append(func.ST_Intersects(Hotspot.geom, envelope))
-        if satellite is not None:
-            filters.append(Hotspot.satellite == satellite)
-        if source_product is not None:
-            filters.append(Hotspot.source_product == source_product)
+        filters = hotspot_filters(
+            date_from=date_from, date_to=date_to, bbox=bbox, satellite=satellite,
+            source_product=source_product, mode=mode,
+        )
 
         total = await self.session.scalar(select(func.count(Hotspot.id)).where(*filters))
         statement: Select[tuple[Hotspot, DataSource, float, float]] = (
@@ -157,3 +165,22 @@ class MonitoringRepository:
             for hotspot, source, latitude, longitude in rows
         ]
         return HotspotPage(items=items, total=total or 0, limit=limit, offset=offset)
+
+    async def hotspot_map(self, **query) -> HotspotMap:
+        # Map coverage is independent of list pagination; load only marker fields.
+        rows = (await self.session.execute(
+            select(
+                Hotspot.id, Hotspot.acquired_at, Hotspot.frp, Hotspot.verification_status,
+                func.ST_Y(Hotspot.geom).label("latitude"),
+                func.ST_X(Hotspot.geom).label("longitude"),
+            ).where(*hotspot_filters(**query))
+            .order_by(Hotspot.acquired_at.desc(), Hotspot.id)
+        )).all()
+        return HotspotMap(mode=query["mode"], items=[
+            HotspotMapPoint(
+                id=str(row.id), latitude=row.latitude, longitude=row.longitude,
+                observed_at=row.acquired_at, frp_mw=row.frp,
+                verification_status=row.verification_status, list_offset=index,
+            )
+            for index, row in enumerate(rows)
+        ])

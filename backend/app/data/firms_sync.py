@@ -9,7 +9,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from app.data.firms_client import AREAS, FirmsClient, FirmsError, FirmsResponse
+from app.data.firms_client import FirmsClient, FirmsError, FirmsResponse
 from app.models.entities import DataImportRun, DataSource, FirmsSyncRun, Hotspot
 from app.schemas.firms import SyncRequest, SyncResult, SyncStatus
 
@@ -169,7 +169,7 @@ class FirmsSyncService:
     async def statuses(self, area_id: str | None, source_product: str | None) -> list[SyncStatus]:
         result = []
         async with AsyncSession(self.engine) as session:
-            for area in ([area_id] if area_id else list(AREAS)):
+            for area in ([area_id] if area_id else ["indonesia"]):
                 products = [source_product] if source_product else [
                     "VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"
                 ]

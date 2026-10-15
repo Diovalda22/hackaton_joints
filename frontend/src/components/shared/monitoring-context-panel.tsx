@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { usePathname } from "next/navigation";
 import { SlidersHorizontal, RotateCcw } from "lucide-react";
 import { useMonitoring } from "@/components/providers/monitoring-context";
 import { useRepository } from "@/components/providers/gambutops-repository";
@@ -17,6 +18,7 @@ export function MonitoringContextPanel({ id: sectionId }: { id?: string } = {}) 
   const id = useId();
   const historical = mode === "HISTORICAL_REPLAY";
   const demo = repository.kind === "mock";
+  const nationalHotspots = usePathname() === "/hotspots" && !historical;
   const isDefault = filter.from === bounds.default_from && filter.to === bounds.default_to && filter.area_id === null;
 
   return <section id={sectionId} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-xl border bg-card p-4 sm:p-5">
@@ -28,11 +30,11 @@ export function MonitoringContextPanel({ id: sectionId }: { id?: string } = {}) 
       <div className="space-y-1.5"><p className="text-xs text-muted-foreground">Periode</p>
         <DateRangePicker key={mode} value={filter} min={bounds.min_date} max={bounds.max_date} onChange={(range) => setFilter(range)} />
       </div>
-      <label className="block space-y-1.5 text-xs text-muted-foreground" htmlFor={`${id}-area`}>
+      {nationalHotspots ? <p className="text-sm">Wilayah: Seluruh Indonesia</p> : <label className="block space-y-1.5 text-xs text-muted-foreground" htmlFor={`${id}-area`}>
         <span>Wilayah</span>
         <Select id={`${id}-area`} aria-label="Wilayah" value={filter.area_id ?? ""} onValueChange={(value) => setFilter({ area_id: value || null })}
           options={[{ value: "", label: "Semua wilayah" }, ...(areas.data?.map((area) => ({ value: area.id, label: area.label })) ?? [])]} />
-      </label>
+      </label>}
       {!historical && <p role="note" className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">Data muka air terkini tidak tersedia</p>}
       <details className="border-t pt-3 text-xs leading-5 text-muted-foreground">
         <summary className="cursor-pointer font-medium hover:text-foreground">Detail data</summary>

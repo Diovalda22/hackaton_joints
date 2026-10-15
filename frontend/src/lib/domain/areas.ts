@@ -1,5 +1,7 @@
 import type { Area, Bbox } from "@/types";
 
+export const INDONESIA_BBOX: Bbox = [94.0, -11.5, 141.5, 6.5];
+
 const DEMO_BOUNDARY = "Perkiraan kotak batas DEMO, bukan batas administratif resmi";
 
 /**

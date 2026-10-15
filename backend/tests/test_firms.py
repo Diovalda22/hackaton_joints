@@ -136,3 +136,23 @@ def test_cooldown_api_returns_retry_after(client) -> None:
         assert response.status_code == 429 and response.headers["Retry-After"] == "590"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_nationwide_sync_accepts_hotspots_outside_original_areas() -> None:
+    request = SyncRequest(area_id="indonesia", source_product="VIIRS_SNPP_NRT")
+    body = (HEADER + "5.5,95.3,2026-10-15,0055,N,VIIRS,n,12.5\n"
+            + "-8.5,140.5,2026-10-15,0055,N,VIIRS,n,8\n")
+    rows = parse_response(body.encode(), request, date(2026, 10, 13), date(2026, 10, 15))
+    assert len(rows) == 2
+
+    def handler(upstream):
+        assert "/94.0,-11.5,141.5,6.5/3/2026-10-13" in str(upstream.url)
+        return httpx.Response(200, content=body.encode())
+
+    result = asyncio.run(FirmsClient("test-secret", httpx.MockTransport(handler)).fetch(
+        request, date(2026, 10, 13), date(2026, 10, 15)
+    ))
+    assert len(result.records) == 2
+    with pytest.raises(FirmsError):
+        parse_response((HEADER + ROW.replace("103.5", "150")).encode(), request,
+                       date(2026, 10, 13), date(2026, 10, 15))

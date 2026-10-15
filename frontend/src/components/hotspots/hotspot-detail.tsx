@@ -48,7 +48,7 @@ export function HotspotDetail({ hotspot, onClose }: { hotspot: Hotspot; onClose:
       </div>
       <dl className="mt-2 divide-y">
         <Row label="Waktu satelit">{formatUtcDateTime(hotspot.observed_at)}</Row>
-        <Row label="Wilayah">{area?.label ?? "Di luar wilayah DEMO"}</Row>
+        <Row label="Wilayah">{area?.label ?? "Wilayah lainnya"}</Row>
         <Row label="Koordinat">{hotspot.latitude.toFixed(5)}, {hotspot.longitude.toFixed(5)}</Row>
         <Row label="Satelit">{satelliteLabel(hotspot.satellite)} · {hotspot.instrument}</Row>
         <Row label="Confidence (mentah)">{confidence}</Row>

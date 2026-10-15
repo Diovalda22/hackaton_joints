@@ -1,6 +1,6 @@
 import type { ModeBounds } from "@/lib/domain/periods";
 import type {
-  Area, Bbox, CreateReportInput, CreateTaskInput, DashboardSummary, FieldReport, GroundwaterSeries, HotspotCollection, HotspotSyncAttempt, HotspotSyncInput, HotspotSyncStatus,
+  Area, Bbox, HotspotMapData, CreateReportInput, CreateTaskInput, DashboardSummary, FieldReport, GroundwaterSeries, HotspotCollection, HotspotSyncAttempt, HotspotSyncInput, HotspotSyncStatus,
   InspectionTask, InspectionTaskDetail, MlForecastInput, MlForecastResponse, MlMetricsResponse, MonitoringMode,
   PriorityAssessment, Station, TaskStatus, UpdateTaskInput, User,
 } from "@/types";
@@ -78,6 +78,7 @@ export interface GambutOpsRepository {
   listStations(options?: RequestOptions): Promise<Station[]>;
   getGroundwater(query: GroundwaterQuery, options?: RequestOptions): Promise<GroundwaterSeries>;
   listHotspots(query: HotspotQuery, options?: RequestOptions): Promise<HotspotCollection>;
+  getHotspotMap(query: Omit<HotspotQuery, "limit" | "offset">, options?: RequestOptions): Promise<HotspotMapData>;
   /** Status sync FIRMS NRT (mode terkini). Tidak memanggil NASA. */
   getHotspotSyncStatus(options?: RequestOptions): Promise<HotspotSyncStatus[]>;
   /** Sync manual FIRMS oleh koordinator. Hanya tersedia pada REST. */
