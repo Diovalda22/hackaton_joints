@@ -182,6 +182,16 @@ dan kualitas data dibatasi oleh constraint database. Menjalankan migration offli
 .venv/bin/pytest
 ```
 
+Smoke Supabase end-to-end tanpa meninggalkan task/report pengujian:
+
+```bash
+.venv/bin/python scripts/smoke_supabase_api.py
+```
+
+Script memeriksa health/OpenAPI, users, stations, GWT, hotspot Batanghari, priorities dua area,
+dan workflow `ASSIGNED → IN_PROGRESS → SUBMITTED → VERIFIED`. Seluruh write dijalankan pada
+savepoint lalu transaksi luar di-rollback.
+
 Tes foundation mencakup health, autentikasi/otorisasi role, CORS, publikasi kontrak OpenAPI,
 konfigurasi production, nullable GWT, mode historis, metadata tabel, kontrak task/report, dan
 state machine. Tes migration serta persistensi workflow terhadap PostgreSQL nyata memerlukan

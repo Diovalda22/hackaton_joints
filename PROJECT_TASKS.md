@@ -86,7 +86,7 @@ integrasi, review, atau deployment.
 | --- | --- | --- |
 | Shell aplikasi | Sidebar/drawer, topbar, enam route, mode switcher, toast, shared states | Halaman domain frontend masih placeholder |
 | Backend foundation | FastAPI, Pydantic/OpenAPI, health, CORS, identitas dua role demo | Auth memakai bearer token demo; deployment auth production menunggu |
-| Database | PostgreSQL/PostGIS, lima migration, sebelas tabel domain/import/sync, indeks geospasial/workflow | Schema BE-06 dan hardening FastAPI-only terpasang di Supabase; runtime secret/seed menunggu |
+| Database | PostgreSQL/PostGIS, lima migration, sebelas tabel domain/import/sync, indeks geospasial/workflow | Supabase runtime terhubung; seed demo GWT dan 6.403 hotspot dua bbox selesai |
 | Audit dan ETL GWT | Hash sumber, JSON audit, CSV normalisasi, null/gap/duplikat, import transaksional | Historis; koordinat stasiun null; `wrc` hanya arsip |
 | API stasiun/GWT | Daftar stasiun, query UUID/tanggal/mode, provenance, nilai null | Grafik dan adapter frontend belum terintegrasi |
 | Import VIIRS historis | Streaming/COPY, waktu UTC, key stabil, dedup, riwayat import, dry-run | Terpisah dari produk/mode NRT |
