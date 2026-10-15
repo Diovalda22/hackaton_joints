@@ -231,7 +231,7 @@ export function TaskActions({ task }: { task: InspectionTask }) {
   return (
     <Panel
       title="Belum ada tindakan untuk Anda"
-      description={`${waiting[task.status] ?? ""} Anda masuk sebagai ${roleLabels[actor.role].toLowerCase()} (${actor.display_name}). Ganti peran di bagian atas layar bila perlu.`}
+      description={`${waiting[task.status] ?? ""} Anda masuk sebagai ${roleLabels[actor.role].toLowerCase()} (${actor.display_name}). Untuk peran lain, keluar lalu masuk dengan akun lain.`}
     />
   );
 }

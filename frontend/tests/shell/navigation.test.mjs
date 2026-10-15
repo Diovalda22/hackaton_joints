@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -15,8 +16,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   // Kunjungan pertama: panduan muncul otomatis.
-  await page.goto(baseURL);
-  await page.waitForURL("**/dashboard");
+  await signIn(page, baseURL, "coordinator", "/dashboard");
   assert.equal(await page.locator("html").getAttribute("lang"), "id");
   const guide = page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" });
   await guide.waitFor();

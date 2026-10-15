@@ -131,6 +131,12 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
 
     listAreas: async () => [...AREAS],
     listUsers: ({ signal }: RequestOptions = {}) => request(api("/users"), z.array(userSchema), { signal }),
+
+    async signIn(user, { signal } = {}) {
+      const me = await request(api("/auth/me"), userSchema, { actor: user, signal });
+      if (me.role !== user.role) throw new RepositoryError("FORBIDDEN", "Akun dari server tidak sesuai dengan peran yang dipilih.");
+      return me;
+    },
     async listStations({ signal }: RequestOptions = {}) {
       const stations = await request(api("/stations"), z.array(apiStationSchema), { signal });
       return stations.map(toStation);

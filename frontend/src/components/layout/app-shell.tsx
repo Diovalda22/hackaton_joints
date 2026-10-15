@@ -6,7 +6,7 @@ import { ChevronRight, CircleHelp, Menu, ShieldCheck } from "lucide-react";
 import { findNavigationItem } from "./navigation";
 import { SidebarContent } from "./sidebar";
 import { ModeSwitcher } from "./mode-switcher";
-import { RoleSwitcher } from "./role-switcher";
+import { AccountMenu } from "./account-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DemoNotice } from "@/components/shared/demo-notice";
@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="truncate font-medium text-foreground">{active?.label ?? "GambutOps"}</span>
           </div>
           <Button variant="outline" onClick={() => openGuide()} aria-label="Buka panduan penggunaan" className="px-3 sm:px-4"><CircleHelp aria-hidden="true" /><span className="hidden sm:inline">Panduan</span></Button>
-          <RoleSwitcher />
+          <AccountMenu />
           <div className="w-full sm:w-auto"><ModeSwitcher /></div>
         </header>
         <DemoNotice />

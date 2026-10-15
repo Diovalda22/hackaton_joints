@@ -1,19 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { signIn, switchRole } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
-
-/** Ganti pengguna demo lewat pemilih di header (label opsi berbeda antara mock dan REST). */
-async function switchUser(page, role) {
-  const select = page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" });
-  await select.locator("option").first().waitFor({ state: "attached" });
-  const options = await select.locator("option").evaluateAll((items) => items.map((item) => ({ value: item.value, label: item.textContent ?? "" })));
-  const target = options.find((option) => (role === "coordinator" ? /koordinator/i : /petugas/i).test(option.label));
-  assert.ok(target, `Ada pengguna demo dengan peran ${role}`);
-  await select.selectOption(target.value);
-  return target.label;
-}
 
 test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut → verifikasi, bertahan setelah reload", { timeout: 180_000 }, async (t) => {
   const browser = await chromium.launch({
@@ -29,8 +19,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
   // 1. Koordinator membuat tugas dari prioritas pertama.
-  await page.goto(`${baseURL}/priorities`);
-  await switchUser(page, "coordinator");
+  await signIn(page, baseURL, "coordinator", "/priorities");
   const firstCard = page.locator("main article").first();
   await firstCard.waitFor();
   await firstCard.getByRole("button", { name: /^Buat tugas/ }).click();
@@ -53,7 +42,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
 
   // 2. Petugas memulai dan mengirim laporan SIMULASI.
   async function officerReports(resultLabel, note) {
-    await switchUser(page, "field_officer");
+    await switchRole(page, "field_officer");
     await detail.getByRole("button", { name: "Mulai kerjakan" }).click();
     await status.filter({ hasText: "Dikerjakan" }).waitFor();
     await detail.getByLabel(resultLabel).check();
@@ -73,7 +62,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
   assert.equal(await detail.getByRole("button", { name: "Verifikasi" }).count(), 0);
 
   // 4. Koordinator meminta tindak lanjut lalu menugaskan ulang.
-  await switchUser(page, "coordinator");
+  await switchRole(page, "coordinator");
   await detail.getByLabel("Catatan tinjauan (opsional)").fill("Mohon cek ulang sisi timur.");
   await detail.getByRole("button", { name: "Minta tindak lanjut" }).click();
   await status.filter({ hasText: "Perlu tindak lanjut" }).waitFor();
@@ -83,7 +72,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
 
   // 5. Kunjungan kedua, lalu koordinator memverifikasi.
   await officerReports("Bekas terbakar ditemukan", "Ditemukan bekas terbakar kecil (uji E2E).");
-  await switchUser(page, "coordinator");
+  await switchRole(page, "coordinator");
   await detail.getByRole("button", { name: "Verifikasi" }).click();
   await status.filter({ hasText: "Terverifikasi" }).waitFor();
 
