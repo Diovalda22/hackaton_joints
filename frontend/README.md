@@ -26,7 +26,7 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 ## Bagian yang selesai
 
 - Application shell responsif: sidebar desktop yang dapat diciutkan, drawer mobile dengan fokus terkelola, topbar, skip link, dan footer.
-- Routing `/dashboard`, `/groundwater`, `/hotspots`, `/priorities`, `/tasks`, `/experiments/ml`; root mengarah ke dashboard. Halaman fitur masih penanda fase F1, bukan fitur selesai.
+- Routing `/dashboard`, `/groundwater`, `/hotspots`, `/priorities`, `/tasks`, `/experiments/ml`; root mengarah ke dashboard. Keenam halaman fitur sudah diimplementasikan; landing page dikerjakan terpisah.
 - Mode switcher Historical Replay / Current Monitoring. Filter periode dan area disimpan **terpisah per mode** di `MonitoringProvider`; `as_of` = akhir periode.
 - **Lapisan data (F0 data):** schema Zod + tipe, `GambutOpsRepository`, `createMockRepository()` (deterministik, localStorage untuk tugas/laporan), `createRestRepository()` (validasi payload, pemetaan error, guard mode), state machine tugas, dan hook data dengan cache per mode serta pembatalan respons lama. Detail: [docs/data-contract.md](docs/data-contract.md).
 - Komponen bersama untuk provenance, DEMO/SIMULASI, loading, empty, error/retry, dan toast.
@@ -37,6 +37,7 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - **Prioritas pemeriksaan** (`/priorities`): assessment per wilayah dengan alasan, data yang belum tersedia, indikator dari snapshot, rekomendasi, versi aturan, snapshot mentah untuk audit, dan tombol **Buat tugas** (koordinator).
 - **Tugas lapangan** (`/tasks`): saringan "Perlu tindakan saya", detail, riwayat status, laporan; koordinator menugaskan/meninjau (verifikasi, tindak lanjut, tutup), petugas memulai dan mengirim laporan SIMULASI. Pilih peran demo di header.
 - Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
+- **Uji prediksi** (`/experiments/ml`): pilihan stasiun dari API, MAE/RMSE vs baseline dalam cm, grafik dan tabel terukur/prediksi/baseline dalam meter, periode/versi/fitur/batasan model, serta form prediksi historis +1 hari. Gate `EXPERIMENT_ONLY` tetap ditampilkan; hasil tidak masuk keputusan operasional. Halaman selalu historis dan tidak mengikuti filter pemantauan. Mock menampilkan hasil belum tersedia tanpa angka rekaan.
 
 - **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
 
@@ -89,6 +90,22 @@ npm run test:shell
 Opsional: `SHELL_BASE_URL` mengubah alamat server; `PLAYWRIGHT_EXECUTABLE_PATH` memakai Chromium yang sudah terpasang. Test mencakup redirect, keenam route, peta (filter wilayah, peta dasar diblokir, tanpa WebGL), navigasi aktif, konteks mode lintas halaman, collapse, drawer/keyboard/fokus, 404, dan overflow pada desktop/tablet/mobile. Server dan browser harus dapat dijalankan pada lingkungan pengujian.
 
 Hasil verifikasi aktual dan batas lingkungan dicatat dalam `docs/implementation-plan.md`. Jangan menganggap tes browser berhasil hanya karena build berhasil.
+
+QA browser ke backend/database asli, termasuk forecast yang dibandingkan dengan artifact,
+workflow dengan rollback, dan FIRMS live: [prosedur dan hasil](docs/live-integration-qa.md).
+
+Uji browser ML dengan respons REST terkontrol (tanpa mengakses database atau NASA):
+
+```bash
+NEXT_PUBLIC_DATA_SOURCE=rest NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run build
+npm run start -- --port 3100
+# Terminal kedua:
+ML_E2E_REST=1 SHELL_BASE_URL=http://127.0.0.1:3100 node --test --test-isolation=none tests/shell/ml.test.mjs
+```
+
+Test mengintersep API untuk menguji metrics, gate, forecast berhasil/ditolak, pergantian stasiun,
+error/retry dan empty state. Ini bukan bukti koneksi ke backend live. Bangun ulang dengan
+`NEXT_PUBLIC_DATA_SOURCE=mock NEXT_PUBLIC_API_BASE_URL= npm run build` sebelum suite browser mock.
 
 ## Referensi implementasi
 

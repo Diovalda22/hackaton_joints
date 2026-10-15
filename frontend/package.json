@@ -14,6 +14,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test:shell": "node --test --test-isolation=none tests/shell/*.test.mjs",
+    "test:live": "node --test --test-isolation=none tests/integration/*.test.mjs tests/shell/workflow.test.mjs",
     "test:data": "node --import tsx --test tests/data/*.test.ts"
   },
   "dependencies": {

@@ -23,14 +23,14 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | --- | --- | --- |
 | FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | MERGED (PR #7): shell, mode, panduan, MapLibre + fallback + layar penuh, responsif 320–1280 |
 | FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | MERGED (PR #5): Zod/tipe, mock + REST adapter, provider, validasi payload, pagination hotspot |
-| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | IMPLEMENTED di `feat/frontend-dashboard`: perhatian utama per peran, 4 angka, peta ringkas, kegiatan, provenance; menunggu review |
+| FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | MERGED (PR #11): perhatian utama per peran, 4 angka, peta ringkas, kegiatan, provenance |
 | FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | MERGED (PR #7): stasiun, grafik gap/null, statistik valid, kelengkapan data, mode terkini; mock + REST diuji |
 | FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | MERGED (PR #10) dari `feat/frontend-hotspots`: peta/daftar sinkron, pagination, filter satelit, tugas dari titik, status + sync FIRMS |
 | FE-06 | Priorities: list/detail, alasan, snapshot, missing inputs, rekomendasi dan buat tugas | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-05 + mock, alasan/snapshot/missing, buat tugas |
 | FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-06 dengan Bearer token + mock, role demo, follow-up, E2E reload lulus |
-| FE-08 | ML UI: grafik actual/predicted, metrik/baseline, versi model dan batasan | Belum; hasil nyata setelah BE-07/08 |
-| FE-09 | Integrasi semua read/write API, loading/error/retry dan respons filter lama | Belum; dikerjakan bertahap bersama halaman terkait |
-| FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | Shell checks tersedia; QA final dan workflow E2E belum |
+| FE-08 | ML UI: grafik actual/predicted, metrik/baseline, versi model dan batasan | IMPLEMENTED: metrics/forecast REST, grafik + tabel, gate/batasan; browser backend asli PASS untuk BRG3/BRG6, forecast cocok artifact |
+| FE-09 | Integrasi semua read/write API, loading/error/retry dan respons filter lama | IMPLEMENTED/QA lokal: 6 halaman REST, GWT/ML sesuai data asli, pagination/filter, workflow reload dan FIRMS live 200/429; smoke deployment masih terbuka |
+| FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | QA lokal PASS: lint/typecheck/build, 60 tes data, 13 tes browser mock, browser backend asli/workflow/dashboard/hotspots/FIRMS; QA deployment dan acceptance akhir masih terbuka |
 | FE-11 | README/env frontend, URL API publik, deployment frontend, smoke incognito | Belum; tunggu URL backend dari BE-10 |
 | FE-12 | Siapkan tampilan/alur demo untuk rekaman, screenshot dan dukung reviewer frontend | Belum; hasil diberikan ke Anda untuk submission |
 

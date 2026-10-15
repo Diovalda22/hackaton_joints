@@ -1,4 +1,11 @@
-# F0 — bagian shell
+# Implementasi frontend
+
+Status terbaru 15 Oktober 2026: keenam halaman sudah diimplementasikan, termasuk ML.
+Catatan di bawah adalah riwayat F0; checklist tahap selanjutnya di bagian lama bukan status terkini.
+Lihat `progress.md` bagian 18–19 untuk implementasi ML dan QA browser backend asli.
+Prosedur QA yang bisa diulang tersedia di `live-integration-qa.md`.
+
+## Riwayat F0 — bagian shell
 
 ## Checklist
 
