@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -88,6 +88,34 @@ async def run() -> None:
                     if not groundwater:
                         raise RuntimeError("Groundwater query returned no observations")
                     summary["groundwater_sample"] = len(groundwater)
+
+                    ml_metrics = require(await client.get("/api/v1/ml/metrics"))
+                    if ml_metrics["status"] != "AVAILABLE":
+                        raise RuntimeError("ML artifacts are not available")
+                    brg6_experiment = next(
+                        experiment
+                        for experiment in ml_metrics["experiments"]
+                        if experiment["station_code"] == "BRG6"
+                    )
+                    first_target = date.fromisoformat(
+                        brg6_experiment["predictions"][0]["date"]
+                    )
+                    ml_forecast = require(
+                        await client.post(
+                            "/api/v1/ml/forecast",
+                            json={
+                                "station_id": brg6["id"],
+                                "date": (first_target - timedelta(days=1)).isoformat(),
+                            },
+                        )
+                    )
+                    if ml_forecast["status"] != "OK":
+                        raise RuntimeError(f"Historical ML forecast rejected: {ml_forecast}")
+                    summary["ml"] = {
+                        "experiments": len(ml_metrics["experiments"]),
+                        "brg6_release_gate": brg6_experiment["release_gate"],
+                        "forecast_date": ml_forecast["forecast_date"],
+                    }
 
                     hotspot_page = require(
                         await client.get(

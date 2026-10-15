@@ -86,7 +86,8 @@ Endpoint stations, groundwater, hotspots, priorities, tasks, reports, dan users 
 atau menulis database.
 Priorities juga menyimpan snapshot ber-versi secara idempotent; lihat
 [kontrak BE-05](docs/priorities-handoff.md). Workflow task/report mengikuti state machine,
-role, ownership, dan history pada [handoff BE-06](docs/tasks-handoff.md). ML masih merespons `501`.
+role, ownership, dan history pada [handoff BE-06](docs/tasks-handoff.md). Endpoint ML metrics dan
+forecast historis tersedia setelah model dilatih; detailnya ada di [handoff ML](docs/ml-handoff.md).
 
 ## Workflow lapangan (BE-06)
 
@@ -102,6 +103,26 @@ curl 'http://localhost:8000/api/v1/tasks?status=OPEN,ASSIGNED'
 Contoh write, seluruh transisi, payload laporan, dan catatan adapter frontend tersedia di
 [tasks-handoff.md](docs/tasks-handoff.md). Endpoint write wajib Bearer token; backend mengabaikan
 identitas aktor buatan dari client.
+
+## Eksperimen GWT +1 hari (BE-07)
+
+Pipeline eksperimen melatih `RandomForestRegressor` untuk BRG6 dan BRG3 dengan fitur lag
+1/3/7 hari, rolling mean yang sudah digeser, dan perubahan historis. Missing, konflik duplikat,
+serta tanggal kalender yang terputus tidak diinterpolasi dan tidak digunakan sebagai lag.
+Split train/validation/test selalu kronologis; parameter dipilih pada validation lalu test hanya
+dievaluasi sekali. Baseline persistence dan model memakai tanggal test yang sama.
+
+```bash
+.venv/bin/python -m app.cli train-gwt ../dataset/mmc1.xlsx
+```
+
+Output lengkap, termasuk prediksi test, ditulis ke `var/ml/*.metrics.json` dan diabaikan Git.
+Angka tersebut adalah **HASIL EKSPERIMEN HISTORIS 2018–2019**, bukan forecast kondisi 2026.
+Model yang tidak mengalahkan baseline diberi gate `EXPERIMENT_ONLY` dan tidak boleh dipakai
+oleh decision engine. Training menyimpan manifest metrics dan artifact `.joblib` ber-versi.
+`GET /api/v1/ml/metrics` dan `POST /api/v1/ml/forecast` menyediakan hasil eksperimen dan
+forecast historis dengan tujuh lag kalender lengkap. Kontrak integrasi tersedia di
+[ml-handoff.md](docs/ml-handoff.md).
 
 ## Audit dan import data
 

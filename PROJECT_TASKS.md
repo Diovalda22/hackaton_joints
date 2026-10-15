@@ -43,9 +43,9 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia; database aplikasi diseed dan handoff kontrak siap, adaptasi frontend menunggu teman |
 | BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Implementasi tersedia; uji live Batanghari/SNPP berhasil 11 hotspot; review dan integrasi UI menunggu |
 | BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Implementasi tersedia; snapshot DB idempotent, cutoff/mode/gap/report teruji; dua area demo; review/UI dan tasks BE-06 menunggu |
-| BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Implementasi tersedia; 56 tes non-DB lulus, 4 tes PostGIS dilewati karena DB tes tidak aktif; review/UI menunggu |
-| BE-07 | Baseline ML, fitur tanpa leakage, split kronologis, training Random Forest dan evaluasi | Belum; branch `feat/backend-ml` |
-| BE-08 | Artifact/version, metrics/forecast API dan validasi input historis | Belum; branch `feat/backend-ml` |
+| BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Implementasi tersedia; smoke Supabase read/workflow lulus dengan rollback; review/UI menunggu |
+| BE-07 | Baseline ML, fitur tanpa leakage, split kronologis, training Random Forest dan evaluasi | Implementasi/evaluasi nyata tersedia; kedua kandidat `EXPERIMENT_ONLY` karena tidak mengalahkan baseline |
+| BE-08 | Artifact/version, metrics/forecast API dan validasi input historis | Implementasi/tes tersedia; smoke runtime menunggu artifact tersedia pada host API dan koneksi Supabase |
 | BE-09 | Tes backend/data/FIRMS/rules/workflow/ML, debug integrasi dan dokumentasi server | Data/foundation teruji; QA domain berikutnya belum |
 | BE-10 | Hosting backend/database, migration/seed demo, secrets, CORS publik, health dan backup | Belum; tetapkan target dan akses sebelum deploy |
 | BE-11 | Koordinasi review/merge, checklist acceptance dan freeze fitur | Foundation merged; data dan milestone berikutnya perlu review |
@@ -98,7 +98,7 @@ integrasi, review, atau deployment.
 
 Import nyata pada database tes: delapan stasiun, 3.928 GWT unik, 809.523 hotspot.
 Reimport seluruh CSV menambah nol baris. Angka ini bukan klaim database produksi sudah diisi.
-Priorities dan tasks/reports sudah aktif. ML masih memiliki kontrak endpoint dengan respons `501`.
+Priorities, tasks/reports, serta metrics/forecast ML historis sudah tersedia pada kode. Smoke runtime ML ke Supabase dan integrasi UI masih terbuka.
 
 ## 0. Persiapan dan pembagian kerja
 
@@ -192,11 +192,11 @@ Gate: workflow lengkap tersimpan setelah reload dan tindakan sesuai kewenangan.
 
 ## 7. Eksperimen ML GWT +1 hari
 
-- [ ] Kita: baseline persistence BRG6/BRG3 dan fitur lag/rolling yang digeser tanpa leakage.
-- [ ] Kita: penanganan gap/missing, split kronologis train/validation/test dan training reproducible.
-- [ ] Kita: Random Forest, evaluasi MAE/RMSE cm terhadap baseline pada tanggal test yang sama.
-- [ ] Kita: artifact/model version, periode/ukuran test, fitur dan metrik tersimpan.
-- [ ] Kita: metrics/forecast API; tolak input tak lengkap dan hindari forecast kondisi live tanpa GWT terkini.
+- [x] Kita: baseline persistence BRG6/BRG3 dan fitur lag/rolling yang digeser tanpa leakage.
+- [x] Kita: penanganan gap/missing, split kronologis train/validation/test dan training reproducible.
+- [x] Kita: Random Forest, evaluasi MAE/RMSE cm terhadap baseline pada tanggal test yang sama.
+- [x] Kita: artifact/model version, periode/ukuran test, fitur dan metrik tersimpan.
+- [x] Kita: metrics/forecast API; tolak input tak lengkap dan hindari forecast kondisi live tanpa GWT terkini.
 - [ ] Teman: UI eksperimen, actual/predicted, perbandingan baseline, empty state dan batasan.
 - [ ] Bersama: model yang tidak mengalahkan baseline tetap ditampilkan sebagai eksperimen.
 
@@ -232,7 +232,7 @@ dan workflow verifikasi persisten. Deployment dilakukan setelah target dan akses
 
 1. Review/commit BE-06 dan jalankan migration serta workflow test pada PostGIS terisolasi.
 2. Teman mengintegrasikan tasks/reports menurut `backend/docs/tasks-handoff.md`.
-3. Kita implementasi eksperimen ML pada `feat/backend-ml`.
+3. BE-07/08 ML sudah diimplementasikan di worktree; pindahkan/commit pada `feat/backend-ml` saat metadata Git writable dan validasi runtime ML pada Supabase.
 4. Kedua engineer menutup QA/integrasi, lalu deployment dan submission.
 
 Riwayat verifikasi tersedia di [TEAM_PROGRESS.md](TEAM_PROGRESS.md).

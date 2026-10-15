@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import model_validator
@@ -24,6 +25,7 @@ class Settings(BaseSettings):
     coordinator_token: str | None = None
     field_officer_token: str | None = None
     firms_map_key: str | None = None
+    ml_artifact_dir: Path = Path("var/ml")
 
     @model_validator(mode="after")
     def require_production_secrets(self) -> "Settings":
