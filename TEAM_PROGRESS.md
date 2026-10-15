@@ -20,20 +20,21 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 | Database aplikasi / handoff read API | IMPLEMENTED — frontend menunggu adaptasi | `feat/backend-read-contract` | PostGIS aplikasi port 5433, seed GWT dan hotspot dua bbox DEMO, metadata periode/sumber stations, 14 snapshot respons API nyata | Reimport GWT/dua sampel hotspot menambah 0 observasi; smoke filter/mode/pagination PASS | Teman menyesuaikan Zod/REST adapter menurut `backend/docs/read-api-handoff.md` |
 | BE-04 FIRMS live | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Client NASA, endpoint coordinator/CLI, lock/cooldown DB, status/riwayat, upsert mode terkini | 39 tes PASS termasuk PostGIS; Ruff PASS; uji live Batanghari/SNPP SUCCESS: 11 hotspot; smoke cache PASS; data historis utuh | Teman integrasikan status sync dan cache NRT; kita lanjut BE-05 setelah review |
 | BE-05 Decision engine | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Rules 1.0, prioritas dua area demo, snapshot/provenance DB idempotent, cutoff UTC dan pemisahan mode | 50 tes backend termasuk PostGIS; cutoff, gap, pengulangan, laporan setelah cutoff dan simulasi current diuji | Teman ikuti `backend/docs/priorities-handoff.md`; lanjut BE-06 tasks/reports |
-| BE-06 Tasks/reports | IMPLEMENTED — review/UI menunggu | `feat/backend-tasks` | CRUD tugas, filter, assignment, state machine, ownership, laporan SIMULASI, history aktor, transaksi dan RLS | Smoke Supabase health/read/priorities/workflow PASS; write di-rollback; suite terbaru: 63 PASS, 4 SKIP | Teman ikuti `backend/docs/tasks-handoff.md` dan integrasikan workflow |
+| BE-06 Tasks/reports | IMPLEMENTED — review/UI menunggu | `feat/backend-tasks` | CRUD tugas, filter, assignment, state machine, ownership, laporan SIMULASI, history aktor, transaksi dan RLS | Smoke Supabase health/read/priorities/workflow PASS; write di-rollback; suite terbaru: 67 PASS, 0 SKIP | Teman ikuti `backend/docs/tasks-handoff.md` dan integrasikan workflow |
 | Supabase database | RUNTIME CONNECTED — DEMO SEED COMPLETE | `hackaton_joints` (`jzdoblbhliezskncojoy`) | PostgreSQL 17, PostGIS 3.3.7, schema BE-06, dua user demo, akses FastAPI-only | SQLAlchemy import dan smoke API/workflow PASS; 8 stasiun, 3.928 GWT, 6.403 hotspot dua bbox, 0 duplicate key | Sync FIRMS terkini sesuai kebutuhan demo, lalu siapkan deployment |
-| Supabase API smoke runner | BE-06 VERIFIED; BE-08 ML check PENDING | `feat/backend-tasks` | Health/OpenAPI/read API/priorities/workflow dan tambahan metrics/forecast ML | Smoke BE-06 dari terminal pengguna PASS dengan rollback; smoke terbaru BE-08 tidak selesai dari sandbox karena koneksi Supabase timeout | Jalankan `backend/scripts/smoke_supabase_api.py` dari terminal yang dapat mengakses Supabase setelah artifact tersedia di host API |
-| BE-07 ML GWT +1 hari | IMPLEMENTED — belum di-commit | worktree `feat/backend-tasks`; target `feat/backend-ml` | Lag/rolling shifted, gap-safe, split kronologis 70/15/15, tuning validation, Random Forest deterministik, baseline pada tanggal sama | Dependency `.venv` sehat; training BRG6/BRG3 dua kali identik; keduanya `EXPERIMENT_ONLY` | Pindahkan bersama BE-08 ke branch ML saat Git writable |
-| BE-08 ML artifact/API | IMPLEMENTED — runtime Supabase menunggu smoke | worktree `feat/backend-tasks`; target `feat/backend-ml` | Joblib + manifest/version, metrics envelope, forecast historis gap-safe, empty/rejected state, kontrak frontend | Ruff PASS; pytest 63 PASS/4 SKIP; service + HTTP contract PASS; artifacts dibuat di `backend/var/ml/` lokal | Pastikan artifact ikut tersedia pada host API, jalankan smoke runtime, teman integrasikan `backend/docs/ml-handoff.md` |
+| Supabase API smoke runner | BE-06/08 VERIFIED | `feat/backend-ml` | Health/OpenAPI/read API/priorities/workflow, metrics dua model, forecast sesuai artifact dan penolakan missing history; token mengikuti konfigurasi | PASS dengan akses jaringan di luar sandbox; seluruh write di-rollback | Ulangi pada host deployment dengan artifact yang sama |
+| BE-07 ML GWT +1 hari | IMPLEMENTED — committed | `feat/backend-ml` (`ff35c83`) | Lag/rolling shifted, gap-safe, split kronologis 70/15/15, tuning validation, Random Forest deterministik, baseline pada tanggal sama | Training BRG6/BRG3 dua kali identik; keduanya `EXPERIMENT_ONLY` | Review/merge dan integrasi UI eksperimen historis |
+| BE-08 ML artifact/API | VERIFIED — integrasi UI menunggu | `feat/backend-ml` (`ff35c83`) | Joblib + manifest/version, metrics envelope, forecast historis gap-safe, empty/rejected state, kontrak frontend | Smoke API lokal dengan database Supabase PASS; forecast BRG3/BRG6 cocok dengan artifact; missing history REJECTED | Sertakan artifact pada host API dan ikuti `backend/docs/ml-handoff.md` |
+| BE-09 Backend QA | SUITE VERIFIED — browser/integrasi menunggu | `feat/backend-ml` | Seluruh tes foundation/data/FIRMS/rules/workflow/ML pada PostGIS terisolasi | Ruff PASS; pytest 67 PASS, 0 SKIP; migration/workflow persistence PASS | Bukti dan prosedur ada di `backend/docs/backend-qa.md`; lanjut integrasi frontend dan deployment |
 
 ## Catatan integrasi backend
 
 - Endpoint aktif: `GET /health`, `GET /api/v1/auth/me`, `/docs`, `/openapi.json`, stations,
   groundwater, hotspots, priorities, users, tasks, reports, serta metrics/forecast ML historis.
-- Smoke Supabase terbaru yang menambahkan pemeriksaan ML belum terverifikasi karena koneksi dari
-  sandbox timeout. Smoke workflow BE-06 sebelumnya sudah lulus dari terminal pengguna; seluruh
-  perubahan test workflow di-rollback. Artifact ML saat ini tersimpan lokal di `backend/var/ml/`
-  dan harus tersedia pada host API sebelum endpoint runtime dapat menyajikan metrics/forecast.
+- Smoke API lokal dengan database Supabase sudah lulus menggunakan akses jaringan di luar
+  sandbox: metrics BRG3/BRG6 AVAILABLE, forecast sesuai artifact, missing history REJECTED,
+  serta workflow sampai VERIFIED. Seluruh write uji di-rollback. Artifact ML tersimpan di
+  `backend/var/ml/` dan masih harus disertakan pada host deployment. Ini belum smoke URL publik.
 - Hasil eksperimen historis BE-07: BRG6 test 81 hari, model MAE/RMSE 2,843/4,191 cm
   dibanding baseline 1,705/3,094 cm; BRG3 test 75 hari, model 2,444/3,832 cm dibanding
   baseline 1,339/3,329 cm. Keduanya `EXPERIMENT_ONLY`, tidak dipakai decision engine dan bukan
@@ -75,8 +76,9 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
   total hotspot 809.523, dan mode terkini kosong. Ini verifikasi database tes lokal.
 - Kontrak TypeScript/Zod frontend tersedia di `feat/f0-data` (`frontend/docs/data-contract.md`) dan
   perlu direview terhadap `/openapi.json` sebelum adapter REST diaktifkan.
-- Migration `20261015_0004` dan tes alur database BE-06 belum dijalankan pada PostGIS sesi ini
-  karena `GAMBUTOPS_TEST_DATABASE_URL` tidak tersedia; unit/contract suite tetap lulus.
+- Seluruh lima migration dan tes alur BE-06 telah lulus pada database PostGIS lokal khusus
+  `gambutops_qa_20261015_test`: 67 tes PASS tanpa skip. Database aplikasi tidak dipakai oleh
+  migration test. Browser/E2E frontend dan smoke URL publik tetap terbuka.
 - Supabase `hackaton_joints` sudah memiliki schema BE-06 dan PostGIS. Import runtime dari terminal
   pengguna berhasil: delapan stasiun, 3.928 observasi GWT historis, dan 6.403 hotspot historis
   (3.439 Batanghari; 2.964 Kubu Raya). Tiga import berstatus COMPLETED, SHA-256 sumber cocok,

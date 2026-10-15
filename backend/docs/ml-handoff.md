@@ -38,3 +38,12 @@ Hasil dataset saat ini:
 
 Data dan hasil berlabel eksperimen historis 2018–2019. Endpoint tidak menghasilkan klaim kondisi
 2026 dan tidak mengubah data Current Monitoring.
+
+## Verifikasi runtime
+
+Pada 15 Oktober 2026 smoke API lokal dengan database Supabase lulus untuk kedua model:
+BRG3 target 2019-06-14 dan BRG6 target 2019-07-19. Prediksi, baseline, versi, gate dan tanggal
+cocok dengan artifact evaluasi. Forecast BRG6 dengan input 2026-10-15 ditolak karena tidak
+memiliki tujuh hari GWT terkini. Workflow smoke di-rollback. Artifact masih berada pada host
+lokal; sertakan pada host deployment dan ulangi verifikasi di sana.
+Lihat [prosedur QA](backend-qa.md).

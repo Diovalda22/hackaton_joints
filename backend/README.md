@@ -210,8 +210,12 @@ Smoke Supabase end-to-end tanpa meninggalkan task/report pengujian:
 ```
 
 Script memeriksa health/OpenAPI, users, stations, GWT, hotspot Batanghari, priorities dua area,
-dan workflow `ASSIGNED → IN_PROGRESS → SUBMITTED → VERIFIED`. Seluruh write dijalankan pada
-savepoint lalu transaksi luar di-rollback.
+metrics serta forecast BRG3/BRG6 yang dibandingkan dengan artifact, penolakan forecast tanpa
+riwayat GWT, dan workflow `ASSIGNED → IN_PROGRESS → SUBMITTED → VERIFIED`. Token mengikuti
+settings backend. Seluruh write dijalankan pada savepoint lalu transaksi luar di-rollback;
+eksekusi dibatasi 120 detik. Hasil QA terbaru: **67 tes PASS tanpa skip** dengan PostGIS
+terisolasi, Ruff PASS dan smoke Supabase PASS. Prosedur serta batas verifikasi tersedia di
+[backend-qa.md](docs/backend-qa.md).
 
 Tes foundation mencakup health, autentikasi/otorisasi role, CORS, publikasi kontrak OpenAPI,
 konfigurasi production, nullable GWT, mode historis, metadata tabel, kontrak task/report, dan

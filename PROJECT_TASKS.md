@@ -42,11 +42,11 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | BE-02 | FastAPI, auth/role, CORS, environment, SQLAlchemy, migration PostGIS dan seed demo | Implementasi/tes tersedia |
 | BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia; database aplikasi diseed dan handoff kontrak siap, adaptasi frontend menunggu teman |
 | BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Implementasi tersedia; uji live Batanghari/SNPP berhasil 11 hotspot; review dan integrasi UI menunggu |
-| BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Implementasi tersedia; snapshot DB idempotent, cutoff/mode/gap/report teruji; dua area demo; review/UI dan tasks BE-06 menunggu |
+| BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Implementasi tersedia; snapshot DB idempotent, cutoff/mode/gap/report teruji; dua area demo; workflow BE-06 tersedia, review/UI menunggu |
 | BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Implementasi tersedia; smoke Supabase read/workflow lulus dengan rollback; review/UI menunggu |
 | BE-07 | Baseline ML, fitur tanpa leakage, split kronologis, training Random Forest dan evaluasi | Implementasi/evaluasi nyata tersedia; kedua kandidat `EXPERIMENT_ONLY` karena tidak mengalahkan baseline |
-| BE-08 | Artifact/version, metrics/forecast API dan validasi input historis | Implementasi/tes tersedia; smoke runtime menunggu artifact tersedia pada host API dan koneksi Supabase |
-| BE-09 | Tes backend/data/FIRMS/rules/workflow/ML, debug integrasi dan dokumentasi server | Data/foundation teruji; QA domain berikutnya belum |
+| BE-08 | Artifact/version, metrics/forecast API dan validasi input historis | Smoke API lokal dengan Supabase lulus: BRG3/BRG6 sesuai artifact, missing history ditolak; deployment artifact dan UI menunggu |
+| BE-09 | Tes backend/data/FIRMS/rules/workflow/ML, debug integrasi dan dokumentasi server | Ruff PASS, 67 tes PASS tanpa skip pada PostGIS terisolasi; smoke Supabase PASS dengan rollback; integrasi browser masih terbuka |
 | BE-10 | Hosting backend/database, migration/seed demo, secrets, CORS publik, health dan backup | Belum; tetapkan target dan akses sebelum deploy |
 | BE-11 | Koordinasi review/merge, checklist acceptance dan freeze fitur | Foundation merged; data dan milestone berikutnya perlu review |
 | BE-12 | Demo guide, akun/alur, rekam video, pitch deck, link/berkas dan submission akhir | Belum; gunakan tampilan/screenshot dari FE-12 |
@@ -93,12 +93,13 @@ integrasi, review, atau deployment.
 | FIRMS live | Sync coordinator/CLI, lock/cooldown, cache NRT, status/riwayat; satu uji live berhasil | Target lain dan integrasi UI menunggu |
 | API hotspot | Filter tanggal/bbox/satelit/produk/mode, pagination, confidence mentah, FRP | Current Monitoring berisi cache NRT; peta frontend belum diverifikasi |
 | Decision engine | Rules heuristik ber-versi, cutoff UTC, snapshot input/reason/missing dan dua area demo | Belum merupakan probabilitas kebakaran; integrasi UI menunggu |
-| Tasks/reports | CRUD/filter, role/ownership, state machine, laporan SIMULASI dan history persisten | Verifikasi migration PostGIS dan integrasi UI menunggu |
-| Verifikasi backend data | 20 tes lulus termasuk PostGIS, rollback COPY, migration upgrade/downgrade | E2E lintas frontend/backend belum tersedia |
+| Tasks/reports | CRUD/filter, role/ownership, state machine, laporan SIMULASI dan history persisten | Migration/persistensi PostGIS dan smoke Supabase lulus; integrasi UI menunggu |
+| Verifikasi backend | 67 tes lulus tanpa skip termasuk PostGIS, rollback COPY, migration, workflow dan ML; smoke Supabase lulus | E2E lintas frontend/backend dan URL publik belum diverifikasi |
 
 Import nyata pada database tes: delapan stasiun, 3.928 GWT unik, 809.523 hotspot.
 Reimport seluruh CSV menambah nol baris. Angka ini bukan klaim database produksi sudah diisi.
-Priorities, tasks/reports, serta metrics/forecast ML historis sudah tersedia pada kode. Smoke runtime ML ke Supabase dan integrasi UI masih terbuka.
+Priorities, tasks/reports, serta metrics/forecast ML historis sudah tersedia dan smoke API lokal
+dengan Supabase lulus. Integrasi UI dan smoke pada host deployment masih terbuka.
 
 ## 0. Persiapan dan pembagian kerja
 
@@ -167,11 +168,11 @@ Gate: hotspot terkini nyata tampil dengan timestamp/sensor; CSV historis tetap f
 
 ## 5. Decision engine dan prioritas
 
-- [ ] Kita: aturan heuristik terkonfigurasi dan ber-versi untuk prioritas pemeriksaan.
-- [ ] Kita: snapshot input, reasons, explanation, missing inputs dan rekomendasi tersimpan.
-- [ ] Kita: query Historical Replay berhenti di `as_of`, tanpa future leakage atau campuran mode.
-- [ ] Kita: data kurang menghasilkan INSUFFICIENT_DATA; koordinat tak sah tidak dipakai menghitung jarak.
-- [ ] Kita: implementasi priorities API dan tes determinisme/missing/as_of.
+- [x] Kita: aturan heuristik terkonfigurasi dan ber-versi untuk prioritas pemeriksaan.
+- [x] Kita: snapshot input, reasons, explanation, missing inputs dan rekomendasi tersimpan.
+- [x] Kita: query Historical Replay berhenti di `as_of`, tanpa future leakage atau campuran mode.
+- [x] Kita: data kurang menghasilkan INSUFFICIENT_DATA; koordinat tak sah tidak dipakai menghitung jarak.
+- [x] Kita: implementasi priorities API dan tes determinisme/missing/as_of.
 - [ ] Teman: daftar/detail prioritas, alasan, status heuristik, sumber/waktu dan input kurang.
 - [ ] Teman: aksi buat tugas terhubung ke workflow setelah tahap 6 siap.
 
@@ -206,7 +207,7 @@ CHIRPS merupakan P1 opsional dan tidak menghalangi penyelesaian P0.
 ## 8. Integrasi dan QA akhir
 
 - [ ] Bersama: tutup integrasi seluruh endpoint dan sinkronisasi filter/mode lintas modul.
-- [ ] Kita: tes backend/ETL/FIRMS/rules/auth/workflow/ML dan perbaikan temuan.
+- [x] Kita: tes backend/ETL/FIRMS/rules/auth/workflow/ML; Ruff PASS dan 67 tes PASS tanpa skip pada PostGIS terisolasi, smoke Supabase PASS dengan rollback.
 - [ ] Teman: lint/typecheck/build final, browser/E2E dan perbaikan UI.
 - [ ] Teman: desktop 1440, tablet 768, mobile 375, keyboard/fokus dan fallback peta.
 - [ ] Bersama: uji loading/error/empty, input invalid, reload, missing data dan transisi ilegal.
@@ -230,10 +231,10 @@ dan workflow verifikasi persisten. Deployment dilakukan setelah target dan akses
 
 ## Urutan pekerjaan berikutnya
 
-1. Review/commit BE-06 dan jalankan migration serta workflow test pada PostGIS terisolasi.
-2. Teman mengintegrasikan tasks/reports menurut `backend/docs/tasks-handoff.md`.
-3. BE-07/08 ML sudah diimplementasikan di worktree; pindahkan/commit pada `feat/backend-ml` saat metadata Git writable dan validasi runtime ML pada Supabase.
-4. Kedua engineer menutup QA/integrasi, lalu deployment dan submission.
+1. Review/merge backend ML (`ff35c83`) dan penguatan smoke; suite PostGIS serta smoke Supabase sudah lulus.
+2. Teman mengintegrasikan tasks/reports dan ML menurut handoff di `backend/docs/`.
+3. Tetapkan host backend, sertakan artifact ML, konfigurasi secret/CORS dan ulangi smoke pada host tersebut.
+4. Kedua engineer menutup browser/E2E, acceptance, lalu deployment publik dan submission.
 
 Riwayat verifikasi tersedia di [TEAM_PROGRESS.md](TEAM_PROGRESS.md).
 Detail acceptance frontend tersedia di [tracker frontend](frontend/docs/progress.md).
