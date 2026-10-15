@@ -6,7 +6,7 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 
 ## 1. Posisi saat ini
 
-**Keenam halaman aplikasi sudah diimplementasikan. QA integrasi backend live dan deployment masih terbuka. Landing page ditangani teman; sisa frontend aplikasi ditangani pengguna sesuai pembagian terbaru.**
+**Keenam halaman aplikasi sudah diimplementasikan. QA browser ke backend/database asli lulus lokal (bagian 19). Acceptance akhir dan integrasi landing page tetap terbuka. Deployment ditunda sementara sesuai arahan pengguna. Landing page ditangani teman; sisa frontend aplikasi ditangani pengguna sesuai pembagian terbaru.**
 
 | Bagian | Status | Bukti / pekerjaan tersisa |
 | --- | --- | --- |
@@ -20,13 +20,13 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
 | F1.4 Priorities + F1.5 Tasks | MERGED (PR #10) | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
 | F1.3 Hotspots | MERGED (PR #10) | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
-| F1.1 Dashboard | IMPLEMENTED | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
+| F1.1 Dashboard | MERGED (PR #11) | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
 | F1.6 | IMPLEMENTED | ML metrics/forecast REST, grafik/tabel evaluasi, gate dan batasan; lihat bagian 18 |
-| F1.7 | QA LOKAL PASS | Browser ke backend/Supabase asli, workflow, ML sesuai artifact, FIRMS live; smoke deployment/acceptance masih terbuka; lihat bagian 19 |
+| F1.7 | QA LOKAL PASS | Browser ke backend/Supabase asli, workflow, ML sesuai artifact, FIRMS live; acceptance akhir terbuka, smoke deployment ditunda; lihat bagian 19 |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
-| FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
+| FIRMS live / rules / tasks / ML | IMPLEMENTED / QA LOKAL PASS | Backend tersedia; browser REST, workflow, ML sesuai artifact dan FIRMS live lulus; lihat bagian 19 |
 
-Code shell tercatat pada `main` lokal dan referensi lokal `origin/main`, commit **`f3177ea`** (`feat(frontend): implement GambutOps F0 shell and routing`). Ini hasil inspeksi Git lokal, bukan pemeriksaan langsung ke GitHub. Branch shell terpisah juga tersedia pada checkout `/tmp/gambutops-f0-shell`.
+Riwayat foundation: code shell tercatat pada `main` lokal dan referensi lokal `origin/main`, commit **`f3177ea`** (`feat(frontend): implement GambutOps F0 shell and routing`). Ini hasil inspeksi Git lokal, bukan pemeriksaan langsung ke GitHub. Branch shell terpisah juga tersedia pada checkout `/tmp/gambutops-f0-shell`.
 
 Status implementasi per halaman tercantum di tabel di atas. Bagian timeline dan pembagian kerja lama di bawah dipertahankan sebagai riwayat; pembagian terbaru mengikuti paragraf posisi saat ini.
 
@@ -505,3 +505,15 @@ pengguna frontend aplikasi.
 Prosedur, hasil lengkap, env, batasan dan cara mengulang tersedia di
 [live-integration-qa.md](live-integration-qa.md). Build lokal terakhir memakai REST port 8001;
 server QA tidak dibiarkan berjalan. Bangun ulang sesuai env sebelum menjalankan aplikasi.
+
+## 20. Pembaruan tracker — 15 Oktober 2026
+
+Implementasi ML dan bukti QA browser asli sudah tercatat pada commit `5720bd0`;
+panduan startup root pada `8fcef3a`. Status “belum commit/push” pada entri sesi terdahulu
+merupakan keadaan saat sesi tersebut, bukan status checkout sekarang. Push/review akhir
+tidak disimpulkan hanya dari keberadaan commit lokal.
+
+Deployment ditunda sementara sesuai arahan pengguna. Fokus berikutnya: review kontrak,
+acceptance lokal, integrasi landing page, startup bersih, panduan/skenario demo dan bahan
+submission. FE-11 bagian deployment serta smoke publik tetap terbuka dan ditunda.
+Hasil tes pada tracker merujuk bukti sesi sebelumnya; pembaruan ini hanya mengubah dokumen.

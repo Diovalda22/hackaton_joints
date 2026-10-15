@@ -10,22 +10,44 @@ Pembagian dua engineer: teman menangani seluruh frontend (FE-01–FE-12); Anda m
 backend/data/FIRMS/rules/workflow/ML, infrastruktur, dan submission (BE-01–BE-12).
 Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 
-| Area | Status | Branch | Ringkasan | Verifikasi aktual | Handoff berikutnya |
-| --- | --- | --- | --- | --- | --- |
-| Frontend shell F0 | IMPLEMENTED | `main` (`f3177ea`) | Shell enam route; detail ada di `frontend/docs/progress.md` | Historis: lint/typecheck/build PASS; browser sandbox FAIL | Engineer frontend melanjutkan kontrak/provider dan F1 |
-| Frontend data F0 | IMPLEMENTED — menunggu review | `feat/f0-data` | Kontrak Zod + tipe, `GambutOpsRepository`, mock (deterministik, localStorage) + REST adapter, provider + cache per mode, UI sesuai `frontend/style.md` | lint/typecheck/build PASS; `test:data` 27/27 PASS; `test:shell` 1/1 PASS | `feat/frontend-monitoring` setelah `feat/f0-data` digabung |
-| Frontend UX pengguna awam | IMPLEMENTED — menunggu review | `feat/f0-data` | Modal panduan penggunaan, bahasa awam (tanpa kode fase/Inggris), pengatur periode & wilayah per mode | lint/typecheck/build PASS; `test:data` 27/27 PASS; `test:shell` 1/1 PASS | Detail di `frontend/docs/progress.md` |
-| Backend foundation | IMPLEMENTED | `feat/backend-foundation` | FastAPI, OpenAPI v1, auth dua role, CORS, SQLAlchemy, migration PostgreSQL/PostGIS, 9 tabel | Ruff PASS; pytest 10 PASS; Alembic offline SQL PASS | Review kontrak frontend; uji migration pada PostGIS nyata; lanjut ETL GWT/API read |
-| Backend data/read API | IMPLEMENTED | `feat/backend-data` | Audit/ETL GWT, importer COPY VIIRS idempotent, provenance/import runs, stations/GWT/hotspots API, mode/filter/pagination | Ruff PASS; 20 pytest PASS termasuk PostGIS nyata; migration upgrade/downgrade PASS; audit dataset nyata PASS | Frontend integrasikan tiga endpoint read; berikutnya FIRMS live dan priorities |
-| Database aplikasi / handoff read API | IMPLEMENTED — frontend menunggu adaptasi | `feat/backend-read-contract` | PostGIS aplikasi port 5433, seed GWT dan hotspot dua bbox DEMO, metadata periode/sumber stations, 14 snapshot respons API nyata | Reimport GWT/dua sampel hotspot menambah 0 observasi; smoke filter/mode/pagination PASS | Teman menyesuaikan Zod/REST adapter menurut `backend/docs/read-api-handoff.md` |
-| BE-04 FIRMS live | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Client NASA, endpoint coordinator/CLI, lock/cooldown DB, status/riwayat, upsert mode terkini | 39 tes PASS termasuk PostGIS; Ruff PASS; uji live Batanghari/SNPP SUCCESS: 11 hotspot; smoke cache PASS; data historis utuh | Teman integrasikan status sync dan cache NRT; kita lanjut BE-05 setelah review |
-| BE-05 Decision engine | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Rules 1.0, prioritas dua area demo, snapshot/provenance DB idempotent, cutoff UTC dan pemisahan mode | 50 tes backend termasuk PostGIS; cutoff, gap, pengulangan, laporan setelah cutoff dan simulasi current diuji | Teman ikuti `backend/docs/priorities-handoff.md`; lanjut BE-06 tasks/reports |
-| BE-06 Tasks/reports | IMPLEMENTED — review/UI menunggu | `feat/backend-tasks` | CRUD tugas, filter, assignment, state machine, ownership, laporan SIMULASI, history aktor, transaksi dan RLS | Smoke Supabase health/read/priorities/workflow PASS; write di-rollback; suite terbaru: 67 PASS, 0 SKIP | Teman ikuti `backend/docs/tasks-handoff.md` dan integrasikan workflow |
-| Supabase database | RUNTIME CONNECTED — DEMO SEED COMPLETE | `hackaton_joints` (`jzdoblbhliezskncojoy`) | PostgreSQL 17, PostGIS 3.3.7, schema BE-06, dua user demo, akses FastAPI-only | SQLAlchemy import dan smoke API/workflow PASS; 8 stasiun, 3.928 GWT, 6.403 hotspot dua bbox, 0 duplicate key | Sync FIRMS terkini sesuai kebutuhan demo, lalu siapkan deployment |
-| Supabase API smoke runner | BE-06/08 VERIFIED | `feat/backend-ml` | Health/OpenAPI/read API/priorities/workflow, metrics dua model, forecast sesuai artifact dan penolakan missing history; token mengikuti konfigurasi | PASS dengan akses jaringan di luar sandbox; seluruh write di-rollback | Ulangi pada host deployment dengan artifact yang sama |
-| BE-07 ML GWT +1 hari | IMPLEMENTED — committed | `feat/backend-ml` (`ff35c83`) | Lag/rolling shifted, gap-safe, split kronologis 70/15/15, tuning validation, Random Forest deterministik, baseline pada tanggal sama | Training BRG6/BRG3 dua kali identik; keduanya `EXPERIMENT_ONLY` | Review/merge dan integrasi UI eksperimen historis |
-| BE-08 ML artifact/API | VERIFIED — integrasi UI menunggu | `feat/backend-ml` (`ff35c83`) | Joblib + manifest/version, metrics envelope, forecast historis gap-safe, empty/rejected state, kontrak frontend | Smoke API lokal dengan database Supabase PASS; forecast BRG3/BRG6 cocok dengan artifact; missing history REJECTED | Sertakan artifact pada host API dan ikuti `backend/docs/ml-handoff.md` |
-| BE-09 Backend QA | SUITE VERIFIED — browser/integrasi menunggu | `feat/backend-ml` | Seluruh tes foundation/data/FIRMS/rules/workflow/ML pada PostGIS terisolasi | Ruff PASS; pytest 67 PASS, 0 SKIP; migration/workflow persistence PASS | Bukti dan prosedur ada di `backend/docs/backend-qa.md`; lanjut integrasi frontend dan deployment |
+## Status terkini
+
+**QA integrasi lokal PASS. Deployment ditunda sementara sesuai arahan pengguna.**
+Status berdasarkan checkout `feat/backend-ml` sampai `8fcef3a`, termasuk commit integrasi
+`5720bd0`. Hasil berikut berasal dari catatan QA, bukan tes baru pada pembaruan tracker.
+
+| Area | Status | Bukti / batas |
+| --- | --- | --- |
+| Shell, repository mock/REST dan enam halaman frontend | IMPLEMENTED | Dashboard, GWT, hotspots, priorities, tasks/reports dan eksperimen ML tersedia |
+| Backend/data/FIRMS/rules/workflow/ML | IMPLEMENTED | Endpoint read/write dan seed demo tersedia; merge backend ML tercatat pada PR #9 |
+| QA backend | PASS lokal | Ruff; 67 tes, 0 skip pada PostGIS terisolasi; smoke Supabase dengan rollback |
+| QA frontend | PASS lokal | Lint/typecheck/build; 60 tes data; 13 tes browser mock |
+| Browser REST ke FastAPI lokal + Supabase | PASS lokal | Nilai GWT sesuai API; ML BRG3/BRG6 sesuai artifact; input tanpa riwayat ditolak |
+| Workflow browser | PASS lokal | Tindak lanjut, verifikasi, reload/tab baru; 2 laporan dan 9 riwayat; rollback terverifikasi |
+| FIRMS browser live | PASS lokal | HTTP 200, 50 baris; percobaan ulang 429; tombol dibatasi untuk koordinator |
+| Responsif | PASS lokal | Enam halaman setelah data termuat, 1440/768/375/320 px, tanpa overflow |
+| Review/acceptance akhir dan freeze | TERBUKA | Review kontrak, integrasi landing page, startup bersih dan checklist demo lokal |
+| Deployment dan smoke publik | DITUNDA | Hosting API/frontend, artifact host, secret/CORS publik, TLS dan smoke publik belum ditutup |
+| Demo/submission | TERBUKA | Panduan skenario, screenshot, video, pitch deck dan berkas akhir |
+
+Bukti rinci: [QA browser REST asli](frontend/docs/live-integration-qa.md),
+[QA backend](backend/docs/backend-qa.md), dan [progres frontend §19](frontend/docs/progress.md).
+Panduan startup lokal tersedia di [readme.md](readme.md).
+
+Pembagian terbaru yang dicatat frontend: teman menangani landing page, pengguna menangani
+sisa frontend aplikasi; pembagian awal di atas dipertahankan sebagai konteks historis.
+
+## Pekerjaan berikutnya
+
+1. Tutup review kontrak dan acceptance lokal berdasarkan bukti yang ada; uji ulang bila ada perubahan atau temuan.
+2. Verifikasi integrasi landing page dan startup bersih, lalu finalisasi panduan demo lokal.
+3. Freeze fitur setelah acceptance; siapkan screenshot, video, pitch deck dan submission.
+4. Lanjutkan deployment hanya setelah ada arahan pengguna berikutnya.
+
+## Catatan historis backend
+
+Catatan di bawah menyimpan milestone dan handoff terdahulu. Pernyataan lama tentang UI,
+review atau browser yang masih menunggu tidak menggantikan status terkini di atas.
 
 ## Catatan integrasi backend
 
@@ -62,7 +84,7 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
   dan `source` nullable dari database. Panduan pemetaan dan contoh nyata tersedia di
   [handoff read API](backend/docs/read-api-handoff.md).
 
-## Blocker / risiko terbuka
+## Catatan risiko dan kebutuhan terdahulu
 
 - Migration upgrade/downgrade serta idempotensi import sudah lulus pada PostGIS 16/3.5 terisolasi.
   Verifikasi metadata stations (termasuk stasiun tanpa observasi) lulus; 20 tes backend dan Ruff
