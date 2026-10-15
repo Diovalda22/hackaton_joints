@@ -87,6 +87,7 @@ def test_repository_cutoff_persistence_modes_and_reports(database):  # noqa: F81
         task = InspectionTask(
             title="inspection", priority="HIGH", created_by_id=user.id,
             hotspot_id=historical[0].id, status="VERIFIED",
+            mode="HISTORICAL_REPLAY", area_id="batanghari", is_simulation=True,
             created_at=cutoff - timedelta(days=3),
         )
         session.add(task)
@@ -98,6 +99,7 @@ def test_repository_cutoff_persistence_modes_and_reports(database):  # noqa: F81
         )
         history = TaskStatusHistory(
             task_id=task.id, to_status="VERIFIED", actor_id=user.id,
+            actor_role="coordinator",
             changed_at=cutoff + timedelta(days=1),
         )
         session.add_all([report, history])

@@ -20,15 +20,21 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 | Database aplikasi / handoff read API | IMPLEMENTED — frontend menunggu adaptasi | `feat/backend-read-contract` | PostGIS aplikasi port 5433, seed GWT dan hotspot dua bbox DEMO, metadata periode/sumber stations, 14 snapshot respons API nyata | Reimport GWT/dua sampel hotspot menambah 0 observasi; smoke filter/mode/pagination PASS | Teman menyesuaikan Zod/REST adapter menurut `backend/docs/read-api-handoff.md` |
 | BE-04 FIRMS live | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Client NASA, endpoint coordinator/CLI, lock/cooldown DB, status/riwayat, upsert mode terkini | 39 tes PASS termasuk PostGIS; Ruff PASS; uji live Batanghari/SNPP SUCCESS: 11 hotspot; smoke cache PASS; data historis utuh | Teman integrasikan status sync dan cache NRT; kita lanjut BE-05 setelah review |
 | BE-05 Decision engine | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Rules 1.0, prioritas dua area demo, snapshot/provenance DB idempotent, cutoff UTC dan pemisahan mode | 50 tes backend termasuk PostGIS; cutoff, gap, pengulangan, laporan setelah cutoff dan simulasi current diuji | Teman ikuti `backend/docs/priorities-handoff.md`; lanjut BE-06 tasks/reports |
+| BE-06 Tasks/reports | IMPLEMENTED — verifikasi PostGIS/review/UI menunggu | `feat/backend-tasks` | CRUD tugas, filter, assignment, state machine, ownership, laporan SIMULASI, history aktor, transaksi dan RLS | Ruff PASS; 56 pytest PASS; 4 integration test SKIP karena database PostGIS tes tidak aktif | Jalankan migration/workflow test pada PostGIS; teman ikuti `backend/docs/tasks-handoff.md` |
+| Supabase database | RUNTIME CONNECTED — DEMO SEED COMPLETE | `hackaton_joints` (`jzdoblbhliezskncojoy`) | PostgreSQL 17, PostGIS 3.3.7, schema BE-06, dua user demo, akses FastAPI-only | SQLAlchemy import PASS; 8 stasiun, 3.928 GWT, 6.403 hotspot dua bbox, 0 duplicate key; provenance dan migration `20261015_0005` diverifikasi | Smoke read/workflow API, sync FIRMS terkini, lalu siapkan deployment |
+| Supabase API smoke runner | IMPLEMENTED — eksekusi host berinternet menunggu | `feat/backend-tasks` | ASGI smoke health/OpenAPI/read API/priorities dan workflow task-report penuh dalam transaksi rollback | Ruff PASS; compile PASS; suite 56 PASS; tool sandbox tidak dapat resolve DNS Supabase | Jalankan `scripts/smoke_supabase_api.py` dari terminal pengguna dan simpan output |
 
 ## Catatan integrasi backend
 
 - Endpoint aktif: `GET /health`, `GET /api/v1/auth/me`, `/docs`, `/openapi.json`, stations,
-  groundwater, hotspots, dan priorities. Workflow/ML masih merespons `501`.
+  groundwater, hotspots, priorities, users, tasks, dan reports. ML masih merespons `501`.
 - Priorities: `GET /api/v1/priorities?mode=HISTORICAL_REPLAY&as_of=2019-09-15T23:59:59Z`.
   Dua area demo (bukan enam blok), snapshot objek, timestamp bertimezone wajib.
   Panduan: [handoff priorities](backend/docs/priorities-handoff.md). BE-05 bukan
-  penyelesaian seluruh Tahap 3/4: pembuatan tugas dan alur verifikasi menunggu BE-06.
+  Pembuatan tugas dan alur verifikasi tersedia melalui BE-06.
+- Tasks: list/detail publik untuk prototype; seluruh write memakai Bearer token. State machine,
+  role/ownership, laporan SIMULASI, dan kode error integrasi dijelaskan pada
+  [handoff BE-06](backend/docs/tasks-handoff.md). Header `X-Actor-Id` tidak dipakai backend.
 - FIRMS: `POST /api/v1/admin/hotspots/sync` (bearer coordinator),
   `GET /api/v1/hotspots/sync-status`. Kontrak pagination read hotspot tetap sama.
   Detail status, error/cooldown dan contoh aktual: [handoff FIRMS](backend/docs/firms-handoff.md).
@@ -59,6 +65,16 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
   total hotspot 809.523, dan mode terkini kosong. Ini verifikasi database tes lokal.
 - Kontrak TypeScript/Zod frontend tersedia di `feat/f0-data` (`frontend/docs/data-contract.md`) dan
   perlu direview terhadap `/openapi.json` sebelum adapter REST diaktifkan.
+- Migration `20261015_0004` dan tes alur database BE-06 belum dijalankan pada PostGIS sesi ini
+  karena `GAMBUTOPS_TEST_DATABASE_URL` tidak tersedia; unit/contract suite tetap lulus.
+- Supabase `hackaton_joints` sudah memiliki schema BE-06 dan PostGIS. Import runtime dari terminal
+  pengguna berhasil: delapan stasiun, 3.928 observasi GWT historis, dan 6.403 hotspot historis
+  (3.439 Batanghari; 2.964 Kubu Raya). Tiga import berstatus COMPLETED, SHA-256 sumber cocok,
+  dan tidak ada duplicate external key. Password tersimpan
+  pada `.env` lokal yang diabaikan Git. Model akses FastAPI-only; seluruh tabel dilindungi RLS
+  tanpa policy Data API dan grant `anon`/`authenticated` dicabut (hasil audit: 12/12 tabel RLS,
+  nol direct Data API grant). `spatial_ref_sys` dan fungsi extension tetap dikelola pemilik PostGIS
+  Supabase dan bukan tabel data GambutOps.
 - File kredensial lokal harus tetap tidak terlacak; secret yang pernah dibagikan harus dirotasi.
 
 ## Kebutuhan awal frontend (`feat/f0-data`)
@@ -76,4 +92,4 @@ Ringkas, lengkapnya di `frontend/docs/data-contract.md#kebutuhan-api-untuk-backe
 5. Tugas menyertakan `mode`, `area_id`, `history[]`; detail tugas menyertakan `reports`.
 6. Transisi ilegal → 409 dengan `detail`; validasi → 422.
 7. Endpoint baru: `GET /api/v1/users`.
-8. Sementara auth demo, frontend mengirim header `X-Actor-Id`; backend tetap memverifikasi peran.
+8. Frontend harus mengirim Bearer token sesuai role demo untuk write; `X-Actor-Id` diabaikan.
