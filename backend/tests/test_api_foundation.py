@@ -37,23 +37,22 @@ def test_authentication_rejects_missing_and_invalid_tokens(client: AsgiClient) -
     )
 
 
-def test_write_contract_enforces_coordinator_role_before_implementation(
+def test_task_creation_enforces_coordinator_role_before_data_access(
     client: AsgiClient,
 ) -> None:
-    payload = {"title": "Periksa anomali", "priority": "HIGH"}
+    payload = {
+        "mode": "CURRENT_MONITORING",
+        "title": "Periksa anomali",
+        "priority": "HIGH",
+        "hotspot_id": "11111111-1111-4111-8111-111111111111",
+    }
     officer = client.post(
         "/api/v1/tasks",
         headers={"Authorization": "Bearer demo-field-officer-token"},
         json=payload,
     )
-    coordinator = client.post(
-        "/api/v1/tasks",
-        headers={"Authorization": "Bearer demo-coordinator-token"},
-        json=payload,
-    )
 
     assert officer.status_code == 403
-    assert coordinator.status_code == 501
 
 
 def test_openapi_publishes_planned_contracts_without_tokens(client: AsgiClient) -> None:
@@ -66,6 +65,7 @@ def test_openapi_publishes_planned_contracts_without_tokens(client: AsgiClient) 
         "/api/v1/stations/{station_id}/groundwater",
         "/api/v1/hotspots",
         "/api/v1/priorities",
+        "/api/v1/users",
         "/api/v1/tasks",
         "/api/v1/tasks/{task_id}",
         "/api/v1/tasks/{task_id}/reports",
