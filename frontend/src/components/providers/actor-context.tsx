@@ -1,59 +1,32 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { clearSession, useSession } from "@/lib/auth/session";
 import type { User } from "@/types";
 import { useUsers } from "./data-hooks";
 
-const ACTOR_KEY = "gambutops:demo-actor:v1";
-const CHANGE_EVENT = "gambutops:demo-actor-change";
-
-function readStoredActorId(): string | null {
-  try {
-    return window.localStorage.getItem(ACTOR_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function subscribe(onChange: () => void) {
-  window.addEventListener(CHANGE_EVENT, onChange);
-  window.addEventListener("storage", onChange);
-  return () => {
-    window.removeEventListener(CHANGE_EVENT, onChange);
-    window.removeEventListener("storage", onChange);
-  };
-}
-
 interface ActorContextValue {
-  /** Pengguna demo yang sedang dipakai; null selama daftar pengguna dimuat atau gagal. */
+  /** Pengguna yang sedang masuk; null bila belum masuk atau status sesi belum diketahui. */
   actor: User | null;
   users: readonly User[];
   usersStatus: "idle" | "loading" | "success" | "error";
-  setActorId: (id: string) => void;
+  signOut: () => void;
 }
 
 const ActorContext = createContext<ActorContextValue | null>(null);
 
 /**
- * Peran demo yang sedang ditampilkan (koordinator atau petugas). Pada REST, peran ini memilih
- * Bearer token; identitas final tetap ditentukan server dari token tersebut.
+ * Pengguna aktif berasal dari sesi login demo. Pada REST, perannya memilih Bearer token;
+ * identitas final tetap ditentukan server dari token tersebut.
  */
 export function ActorProvider({ children }: { children: ReactNode }) {
   const users = useUsers();
-  const storedId = useSyncExternalStore(subscribe, readStoredActorId, () => null);
+  const session = useSession();
   const list = useMemo(() => users.data ?? [], [users.data]);
-  const actor = list.find((user) => user.id === storedId) ?? list.find((user) => user.role === "coordinator") ?? list[0] ?? null;
+  const actor = session?.user ?? null;
+  const signOut = useCallback(() => clearSession(), []);
 
-  const setActorId = useCallback((id: string) => {
-    try {
-      window.localStorage.setItem(ACTOR_KEY, id);
-    } catch {
-      // Penyimpanan diblokir: pilihan tetap berlaku sampai halaman dimuat ulang.
-    }
-    window.dispatchEvent(new Event(CHANGE_EVENT));
-  }, []);
-
-  const value = useMemo(() => ({ actor, users: list, usersStatus: users.status, setActorId }), [actor, list, users.status, setActorId]);
+  const value = useMemo(() => ({ actor, users: list, usersStatus: users.status, signOut }), [actor, list, users.status, signOut]);
   return <ActorContext.Provider value={value}>{children}</ActorContext.Provider>;
 }
 

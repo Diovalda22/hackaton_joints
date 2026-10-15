@@ -74,6 +74,11 @@ export interface GambutOpsRepository {
   health(options?: RequestOptions): Promise<HealthStatus>;
   listAreas(options?: RequestOptions): Promise<Area[]>;
   listUsers(options?: RequestOptions): Promise<User[]>;
+  /**
+   * Masuk sebagai akun demo. REST memverifikasi identitas ke server (`GET /auth/me` dengan token
+   * peran); mock memeriksa daftar pengguna demo. Mengembalikan pengguna menurut sumber data.
+   */
+  signIn(user: User, options?: RequestOptions): Promise<User>;
 
   listStations(options?: RequestOptions): Promise<Station[]>;
   getGroundwater(query: GroundwaterQuery, options?: RequestOptions): Promise<GroundwaterSeries>;

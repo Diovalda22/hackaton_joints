@@ -206,3 +206,10 @@ test("mock: status sync FIRMS berlabel DEMO dan sync manual ditolak (tidak berpu
   const coordinator = (await repo.listUsers()).find((user) => user.role === "coordinator")!;
   await assert.rejects(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 3 }, { actor: coordinator }), /hanya tersedia saat terhubung ke server/);
 });
+
+test("mock signIn: hanya akun demo yang dikenal", async () => {
+  const repo = createMockRepository({ storage: createMemoryStorage(), latencyMs: 0 });
+  const [first] = await repo.listUsers();
+  assert.deepEqual(await repo.signIn(first!), first);
+  await assert.rejects(repo.signIn({ id: "palsu", role: "coordinator", display_name: "X" }), /tidak dikenal/);
+});
