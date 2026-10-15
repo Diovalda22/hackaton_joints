@@ -37,13 +37,13 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     href: "/priorities", label: "Prioritas pemeriksaan", title: "Prioritas pemeriksaan",
-    eyebrow: "CEGAH · PRIORITAS", phase: "F1.4", available: false, icon: ListOrdered,
+    eyebrow: "CEGAH · PRIORITAS", phase: "F1.4", available: true, icon: ListOrdered,
     description: "Lihat lokasi mana yang sebaiknya diperiksa lebih dulu, lengkap dengan alasan dan data yang dipakai.",
     capabilities: ["Melihat urutan prioritas: tinggi, sedang, rendah, atau data kurang", "Membaca alasan prioritas dan data yang belum tersedia", "Membuat tugas pemeriksaan langsung dari lokasi prioritas"],
   },
   {
     href: "/tasks", label: "Tugas lapangan", title: "Tugas & laporan lapangan",
-    eyebrow: "TINDAK · TUGAS LAPANGAN", phase: "F1.5", available: false, icon: ClipboardCheck,
+    eyebrow: "TINDAK · TUGAS LAPANGAN", phase: "F1.5", available: true, icon: ClipboardCheck,
     description: "Bagikan tugas pemeriksaan ke petugas, kirim laporan dari lapangan, lalu tinjau hasilnya.",
     capabilities: ["Koordinator membuat tugas dan memilih petugas", "Petugas memulai tugas dan mengirim laporan hasil pemeriksaan", "Setiap perubahan status tercatat: siapa, kapan, dan apa"],
   },

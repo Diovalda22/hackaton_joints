@@ -18,7 +18,8 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | Integrasi provider ke shell | IMPLEMENTED | `feat/f0-data`: RepositoryProvider, cache query per mode, filter periode/area per mode |
 | QA F0 | IMPLEMENTED | `feat/f0-foundation`: `npm ci` bersih, lint/typecheck/build, test:data 51/51, test:shell 9/9 (production), responsif 320–1280; menunggu review gate; lihat bagian 14 |
 | F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
-| F1.1, F1.3–F1.7 | TODO | Halaman fitur lain masih berupa penanda fase |
+| F1.4 Priorities + F1.5 Tasks | IMPLEMENTED | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
+| F1.1, F1.3, F1.6, F1.7 | TODO | Ringkasan, titik panas, ML, dan QA akhir |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
 | FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
@@ -119,19 +120,19 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 
 ### F1.4 — Priorities
 
-- [ ] Assessment deterministik, tingkat prioritas, alasan, rekomendasi, sumber/waktu.
-- [ ] Input snapshot, missing inputs, rule_version, dan status heuristik tersedia.
+- [x] Assessment deterministik, tingkat prioritas, alasan, rekomendasi, sumber/waktu.
+- [x] Input snapshot, missing inputs, rule_version, dan status heuristik tersedia.
 - [ ] Tidak ada data setelah as_of atau campuran GWT historis dengan hotspot terkini.
-- [ ] Aksi buat tugas berfungsi setelah integrasi F1.5.
+- [x] Aksi buat tugas berfungsi setelah integrasi F1.5.
 
 ### F1.5 — Field Verification
 
-- [ ] Daftar/filter/detail tugas dan form pembuatan RHF/Zod.
-- [ ] Tampilan koordinator/petugas dan validasi tindakan sesuai role demo.
-- [ ] Transisi OPEN → ASSIGNED → IN_PROGRESS → SUBMITTED tervalidasi.
-- [ ] Review VERIFIED / DISMISSED / NEEDS_FOLLOWUP dan penugasan ulang follow-up.
-- [ ] Laporan SIMULASI, validasi form, riwayat status/aktor, dan toast.
-- [ ] Tugas/laporan bertahan setelah reload: localStorage pada mode mock dan database melalui REST pada mode backend.
+- [x] Daftar/filter/detail tugas dan form pembuatan RHF/Zod.
+- [x] Tampilan koordinator/petugas dan validasi tindakan sesuai role demo.
+- [x] Transisi OPEN → ASSIGNED → IN_PROGRESS → SUBMITTED tervalidasi.
+- [x] Review VERIFIED / DISMISSED / NEEDS_FOLLOWUP dan penugasan ulang follow-up.
+- [x] Laporan SIMULASI, validasi form, riwayat status/aktor, dan toast.
+- [x] Tugas/laporan bertahan setelah reload: localStorage pada mode mock dan database melalui REST pada mode backend.
 - [ ] Error storage atau data tersimpan tidak valid ditangani dengan pesan yang jelas.
 
 ### F1.6 — ML Experiment UI
@@ -369,3 +370,27 @@ Catatan / tindak lanjut:
 - ESLint mengabaikan `public/vendor/**` (salinan worker MapLibre).
 - Peta dasar membutuhkan internet. Saat offline, tampilan otomatis memakai latar polos.
 - Waktu muat peta `/hotspots` (diukur Playwright, mesin lokal): production ±0,6–0,9 dtk sampai style siap, ±1,1–1,5 dtk sampai tile selesai; dev pada kunjungan pertama ±4–5 dtk karena webpack mengompilasi halaman + MapLibre. MapLibre kini diunduh sejajar dengan hydrate dan koneksi ke server peta dibuka lebih awal (`preconnect`); sisa waktu didominasi rantai style → tile OpenFreeMap. Batas tunggu style sebelum latar polos: 8 dtk.
+
+## 15. Sesi frontend 2026-10-15 — Prioritas + Tugas terhubung REST (`feat/frontend-tasks`)
+
+**Status:** IMPLEMENTED, belum commit/push. Mengikuti [tasks-handoff](../../backend/docs/tasks-handoff.md) (branch backend `feat/backend-tasks`, `63830a3`) dan [priorities-handoff](../../backend/docs/priorities-handoff.md).
+
+- **Auth:** REST adapter mengirim `Authorization: Bearer <token>` sesuai peran demo; `X-Actor-Id` dihapus. Token dari `NEXT_PUBLIC_DEMO_COORDINATOR_TOKEN` / `NEXT_PUBLIC_DEMO_FIELD_OFFICER_TOKEN`; tanpa token, mutasi gagal dengan pesan jelas tanpa request.
+- **Peran demo:** pemilih "Masuk sebagai" di header (semua lebar layar), tersimpan di localStorage; daftar dari `GET /users` (REST) atau fixture (mock).
+- **Priorities REST:** schema API + mapper; `as_of` → cutoff UTC akhir hari yang tidak pernah di masa depan; snapshot objek → indikator (jendela, jumlah/hari/belum diperiksa hotspot, tren GWT per stasiun, laporan); snapshot asli dapat dibuka untuk audit.
+- **Halaman Prioritas:** ringkasan per tingkat, kartu per wilayah (alasan, data belum tersedia, data yang dipakai, rekomendasi, aturan/heuristik, tugas terkait) dan dialog **Buat tugas** (RHF + Zod) untuk koordinator.
+- **Halaman Tugas:** saringan "Perlu tindakan saya"/Aktif/Menunggu tinjauan/Selesai/Semua, detail via `?tugas=`, panel tindakan per peran (tugaskan, mulai, kirim laporan SIMULASI, verifikasi/tindak lanjut/tutup, penugasan ulang follow-up), laporan, dan riwayat status urut waktu.
+- Backend mengirim entri `OPEN → ASSIGNED` sebelum entri pembuatan bila timestamp sama; frontend mengurutkan (`orderedHistory`) dan usulan dicatat di `data-contract.md`.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 55/55 lulus (Bearer per peran, token kosong, cutoff/mapping priorities, urutan riwayat) |
+| `npm run test:shell` (production, mock) | 10/10 lulus, termasuk `workflow.test.mjs` |
+| `workflow.test.mjs` pada build production REST ke backend `feat/backend-tasks` (`:8000`) | Lulus; DB mencatat 9 riwayat + 2 laporan SIMULASI, semua tulis memakai Bearer |
+
+Catatan:
+
+- Pengujian REST memakai salinan database lokal `gambutops_fe` (dimigrasi ke `20261015_0005`); database `gambutops` milik backend tidak diubah. PostgreSQL lokal sempat tidak bisa start karena `postmaster.pid` basi; file dipindah ke `postmaster.pid.stale-20261015`.
+- Data hotspot historis lokal berakhir 31 Agu 2019, sehingga periode default (s.d. 15 Sep) menghasilkan MONITOR; pilih "Sampai" ≤ 31 Agu 2019 untuk melihat REVIEW/HIGH.
+- REST hanya punya satu petugas demo; mock punya dua.

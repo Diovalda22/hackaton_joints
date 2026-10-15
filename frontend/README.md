@@ -33,6 +33,8 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - Panduan gaya UI: [style.md](style.md) — flat, tanpa shadow berlebih, hover halus.
 - **Panduan penggunaan dalam aplikasi** (modal): muncul otomatis pada kunjungan pertama, bisa dibuka lagi lewat tombol **Panduan** di header, kartu sidebar, atau kartu "Mulai dari sini". Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
 - Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
+- **Prioritas pemeriksaan** (`/priorities`): assessment per wilayah dengan alasan, data yang belum tersedia, indikator dari snapshot, rekomendasi, versi aturan, snapshot mentah untuk audit, dan tombol **Buat tugas** (koordinator).
+- **Tugas lapangan** (`/tasks`): saringan "Perlu tindakan saya", detail, riwayat status, laporan; koordinator menugaskan/meninjau (verifikasi, tindak lanjut, tutup), petugas memulai dan mengirim laporan SIMULASI. Pilih peran demo di header.
 - Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
 
 - **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Pratinjau kotak wilayah DEMO tampil di `/hotspots` dan mengikuti filter wilayah. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
@@ -50,7 +52,10 @@ NEXT_PUBLIC_DATA_SOURCE=rest
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-Mode `rest` hanya aktif bila URL terisi. Kebutuhan endpoint untuk backend tercatat di [docs/data-contract.md](docs/data-contract.md#kebutuhan-api-untuk-backend).
+Mode `rest` hanya aktif bila URL terisi. Untuk menulis data (tugas, laporan, tinjauan) isi juga
+`NEXT_PUBLIC_DEMO_COORDINATOR_TOKEN` dan `NEXT_PUBLIC_DEMO_FIELD_OFFICER_TOKEN` (lihat `.env.example`).
+REST adapter mengirim `Authorization: Bearer <token>` sesuai peran demo yang dipilih di header
+("Masuk sebagai"); header `X-Actor-Id` tidak dipakai lagi. Kontrak: `backend/docs/tasks-handoff.md`. Kebutuhan endpoint untuk backend tercatat di [docs/data-contract.md](docs/data-contract.md#kebutuhan-api-untuk-backend).
 
 Komponen memakai hook dari `src/components/providers/data-hooks.ts` (`useHotspots`, `usePriorities`, `useTasks`, `useRepositoryMutation`, dst.). Jangan mengimpor fixture, `fetch`, atau `localStorage` langsung dari komponen.
 
@@ -77,6 +82,8 @@ Di terminal kedua:
 ```bash
 npm run test:shell
 ```
+
+`tests/shell/workflow.test.mjs` menguji alur prioritas → tugas → petugas → laporan → tindak lanjut → verifikasi dan reload. Pada build mock memakai localStorage; untuk REST, build dengan variabel REST + token lalu jalankan `SHELL_BASE_URL=http://localhost:3000 node --test --test-isolation=none tests/shell/workflow.test.mjs` dengan backend aktif.
 
 Opsional: `SHELL_BASE_URL` mengubah alamat server; `PLAYWRIGHT_EXECUTABLE_PATH` memakai Chromium yang sudah terpasang. Test mencakup redirect, keenam route, peta (filter wilayah, peta dasar diblokir, tanpa WebGL), navigasi aktif, konteks mode lintas halaman, collapse, drawer/keyboard/fokus, 404, dan overflow pada desktop/tablet/mobile. Server dan browser harus dapat dijalankan pada lingkungan pengujian.
 

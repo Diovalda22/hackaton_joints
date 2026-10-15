@@ -23,7 +23,7 @@ async function openHotspots(browser, { blockBasemap = false, disableWebgl = fals
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(`${baseURL}/hotspots`);
-  return { context, page, errors, map: page.locator("[data-map-status]") };
+  return { context, page, errors, map: page.locator("main [data-map-status]") };
 }
 
 async function waitForStatus(map, statuses) {

@@ -64,8 +64,8 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   const modules = [
     ["Muka air tanah", "/groundwater", "Muka air tanah"],
     ["Titik panas (segera tersedia)", "/hotspots", "Titik panas satelit"],
-    ["Prioritas pemeriksaan (segera tersedia)", "/priorities", "Prioritas pemeriksaan"],
-    ["Tugas lapangan (segera tersedia)", "/tasks", "Tugas & laporan lapangan"],
+    ["Prioritas pemeriksaan", "/priorities", "Prioritas pemeriksaan"],
+    ["Tugas lapangan", "/tasks", "Tugas & laporan lapangan"],
     ["Uji prediksi (uji coba)", "/experiments/ml", "Uji prediksi muka air tanah"],
     ["Ringkasan (segera tersedia)", "/dashboard", "Ringkasan pemantauan"],
   ];

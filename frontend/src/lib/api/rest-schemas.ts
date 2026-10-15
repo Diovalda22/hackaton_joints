@@ -59,6 +59,43 @@ export const apiHotspotPageSchema = z.object({
   offset: z.number().int().nonnegative(),
 });
 
+const apiSnapshotObservationSchema = z.object({
+  id: z.string(),
+  date: isoDateSchema,
+  value_m: z.number().nullable(),
+  quality: z.string(),
+}).loose();
+
+/** `input_snapshot` priorities: objek bebas; hanya bagian yang ditampilkan yang divalidasi ketat. */
+export const apiPrioritySnapshotSchema = z.object({
+  region: z.string().optional(),
+  boundary_source: z.string().optional(),
+  window_start: isoDateTimeSchema.optional(),
+  window_end: isoDateTimeSchema.optional(),
+  gwt_scope: z.string().optional(),
+  gwt_trends: z.array(z.object({ station: z.string(), delta_m: z.number().nullable(), observations: z.array(apiSnapshotObservationSchema).default([]) }).loose()).default([]),
+  hotspots: z.array(z.object({ id: z.string(), acquired_at: isoDateTimeSchema, reviewed: z.boolean().optional() }).loose()).default([]),
+  supporting_reports: z.array(z.unknown()).default([]),
+  verification_reports: z.array(z.unknown()).default([]),
+}).loose();
+
+export const apiPriorityAssessmentSchema = z.object({
+  id: z.string().min(1),
+  area_id: z.string().min(1),
+  decision: z.enum(["REVIEW", "MONITOR", "ESCALATE", "INSUFFICIENT_DATA"]),
+  mode: monitoringModeSchema,
+  as_of: isoDateTimeSchema,
+  priority: z.enum(["HIGH", "MEDIUM", "LOW", "INSUFFICIENT_DATA"]),
+  explanation: z.string(),
+  reason_codes: z.array(z.string().min(1)),
+  missing_inputs: z.array(z.string().min(1)),
+  input_snapshot: z.record(z.string(), z.unknown()),
+  rule_version: z.string().min(1),
+  recommended_actions: z.array(z.string()),
+  scientific_status: z.literal("heuristic_not_validated"),
+});
+
+export type ApiPriorityAssessment = z.infer<typeof apiPriorityAssessmentSchema>;
 export type ApiStation = z.infer<typeof apiStationSchema>;
 export type ApiGroundwaterObservation = z.infer<typeof apiGroundwaterObservationSchema>;
 export type ApiHotspot = z.infer<typeof apiHotspotSchema>;

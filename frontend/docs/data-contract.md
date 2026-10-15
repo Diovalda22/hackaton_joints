@@ -94,11 +94,11 @@ Stations, GWT, dan hotspots sudah memakai kontrak backend (lihat bagian di atas)
 
 1. Status/waktu sync FIRMS global (tahap FIRMS live) agar `last_synced_scope: "SYNC"` dapat dipakai pada REST.
 2. `daynight` hotspot bila tersedia dari sumber.
-3. `GET /api/v1/priorities` mengembalikan array `PriorityAssessment` termasuk `area_id`, `target`, `input_snapshot` sebagai array `{key,label,value,unit,source,observed_at}`. Opsional: filter `area_id`.
-4. `GET /api/v1/tasks` menerima `mode`, `status` (dipisah koma), `assignee_id`. `GET /api/v1/tasks/{id}` mengembalikan task + `reports`.
-5. Tugas memiliki `mode`, `area_id`, `history[]` (`from,to,actor_id,actor_role,at,note`).
-6. Mutasi membaca aktor dari auth; selama auth demo, frontend mengirim header `X-Actor-Id`.
-7. Endpoint baru yang dibutuhkan: `GET /api/v1/users` (daftar petugas untuk penugasan).
+3. ~~Priorities~~ — sudah tersedia (BE-05). Adapter mengirim `as_of` sebagai cutoff UTC akhir hari (tidak pernah di masa depan) dan memetakan `input_snapshot` objek ke indikator UI; snapshot asli disimpan di `raw_input_snapshot`.
+4. ~~Tasks/reports/users~~ — sudah tersedia (BE-06, `backend/docs/tasks-handoff.md`). Mutasi memakai `Authorization: Bearer <token>` sesuai peran demo; `X-Actor-Id` tidak dikirim lagi.
+5. Usulan: kirim `history[]` berurutan waktu, dengan entri pembuatan (`from: null`) lebih dulu bila timestamp sama. Frontend sudah mengurutkan sendiri, tetapi urutan dari server memudahkan klien lain.
+6. Usulan: `created_at`/waktu evaluasi pada assessment priorities (saat ini frontend memakai `as_of`).
+7. Usulan: `GET /api/v1/users` menyertakan lebih dari satu petugas demo agar penugasan ulang dapat didemokan.
 8. Transisi ilegal dikembalikan sebagai **409** dengan `detail` berbahasa Indonesia; validasi sebagai 422.
 9. `GET /api/v1/ml/metrics` → `{status:"NOT_AVAILABLE",reason}` atau `{status:"AVAILABLE",experiments:[...]}`; `POST /api/v1/ml/forecast` → `{status:"REJECTED",reason}` atau `{status:"OK",...}`.
 10. CORS allowlist untuk origin frontend.

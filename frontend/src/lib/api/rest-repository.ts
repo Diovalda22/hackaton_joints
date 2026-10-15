@@ -5,13 +5,13 @@ import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
   createReportInputSchema, createTaskInputSchema, fieldReportSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
-  priorityAssessmentSchema, updateTaskInputSchema, userSchema,
+  updateTaskInputSchema, userSchema,
 } from "@/lib/schemas";
-import type { User } from "@/types";
+import type { User, UserRole } from "@/types";
 import { RepositoryError, isAbortError } from "./errors";
 import type { GambutOpsRepository, RequestOptions } from "./repository";
-import { toGroundwaterSeries, toHotspotCollection, toStation } from "./rest-mappers";
-import { apiGroundwaterObservationSchema, apiHotspotPageSchema, apiStationSchema } from "./rest-schemas";
+import { priorityCutoff, toGroundwaterSeries, toHotspotCollection, toPriorityAssessment, toStation } from "./rest-mappers";
+import { apiGroundwaterObservationSchema, apiHotspotPageSchema, apiPriorityAssessmentSchema, apiStationSchema } from "./rest-schemas";
 
 export interface RestRepositoryOptions {
   /** Contoh: http://localhost:8000/api/v1 */
@@ -19,6 +19,13 @@ export interface RestRepositoryOptions {
   fetch?: typeof fetch;
   /** Tanggal hari ini (YYYY-MM-DD) untuk batas Current Monitoring. */
   today?: () => string;
+  /** Waktu sekarang (ms) untuk cutoff priorities yang tidak boleh di masa depan. */
+  now?: () => number;
+  /**
+   * Bearer token per peran demo. Backend menentukan identitas dan peran dari token; frontend
+   * hanya memilih token sesuai peran yang sedang ditampilkan.
+   */
+  authTokens?: Partial<Record<UserRole, string | null>>;
 }
 
 type QueryValue = string | number | null | undefined;
@@ -60,6 +67,13 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
+  const now = options.now ?? (() => Date.now());
+
+  function authorization(actor: User): string {
+    const token = options.authTokens?.[actor.role]?.trim();
+    if (!token) throw new RepositoryError("FORBIDDEN", "Token peran demo belum dikonfigurasi di frontend. Lihat .env.example.");
+    return `Bearer ${token}`;
+  }
 
   async function request<T extends z.ZodType>(url: string, schema: T, config: RequestConfig = {}): Promise<z.infer<T>> {
     const target = new URL(url);
@@ -68,8 +82,8 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
     }
     const headers: Record<string, string> = { Accept: "application/json" };
     if (config.body !== undefined) headers["Content-Type"] = "application/json";
-    // Identitas demo; backend tetap wajib memverifikasi peran melalui autentikasi.
-    if (config.actor) headers["X-Actor-Id"] = config.actor.id;
+    // Identitas ditentukan server dari token; tidak ada header identitas buatan klien.
+    if (config.actor) headers.Authorization = authorization(config.actor);
 
     let response: Response;
     try {
@@ -141,10 +155,11 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
     },
 
     async listPriorities(query, { signal } = {}) {
-      const items = await request(api("/priorities"), z.array(priorityAssessmentSchema), {
-        query: { mode: query.mode, as_of: query.as_of, area_id: query.area_id }, signal,
+      const rows = await request(api("/priorities"), z.array(apiPriorityAssessmentSchema), {
+        query: { mode: query.mode, as_of: priorityCutoff(query.as_of, now()), area_id: query.area_id }, signal,
       });
-      if (items.some((item) => item.mode !== query.mode || item.as_of > query.as_of)) {
+      const items = rows.map((row) => toPriorityAssessment(row, query));
+      if (items.some((item) => item.as_of > query.as_of)) {
         throw new RepositoryError("INVALID_PAYLOAD", "Assessment berisi mode atau as_of yang tidak sesuai permintaan.");
       }
       return query.area_id ? items.filter((item) => item.area_id === query.area_id) : items;

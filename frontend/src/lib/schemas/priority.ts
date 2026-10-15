@@ -39,4 +39,6 @@ export const priorityAssessmentSchema = z.object({
   source: z.string().min(1),
   created_at: isoDateTimeSchema,
   is_simulation: z.boolean(),
+  /** Snapshot asli dari server (REST) untuk ditelusuri; mock tidak mengisinya. */
+  raw_input_snapshot: z.record(z.string(), z.unknown()).nullable().optional(),
 });
