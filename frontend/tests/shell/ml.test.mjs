@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
+import { pickDate } from "../helpers/calendar.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 const rest = process.env.ML_E2E_REST === "1";
@@ -26,6 +29,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
     await page.route("**/api/v1/**", async (route) => {
       const url = new URL(route.request().url());
       let body = [];
+      if (url.pathname.endsWith("/users")) body = [{ id: "coordinator-fixture", role: "coordinator", display_name: "Koordinator Demo" }];
       if (url.pathname.endsWith("/ml/metrics")) {
         if (metricsStatus === "ERROR") return route.fulfill({ status: 503, json: { detail: "Server uji tidak tersedia" } });
         body = metricsStatus === "AVAILABLE" ? { status: "AVAILABLE", experiments } : { status: "NOT_AVAILABLE", reason: "Artifact pengujian belum tersedia" };
@@ -52,21 +56,35 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
   } else {
     await main.getByRole("heading", { name: "Evaluasi BRG6" }).waitFor();
     await main.getByText("Eksperimen saja", { exact: true }).waitFor();
+    const details = main.locator("details").filter({ has: page.locator("summary", { hasText: "Detail eksperimen" }) }).first();
+    assert.equal(await details.getAttribute("open"), null, "metode tersembunyi pada tampilan awal");
+    await details.locator("summary").first().focus();
+    await page.keyboard.press("Enter");
+    await details.getByText("test-BRG6", { exact: true }).waitFor();
+    await details.locator("summary").first().click();
     await main.getByRole("button", { name: "Jalankan prediksi" }).click();
     await main.getByText("Prediksi untuk 19 Jul 2019", { exact: true }).waitFor();
-    await main.getByLabel("Tanggal input terakhir").fill("2026-10-15");
+    await pickDate(page, "Tanggal input terakhir", "2026-10-15");
     assert.equal(await main.getByText("Prediksi untuk 19 Jul 2019", { exact: true }).count(), 0);
     await main.getByRole("button", { name: "Jalankan prediksi" }).click();
     await main.getByText(/Prediksi belum dapat dibuat: Tujuh hari/).waitFor();
-    await main.getByLabel("Stasiun eksperimen").selectOption({ label: "BRG3" });
+    await selectOption(main.getByLabel("Stasiun eksperimen"), { label: "BRG3" });
     await main.getByRole("heading", { name: "Evaluasi BRG3" }).waitFor();
     assert.equal(await main.getByText(/Prediksi belum dapat dibuat:/).count(), 0);
     assert.equal(forecastCalls, 2);
     await main.getByText("Lihat nilai evaluasi dalam tabel").click();
     await main.getByRole("table").nth(1).waitFor();
   }
+  if (process.env.UI_SCREENSHOT_DIR) {
+    await mkdir(process.env.UI_SCREENSHOT_DIR, { recursive: true });
+    await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
+    await page.screenshot({ path: `${process.env.UI_SCREENSHOT_DIR}/ml-rest-1440.png`, fullPage: true });
+    await page.setViewportSize({ width: 375, height: 900 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: `${process.env.UI_SCREENSHOT_DIR}/ml-rest-375.png`, fullPage: true });
+  }
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
-  await main.getByText(/Anda sedang dalam mode terkini/).waitFor();
+  await main.getByText(/Mode terkini ·/).waitFor();
   for (const width of [1440, 768, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `overflow pada ${width}px`);

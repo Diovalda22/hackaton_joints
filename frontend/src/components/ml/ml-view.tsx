@@ -8,13 +8,13 @@ import { useRepositoryQuery } from "@/components/providers/use-repository-query"
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/async-states";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { errorMessage } from "@/lib/api/errors";
 import { addDays } from "@/lib/domain/dates";
 import { formatDate, formatDateRange, formatDateTime, formatDecimal, formatMeters, formatShortDate } from "@/lib/format";
 import type { MlExperiment, MlForecastInput } from "@/types";
-
-const fieldClass = "min-h-11 w-full rounded-md border bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function Forecast({ experiment }: { experiment: MlExperiment }) {
   const firstDate = experiment.predictions[0]?.date ?? experiment.test_period.from;
@@ -32,10 +32,10 @@ function Forecast({ experiment }: { experiment: MlExperiment }) {
 
   return (
     <Card>
-      <CardHeader><CardTitle>Coba prediksi historis +1 hari</CardTitle><p className="text-sm leading-6 text-muted-foreground">Pilih tanggal input terakhir. Server memerlukan tujuh hari pengukuran valid berurutan sampai tanggal itu. Hasil hanya untuk eksperimen historis.</p></CardHeader>
+      <CardHeader><CardTitle>Coba prediksi historis +1 hari</CardTitle><p className="text-sm leading-6 text-muted-foreground">Memerlukan 7 hari pengukuran valid berurutan.</p></CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={submit} className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
-          <label className="w-full space-y-2 text-sm sm:max-w-xs"><span>Tanggal input terakhir</span><input className={fieldClass} type="date" required value={date} onChange={(event) => { setDate(event.target.value); setRequest(null); }} /></label>
+          <div className="w-full space-y-2 text-sm sm:max-w-xs"><p>Tanggal input terakhir</p><DatePicker label="Tanggal input terakhir" value={date} onChange={(next) => { setDate(next); setRequest(null); }} /></div>
           <Button type="submit" disabled={result.status === "loading"}>{result.status === "loading" ? "Menghitung…" : "Jalankan prediksi"}</Button>
         </form>
         <div aria-live="polite" className="space-y-3">
@@ -46,7 +46,6 @@ function Forecast({ experiment }: { experiment: MlExperiment }) {
             <p className="font-semibold">Prediksi untuk {formatDate(result.data.forecast_date)}</p>
             <p>Model: <strong>{formatMeters(result.data.predicted_gwt_m, 3)}</strong> · Baseline: <strong>{formatMeters(result.data.baseline_gwt_m, 3)}</strong></p>
             <p className="break-words text-xs text-muted-foreground">Input {formatDate(result.data.input_date)} · Versi {result.data.model_version} · {result.data.release_gate}</p>
-            <p>Hasil eksperimen historis; tidak menggambarkan kondisi terkini dan tidak digunakan untuk keputusan operasional.</p>
           </div>}
         </div>
       </CardContent>
@@ -64,14 +63,12 @@ function Experiment({ experiment }: { experiment: MlExperiment }) {
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2"><CardTitle>Evaluasi {experiment.station_code}</CardTitle><Badge variant="warning">{experiment.release_gate === "EXPERIMENT_ONLY" ? "Eksperimen saja" : "Layak untuk prediksi historis"}</Badge>{experiment.is_simulation && <Badge variant="warning">SIMULASI</Badge>}</div>
-        <p className="text-sm leading-6 text-muted-foreground">{experiment.beats_baseline ? "Model mengalahkan baseline pada evaluasi ini." : "Model belum mengalahkan baseline. Hasil tidak digunakan oleh mesin prioritas."} Baseline menganggap nilai besok sama dengan nilai hari ini.</p>
+        <p className="text-sm leading-6 text-muted-foreground">{experiment.beats_baseline ? "Model mengalahkan baseline pada evaluasi ini." : "Model belum mengalahkan baseline. Hasil tidak digunakan oleh mesin prioritas."}</p>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><caption className="mb-3 text-left text-xs text-muted-foreground">Galat dalam sentimeter; makin kecil makin baik. Model dan baseline diuji pada tanggal yang sama.</caption><thead><tr className="border-b"><th scope="col" className="py-3 pr-4">Metode</th><th scope="col" className="px-2">MAE (cm)</th><th scope="col" className="px-2">RMSE (cm)</th></tr></thead><tbody>{[{ label: "Random Forest", metrics: experiment.model_metrics }, { label: "Baseline", metrics: experiment.baseline_metrics }].map(({ label, metrics: values }) =>
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><caption className="mb-3 text-left text-xs text-muted-foreground">Galat (cm) · lebih kecil lebih baik</caption><thead><tr className="border-b"><th scope="col" className="py-3 pr-4">Metode</th><th scope="col" className="px-2">MAE (cm)</th><th scope="col" className="px-2">RMSE (cm)</th></tr></thead><tbody>{[{ label: "Random Forest", metrics: experiment.model_metrics }, { label: "Baseline", metrics: experiment.baseline_metrics }].map(({ label, metrics: values }) =>
           <tr key={label} className="border-b"><th scope="row" className="py-3 pr-4 font-medium">{label}</th><td className="px-2 tabular-nums">{formatDecimal(values.mae_cm, 3)}</td><td className="px-2 tabular-nums">{formatDecimal(values.rmse_cm, 3)}</td></tr>
         )}</tbody></table></div>
-        <p className="text-xs leading-5 text-muted-foreground">MAE adalah rata-rata besar kesalahan. RMSE memberi bobot lebih besar pada kesalahan besar.</p>
-        <dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-muted-foreground">Periode pelatihan</dt><dd>{formatDateRange(experiment.training_period.from, experiment.training_period.to)}</dd></div><div><dt className="text-muted-foreground">Periode uji · {experiment.test_size} sampel</dt><dd>{formatDateRange(experiment.test_period.from, experiment.test_period.to)}</dd></div><div className="min-w-0"><dt className="text-muted-foreground">Versi model</dt><dd className="break-words">{experiment.model_version}</dd></div><div><dt className="text-muted-foreground">Dilatih pada</dt><dd>{formatDateTime(experiment.trained_at)}</dd></div></dl>
       </CardContent>
     </Card>
     <Card>
@@ -91,7 +88,17 @@ function Experiment({ experiment }: { experiment: MlExperiment }) {
       </CardContent>
     </Card>
     <Forecast key={experiment.model_version} experiment={experiment} />
-    <Card><CardHeader><CardTitle>Metode dan batasan</CardTitle></CardHeader><CardContent className="space-y-3 text-sm leading-6"><p>Target: muka air tanah satu hari setelah input terakhir. Pembagian data mengikuti waktu: 70% pelatihan, 15% validasi, 15% pengujian. Hari yang hilang tidak diinterpolasi.</p><ul className="list-disc space-y-2 pl-5">{experiment.limitations.map((limitation, index) => <li key={index}>{limitation}</li>)}</ul><details><summary className="cursor-pointer font-medium">Fitur model</summary><ul className="mt-2 list-disc break-words pl-5">{experiment.features.map((feature) => <li key={feature}>{feature}</li>)}</ul></details></CardContent></Card>
+    <details className="rounded-xl border bg-card p-5 text-sm leading-6">
+      <summary className="cursor-pointer font-semibold">Detail eksperimen</summary>
+      <div className="mt-4 space-y-4">
+        <p className="text-xs leading-5 text-muted-foreground">MAE adalah rata-rata besar kesalahan. RMSE memberi bobot lebih besar pada kesalahan besar.</p>
+        <dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-muted-foreground">Periode pelatihan</dt><dd>{formatDateRange(experiment.training_period.from, experiment.training_period.to)}</dd></div><div><dt className="text-muted-foreground">Periode uji · {experiment.test_size} sampel</dt><dd>{formatDateRange(experiment.test_period.from, experiment.test_period.to)}</dd></div><div className="min-w-0"><dt className="text-muted-foreground">Versi model</dt><dd className="break-words">{experiment.model_version}</dd></div><div><dt className="text-muted-foreground">Dilatih pada</dt><dd>{formatDateTime(experiment.trained_at)}</dd></div></dl>
+        <p>Baseline menganggap nilai besok sama dengan hari ini. Evaluasi model dan baseline menggunakan tanggal yang sama.</p>
+        <p>Target +1 hari. Pembagian kronologis: 70% pelatihan, 15% validasi, 15% pengujian. Hari hilang tidak diinterpolasi.</p>
+        <ul className="list-disc space-y-2 pl-5">{experiment.limitations.map((limitation, index) => <li key={index}>{limitation}</li>)}</ul>
+        <details><summary className="cursor-pointer font-medium">Fitur model</summary><ul className="mt-2 list-disc break-words pl-5">{experiment.features.map((feature) => <li key={feature}>{feature}</li>)}</ul></details>
+      </div>
+    </details>
   </div>;
 }
 
@@ -103,11 +110,11 @@ export function MlView() {
   const experiment = experiments.find((item) => item.station_id === stationId) ?? experiments[0];
 
   return <div className="space-y-6">
-    <header className="space-y-3"><p className="text-[10px] font-semibold tracking-[0.16em] text-teal">EKSPERIMEN · PREDIKSI</p><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Uji prediksi muka air tanah</h1><p className="max-w-3xl text-sm leading-6 text-muted-foreground">Bandingkan perkiraan satu hari ke depan dengan pengukuran dan baseline sederhana. Hasil berasal dari eksperimen historis 2018–2019, bukan kondisi saat ini.</p></header>
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">{mode === "CURRENT_MONITORING" && "Anda sedang dalam mode terkini. "}Halaman ini selalu menampilkan eksperimen historis. Filter wilayah dan periode pemantauan tidak mengubah periode uji model. Hasil tidak digunakan untuk keputusan operasional.</div>
+    <header><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Uji prediksi muka air tanah</h1></header>
+    <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">{mode === "CURRENT_MONITORING" && "Mode terkini · "}Eksperimen historis 2018–2019 · tidak digunakan untuk keputusan operasional. Periode uji terpisah dari filter pemantauan.</p>
     {metrics.status === "loading" && <LoadingState label="Memuat hasil eksperimen…" />}
     {metrics.status === "error" && <ErrorState description={errorMessage(metrics.error)} onRetry={metrics.refetch} />}
     {metrics.status === "success" && !experiment && <EmptyState title="Hasil eksperimen belum tersedia" description={metrics.data?.status === "NOT_AVAILABLE" ? metrics.data.reason : "Belum ada model yang tersedia dari server."} action={<Button variant="outline" onClick={metrics.refetch}>Periksa lagi</Button>} />}
-    {experiment && <><label className="block max-w-sm space-y-2 text-sm"><span className="font-medium">Stasiun eksperimen</span><select className={fieldClass} value={experiment.station_id} onChange={(event) => setStationId(event.target.value)}>{experiments.map((item) => <option key={item.station_id} value={item.station_id}>{item.station_code}</option>)}</select></label><Experiment key={`${experiment.station_id}:${experiment.model_version}`} experiment={experiment} /></>}
+    {experiment && <><label className="block max-w-sm space-y-2 text-sm"><span className="font-medium">Stasiun eksperimen</span><Select aria-label="Stasiun eksperimen" value={experiment.station_id} onValueChange={setStationId} options={experiments.map((item) => ({ value: item.station_id, label: item.station_code }))} /></label><Experiment key={`${experiment.station_id}:${experiment.model_version}`} experiment={experiment} /></>}
   </div>;
 }

@@ -3,6 +3,7 @@
 import { useId } from "react";
 import { toast } from "sonner";
 import { useActor } from "@/components/providers/actor-context";
+import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { roleLabels } from "@/lib/domain/labels";
 
@@ -26,20 +27,19 @@ export function RoleSwitcher() {
       <span className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-primary md:flex" aria-hidden="true">{initials(actor.display_name)}</span>
       <div className="min-w-0">
         <label htmlFor={id} className="hidden text-[10px] leading-4 text-muted-foreground md:block">Masuk sebagai (demo)</label>
-        <select
+        <Select
           id={id}
           aria-label="Masuk sebagai pengguna demo"
           value={actor.id}
-          onChange={(event) => {
-            const next = users.find((user) => user.id === event.target.value);
+          onValueChange={(value) => {
+            const next = users.find((user) => user.id === value);
             if (!next) return;
             setActorId(next.id);
-            toast.info(`Sekarang sebagai ${next.display_name}`, { description: `${roleLabels[next.role]} · tombol yang tampil menyesuaikan peran.` });
+            toast.info(`Sekarang sebagai ${next.display_name}`, { description: roleLabels[next.role] });
           }}
-          className="h-9 max-w-[10.5rem] min-w-0 rounded-md border bg-card px-2 text-xs font-semibold transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:h-auto md:max-w-[12rem] md:border-0 md:bg-transparent md:px-0"
-        >
-          {users.map((user) => <option key={user.id} value={user.id}>{user.display_name}</option>)}
-        </select>
+          className="h-9 w-auto max-w-[10.5rem] px-2 text-xs font-semibold md:max-w-[12rem]"
+          options={users.map((user) => ({ value: user.id, label: user.display_name, description: roleLabels[user.role] }))}
+        />
       </div>
     </div>
   );

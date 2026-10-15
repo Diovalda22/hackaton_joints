@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
+import { pickRange } from "../helpers/calendar.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -16,21 +18,18 @@ test("groundwater: stasiun, periode, gap, tooltip, tabel, mode terkini, dan resp
   page.on("console", (message) => { if (message.type() === "error") pageErrors.push(message.text()); });
 
   await page.goto(`${baseURL}/groundwater`);
-  const guide = page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" });
-  await guide.waitFor();
-  await guide.getByRole("button", { name: "Lewati" }).click();
 
   const main = page.locator("main");
   const picker = page.getByLabel("Stasiun pengukuran");
   await page.getByRole("heading", { name: "Grafik muka air tanah harian" }).waitFor();
-  assert.equal(await picker.inputValue(), "BRG6", "default BRG6");
+  assert.equal(await picker.getAttribute("data-value"), "BRG6", "default BRG6");
   assert.equal(await main.getByRole("button", { name: "30 hari" }).getAttribute("aria-pressed"), "true", "periode default 30 hari");
   await main.getByText("Pengukuran terakhir", { exact: true }).waitFor();
   assert.match(await main.locator("dl").innerText(), /−\d,\d{2} m/, "nilai memakai koma dan minus tipografis");
   assert.equal(await main.getByText("Batas acuan regulasi −0,4 m (PP 57/2016)", { exact: false }).count(), 1, "legenda garis acuan beserta sumber");
 
   // BRG3 berhenti 27 Agu 2019: periode default melewati masa pencatatan → diberi keterangan, bukan diisi nilai.
-  await picker.selectOption("BRG3");
+  await selectOption(picker, "BRG3");
   await page.waitForURL("**/groundwater?stasiun=BRG3");
   await main.getByText("BRG3 berhenti mencatat pada 27 Agu 2019.", { exact: false }).waitFor();
   await main.getByText("Di luar periode pencatatan stasiun").waitFor();
@@ -59,22 +58,21 @@ test("groundwater: stasiun, periode, gap, tooltip, tabel, mode terkini, dan resp
   // Pintasan "Seluruh data stasiun" memperbarui periode global; panel mengikuti.
   await main.getByRole("button", { name: "Seluruh data stasiun" }).click();
   await main.getByText("Periode: 8 Apr 2018 – 27 Agu 2019", { exact: false }).waitFor();
-  assert.equal(await page.getByLabel("Sampai tanggal").inputValue(), "2019-08-27");
+  assert.equal(await page.getByRole("button", { name: "Periode", exact: true }).getAttribute("data-to"), "2019-08-27");
   assert.equal(await main.getByText("Sebagian periode di luar masa pencatatan stasiun").count(), 0);
   await main.getByText("Tidak ada pengukuran:", { exact: false }).waitFor();
 
   // Periode di luar masa stasiun → keadaan kosong dengan tombol perbaikan.
-  await page.getByLabel("Sampai tanggal").fill("2019-11-20");
-  await page.getByLabel("Dari tanggal").fill("2019-11-01");
+  await pickRange(page, "2019-11-01", "2019-11-20");
   await main.getByRole("heading", { name: "Tidak ada pengukuran BRG3 pada periode ini" }).waitFor();
   await main.getByRole("button", { name: "Tampilkan seluruh periode stasiun" }).click();
   await page.getByRole("heading", { name: "Grafik muka air tanah harian" }).waitFor();
 
   // Filter wilayah menyaring stasiun; stasiun di luar wilayah diganti stasiun pertama wilayah itu.
-  await page.getByLabel("Wilayah").selectOption({ label: "Kubu Raya, Kalimantan Barat" });
+  await selectOption(page.getByLabel("Wilayah"), { label: "Kubu Raya, Kalimantan Barat" });
   await main.getByText("Daftar stasiun disaring untuk wilayah Kubu Raya.").waitFor();
-  assert.equal(await picker.inputValue(), "BRG17");
-  await page.getByRole("button", { name: "Kembalikan ke awal" }).click();
+  assert.equal(await picker.getAttribute("data-value"), "BRG17");
+  await page.getByRole("button", { name: "Reset" }).click();
 
   // Kode tak dikenal di URL → kembali ke BRG6 dengan keterangan.
   await page.goto(`${baseURL}/groundwater?stasiun=XYZ`);

@@ -42,9 +42,7 @@ export function GroundwaterHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-teal">{page.eyebrow}</p>
-        <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{page.description} Angka negatif berarti air berada di bawah permukaan tanah.</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
       </div>
       <div className="flex flex-wrap gap-2">
         <Badge variant={historical ? "teal" : "warning"}>{historical ? `RIWAYAT ${HISTORICAL_DATA_PERIOD.from.slice(0, 4)}–${HISTORICAL_DATA_PERIOD.to.slice(0, 4)}` : "TERKINI"}</Badge>

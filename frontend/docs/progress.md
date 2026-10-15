@@ -6,7 +6,7 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 
 ## 1. Posisi saat ini
 
-**Keenam halaman aplikasi sudah diimplementasikan. QA browser ke backend/database asli lulus lokal (bagian 19). Acceptance akhir dan integrasi landing page tetap terbuka. Deployment ditunda sementara sesuai arahan pengguna. Landing page ditangani teman; sisa frontend aplikasi ditangani pengguna sesuai pembagian terbaru.**
+**Keenam halaman aplikasi sudah diimplementasikan. QA browser ke backend/database asli lulus lokal (bagian 19); penyederhanaan UI/kalender dan dropdown tersedia (bagian 21–22). Acceptance akhir dan integrasi landing page tetap terbuka. Deployment ditunda sementara sesuai arahan pengguna. Landing page ditangani teman; sisa frontend aplikasi ditangani pengguna sesuai pembagian terbaru.**
 
 | Bagian | Status | Bukti / pekerjaan tersisa |
 | --- | --- | --- |
@@ -517,3 +517,79 @@ Deployment ditunda sementara sesuai arahan pengguna. Fokus berikutnya: review ko
 acceptance lokal, integrasi landing page, startup bersih, panduan/skenario demo dan bahan
 submission. FE-11 bagian deployment serta smoke publik tetap terbuka dan ditunda.
 Hasil tes pada tracker merujuk bukti sesi sebelumnya; pembaruan ini hanya mengubah dokumen.
+
+## 21. UI ringkas dan kalender — 15 Oktober 2026
+
+**Status:** IMPLEMENTED pada working tree. Deployment tetap ditunda.
+
+- Keenam halaman mengutamakan data, grafik, status dan aksi. Eyebrow/deskripsi berulang,
+  kartu bantuan sidebar dan pengulangan peran dihapus. Sumber/mode diringkas pada bar global;
+  label DEMO/SIMULASI, data terkini yang belum tersedia dan gate ML tetap terlihat.
+- Filter menjadi panel **Filter data** dengan satu tombol periode dan wilayah. Penjelasan
+  cutoff/sumber ada di **Detail data**; indikator lengkap, alasan tambahan, versi aturan dan
+  snapshot audit ada di **Detail penilaian**; metadata/metode/batasan ML ada di **Detail eksperimen**.
+- Panduan hanya dibuka melalui tombol header; tidak ada modal otomatis. Isi panduan diperbaiki
+  agar membedakan data contoh, data server dan laporan SIMULASI.
+- Kalender React DayPicker 9.14.0 + date-fns locale Indonesia + Radix Popover mengikuti tema
+  aplikasi. Pilihan bulan/tahun, keyboard, batas tanggal, draft rentang dan Terapkan/Batal tersedia.
+  Escape atau klik di luar membatalkan draft. Filter tetap terpisah per mode, cutoff tidak berubah.
+- ML memakai tanggal tunggal; laporan memakai kalender + input angka jam/menit/detik dalam
+  zona waktu lokal browser, lalu dikirim sebagai ISO UTC melalui mekanisme form yang ada.
+  Input tanggal native dan datetime-local sudah diganti. API/schema/backend tidak diubah.
+
+Verifikasi: lint, typecheck, build production mock dan REST, serta 61 tes data lulus.
+Tes tanggal mencakup WIB, UTC negatif, pergantian DST dan tahun kabisat. Browser ML dengan
+respons REST terkontrol lulus untuk kalender, metrics, forecast OK/REJECTED, pergantian stasiun,
+detail via keyboard dan error/retry. Suite browser final mock **14/14 PASS**, termasuk workflow/follow-up/reload, validasi
+waktu laporan, kalender draft/batal/sorotan/batas/keyboard, serta enam halaman pada
+1440/768/375/320 px tanpa overflow. Screenshot kalender 320 px, dashboard desktop/mobile,
+prioritas mobile dan ML REST desktop/mobile diperiksa.
+
+Batas verifikasi: sesi UI ini tidak mengulang koneksi database/NASA asli. Bukti live pada bagian 19
+merupakan hasil sesi sebelumnya; selector suite live diperbarui mengikuti kalender baru.
+Screenshot desktop/mobile ditulis di `/tmp/gambutops-ui-qa/` (di luar Git). Build akhir memakai
+mock; bangun ulang dengan env REST untuk memakai backend. Server QA dihentikan setelah verifikasi.
+
+
+## 22. Dropdown select konsisten — 15 Oktober 2026
+
+**Status:** IMPLEMENTED pada working tree. Deployment tetap ditunda.
+
+- Tambah Select bersama berbasis Radix Select 2.4.1: chevron, penanda pilihan, sorotan hover/fokus,
+  menu dengan scroll dan pembatas viewport. Mendukung keyboard, typeahead, opsi disabled,
+  placeholder serta kelompok opsi.
+- Terapkan pada pengguna/peran demo, wilayah, stasiun groundwater, stasiun ML, prioritas,
+  petugas pada dialog pembuatan tugas dan penugasan ulang, serta bulan/tahun kalender.
+  Dropdown native tidak lagi dipakai sebagai kontrol UI aplikasi.
+- Stasiun menampilkan kode ringkas pada trigger; menu mengelompokkan wilayah dan menampilkan
+  akhir periode pengukuran. Menu peran menampilkan keterangan koordinator/petugas.
+- Opsi Semua wilayah dan Tentukan nanti tetap dipetakan ke nilai kosong/null yang sama.
+  Form tugas memakai Controller React Hook Form; kontrak API dan state machine tetap sama.
+- Selaraskan Radix Dialog ke 1.3.1 agar berbagi layer/focus scope dengan Select/Popover.
+  Escape menutup dropdown terlebih dahulu tanpa menutup dialog induk. Perbaiki lapisan
+  navigasi kalender agar pemilih bulan/tahun dapat diklik.
+
+Verifikasi: lint, typecheck, build produksi mock/REST, 61 tes data dan **15/15 tes browser mock PASS**.
+Mencakup Home/End/Enter/Escape, opsi kosong, stasiun/URL, dialog 320 px, prioritas dan assignee
+tersimpan, penugasan setelah tugas OPEN, reload, workflow, kalender bertingkat dan drawer.
+Screenshot stasiun desktop, wilayah 320 px, dialog tugas 320 px dan kalender diperiksa;
+file QA berada di `/tmp/gambutops-select-qa/` (di luar Git).
+
+Selector suite live/ML diperbarui agar memilih melalui menu yang terlihat. Tes database/NASA
+live tidak diulang pada sesi UI ini. Browser ML pada build REST dengan respons API terkontrol
+**PASS**: pergantian stasiun, kalender dengan dropdown bulan/tahun, forecast OK/REJECTED,
+detail via keyboard, error/retry dan responsif. Build akhir dikembalikan ke mock dan server QA
+dihentikan; server development pengguna pada port 3000 tidak dihentikan.
+
+
+## 23. Pemulihan cache development — 15 Oktober 2026
+
+Server development lama masih menyimpan jalur Radix bersarang dari sebelum deduplikasi npm.
+`npm ls` memverifikasi dependency valid; `react-primitive` kini terselesaikan dari paket root.
+Server proyek di port 3000 dihentikan, cache `.next/dev` dipindahkan ke backup `dev.stale-*`
+di dalam `.next`, lalu server dijalankan ulang dengan konfigurasi NEXT_PUBLIC sebelumnya.
+Tidak ada perubahan dependency tambahan atau kontrak aplikasi pada perbaikan ini.
+
+Smoke browser development PASS: keenam route HTTP 200, judul halaman termuat, tidak ada
+ENOENT/Module not found atau exception browser, serta menu wilayah dan pemilih tahun
+kalender dapat dibuka/ditutup. Server development dibiarkan aktif di http://localhost:3000.

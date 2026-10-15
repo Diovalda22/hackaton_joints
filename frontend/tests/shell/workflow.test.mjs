@@ -1,18 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
+import { pickDate } from "../helpers/calendar.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
 /** Ganti pengguna demo lewat pemilih di header (label opsi berbeda antara mock dan REST). */
 async function switchUser(page, role) {
   const select = page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" });
-  await select.locator("option").first().waitFor({ state: "attached" });
-  const options = await select.locator("option").evaluateAll((items) => items.map((item) => ({ value: item.value, label: item.textContent ?? "" })));
-  const target = options.find((option) => (role === "coordinator" ? /koordinator/i : /petugas/i).test(option.label));
-  assert.ok(target, `Ada pengguna demo dengan peran ${role}`);
-  await select.selectOption(target.value);
-  return target.label;
+  await selectOption(select, { label: role === "coordinator" ? /koordinator/i : /petugas/i });
+  return await select.innerText();
 }
 
 test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut → verifikasi, bertahan setelah reload", { timeout: 180_000 }, async (t) => {
@@ -38,7 +36,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
   await form.waitFor();
   const title = `E2E periksa wilayah ${Date.now()}`;
   await form.getByLabel("Judul tugas").fill(title);
-  const officerLabel = await form.getByRole("combobox", { name: /^Petugas/ }).evaluate((select) => select.options[select.selectedIndex]?.textContent ?? "");
+  const officerLabel = await form.getByRole("combobox", { name: /^Petugas/ }).innerText();
   assert.match(officerLabel, /petugas/i, "petugas pertama terpilih otomatis");
   await form.getByRole("button", { name: "Buat tugas" }).click();
   await form.waitFor({ state: "hidden" });
@@ -58,6 +56,14 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
     await status.filter({ hasText: "Dikerjakan" }).waitFor();
     await detail.getByLabel(resultLabel).check();
     await detail.getByLabel("Apa yang Anda lihat?").fill(note);
+    const observationDate = await detail.getByRole("button", { name: "Tanggal pengamatan", exact: true }).getAttribute("data-date");
+    await pickDate(page, "Tanggal pengamatan", observationDate);
+    const hours = detail.getByRole("spinbutton", { name: "Jam", exact: true });
+    const validHours = await hours.inputValue();
+    await hours.fill("99");
+    await detail.getByRole("button", { name: "Kirim laporan SIMULASI" }).click();
+    await detail.getByText("Waktu tidak valid", { exact: true }).waitFor();
+    await hours.fill(validHours);
     await detail.getByRole("button", { name: "Kirim laporan SIMULASI" }).click();
     await status.filter({ hasText: "Menunggu tinjauan" }).waitFor();
   }

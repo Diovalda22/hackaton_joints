@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/components/ui/utils";
 import { errorMessage } from "@/lib/api";
 import { findArea } from "@/lib/domain/areas";
-import { decisionLabels, priorityLabels, roleLabels, taskStatusLabels } from "@/lib/domain/labels";
+import { decisionLabels, priorityLabels, taskStatusLabels } from "@/lib/domain/labels";
 import { formatCount, formatDate, formatDateRange, formatDateTime } from "@/lib/format";
 import type { Activity, DashboardSummary, InspectionTask, PriorityAssessment, PriorityLevel, User } from "@/types";
 
@@ -34,8 +34,7 @@ export function DashboardHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-teal">{page.eyebrow}</p>
-        <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           {area?.label ?? "Semua wilayah"} · {formatDateRange(filter.from, filter.to)}.{" "}
           <a href={`#${SETTINGS_ANCHOR}`} className="font-medium text-primary underline-offset-4 hover:underline">Ubah periode/wilayah</a>
@@ -69,7 +68,7 @@ function TopPriorityCard({ priorities }: { priorities: readonly PriorityAssessme
             <PriorityBadge priority={top.priority} />
           </div>
           <p className="text-sm leading-6 text-muted-foreground"><span className="font-medium text-foreground">{decisionLabels[top.decision]}.</span> {top.explanation}</p>
-          <p className="text-xs text-muted-foreground">Prioritas adalah urutan pemeriksaan, bukan peluang kebakaran.</p>
+
         </div>
       )}
       <Button asChild variant="outline" size="sm" className="mt-4 self-start"><Link href="/priorities">Lihat semua prioritas<ArrowRight aria-hidden="true" /></Link></Button>
@@ -85,7 +84,6 @@ function MyTasksCard({ tasks }: { tasks: readonly InspectionTask[] | undefined }
       <h2 id="my-tasks-title" className="flex items-center gap-2 text-sm font-semibold"><ClipboardCheck className="size-4 text-teal" aria-hidden="true" />Tugas yang menunggu Anda</h2>
       {!mine || !actor ? <Skeleton className="mt-3 h-24" /> : (
         <div className="mt-3 flex-1">
-          <p className="text-xs text-muted-foreground">Sebagai {roleLabels[actor.role].toLowerCase()} ({actor.display_name})</p>
           {mine.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">{actor.role === "coordinator" ? "Tidak ada tugas baru atau laporan yang perlu ditinjau." : "Tidak ada tugas yang perlu Anda kerjakan."}</p>
           ) : (
@@ -179,7 +177,7 @@ function Provenance({ summary }: { summary: DashboardSummary }) {
   return (
     <p className="flex flex-wrap items-start gap-x-2 gap-y-1 text-xs leading-5 text-muted-foreground">
       <Database className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-      <span>Data sampai {formatDate(summary.as_of)} (data setelahnya tidak dipakai).</span>
+      <span>Data sampai {formatDate(summary.as_of)}.</span>
       {summary.hotspots.source && <span>Titik panas: {summary.hotspots.source}{summary.hotspots.last_synced_at ? `, diperbarui ${formatDateTime(summary.hotspots.last_synced_at)}` : ""}.</span>}
     </p>
   );
@@ -216,7 +214,7 @@ export function DashboardView() {
         </div>
         <HotspotMap hotspots={hotspots.data?.items ?? []} selectedId={null} onSelect={() => router.push("/hotspots")} areaId={filter.area_id} className="h-[280px] sm:h-[360px]" />
         <p className="text-xs text-muted-foreground">
-          {hotspots.data ? `Menampilkan ${formatCount(hotspots.data.items.length)} titik terbaru dari ${formatCount(hotspots.data.total)}.` : "Memuat titik panas…"} Klik titik untuk membuka halaman Titik panas.
+          {hotspots.data ? `Menampilkan ${formatCount(hotspots.data.items.length)} titik terbaru dari ${formatCount(hotspots.data.total)}.` : "Memuat titik panas…"}
         </p>
       </section>
 

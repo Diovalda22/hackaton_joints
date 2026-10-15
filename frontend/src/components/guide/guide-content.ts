@@ -13,13 +13,13 @@ export interface GuideStep {
 export const guideSteps: readonly GuideStep[] = [
   {
     title: "Pilih jenis data",
-    body: "Di bagian atas, pilih Riwayat untuk memutar ulang data 2018–2019, atau Terkini untuk simulasi kondisi saat ini.",
+    body: "Pilih Riwayat untuk data historis, atau Terkini untuk hotspot terbaru. Sumber data contoh ditandai DEMO.",
     icon: History,
     href: null,
   },
   {
     title: "Atur periode dan wilayah",
-    body: "Di halaman Ringkasan, tentukan rentang tanggal dan wilayah (Batanghari atau Kubu Raya). Semua halaman mengikuti pilihan ini.",
+    body: "Buka Periode pada Filter data, pilih tanggal mulai dan akhir, lalu Terapkan. Pilih wilayah yang ingin dilihat. Filter berlaku lintas halaman pemantauan.",
     icon: SlidersHorizontal,
     href: "/dashboard",
   },
@@ -70,7 +70,7 @@ export const glossary: readonly GlossaryItem[] = [
   { term: "Prioritas pemeriksaan", meaning: "Urutan lokasi yang sebaiknya dicek lebih dulu, berdasarkan aturan sederhana. Ini bukan ramalan kebakaran." },
   { term: "Data kurang", meaning: "Data belum cukup untuk menilai lokasi. Artinya belum bisa dinilai, bukan berarti aman." },
   { term: "Mode riwayat", meaning: "Memutar ulang data 2018–2019. Aplikasi hanya memakai data sampai tanggal yang Anda pilih, tidak mengintip data sesudahnya." },
-  { term: "Mode terkini", meaning: "Simulasi pemantauan saat ini. Data muka air tanah terbaru belum tersedia, sehingga tidak ditampilkan." },
+  { term: "Mode terkini", meaning: "Hotspot terbaru dari server, atau data contoh bila berlabel DEMO. Data muka air tanah terbaru belum tersedia." },
   { term: "DEMO / SIMULASI", meaning: "Data contoh untuk uji coba. Bukan hasil pengamatan atau laporan lapangan sungguhan." },
 ];
 
@@ -88,7 +88,7 @@ export const importantNotes: readonly string[] = [
   "Versi ini adalah uji coba. Data contoh selalu diberi label DEMO atau SIMULASI.",
   "Titik panas belum tentu kebakaran. Pastikan dengan pengecekan di lapangan.",
   "Prioritas adalah panduan urutan pemeriksaan, bukan ramalan kebakaran.",
-  "Tugas dan laporan uji coba hanya tersimpan di browser perangkat ini.",
+  "Dalam mode DEMO, tugas/laporan tersimpan di browser. Pada sumber data server, perubahan tersimpan di server; isi laporan demo tetap SIMULASI.",
 ];
 
 export const EMERGENCY_NOTE = "Melihat kebakaran sungguhan? Jangan menunggu aplikasi. Segera hubungi 112 atau BPBD setempat.";

@@ -31,12 +31,14 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - **Lapisan data (F0 data):** schema Zod + tipe, `GambutOpsRepository`, `createMockRepository()` (deterministik, localStorage untuk tugas/laporan), `createRestRepository()` (validasi payload, pemetaan error, guard mode), state machine tugas, dan hook data dengan cache per mode serta pembatalan respons lama. Detail: [docs/data-contract.md](docs/data-contract.md).
 - Komponen bersama untuk provenance, DEMO/SIMULASI, loading, empty, error/retry, dan toast.
 - Panduan gaya UI: [style.md](style.md) — flat, tanpa shadow berlebih, hover halus.
-- **Panduan penggunaan dalam aplikasi** (modal): muncul otomatis pada kunjungan pertama, bisa dibuka lagi lewat tombol **Panduan** di header, kartu sidebar, atau kartu "Mulai dari sini". Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
+- **Dropdown konsisten:** Radix Select untuk peran, wilayah, stasiun, prioritas/petugas dan bulan/tahun kalender; menu mengikuti tema, mendukung keyboard, kelompok wilayah dan penanda pilihan.
+- **UI ringkas:** penjelasan sumber/metode, indikator lengkap dan batasan tersedia melalui bagian Detail; angka, grafik, status dan tindakan tetap di tampilan utama.
+- **Panduan penggunaan dalam aplikasi** (modal): dibuka saat diminta melalui tombol **Panduan** di header. Tidak muncul otomatis pada kunjungan pertama. Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
 - Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
 - **Titik panas** (`/hotspots`): peta MapLibre (warna = status verifikasi, popup, kotak wilayah DEMO), daftar yang sinkron dengan peta, pagination server 100 titik/halaman (reset saat filter berubah), filter satelit, detail (waktu WIB/UTC, confidence mentah, FRP, sumber), buat tugas dari titik, dan status sinkron NASA FIRMS + tombol sinkron koordinator (REST).
 - **Prioritas pemeriksaan** (`/priorities`): assessment per wilayah dengan alasan, data yang belum tersedia, indikator dari snapshot, rekomendasi, versi aturan, snapshot mentah untuk audit, dan tombol **Buat tugas** (koordinator).
 - **Tugas lapangan** (`/tasks`): saringan "Perlu tindakan saya", detail, riwayat status, laporan; koordinator menugaskan/meninjau (verifikasi, tindak lanjut, tutup), petugas memulai dan mengirim laporan SIMULASI. Pilih peran demo di header.
-- Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
+- Pengatur periode dan wilayah di panel **Filter data**, tersimpan terpisah per jenis data. Rentang memakai kalender React DayPicker + Radix Popover dengan bahasa Indonesia, navigasi bulan/tahun dan tombol Terapkan/Batal. ML memakai tanggal tunggal; laporan memakai kalender + jam/menit/detik lokal.
 - **Uji prediksi** (`/experiments/ml`): pilihan stasiun dari API, MAE/RMSE vs baseline dalam cm, grafik dan tabel terukur/prediksi/baseline dalam meter, periode/versi/fitur/batasan model, serta form prediksi historis +1 hari. Gate `EXPERIMENT_ONLY` tetap ditampilkan; hasil tidak masuk keputusan operasional. Halaman selalu historis dan tidak mengikuti filter pemantauan. Mock menampilkan hasil belum tersedia tanpa angka rekaan.
 
 - **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
@@ -68,6 +70,14 @@ npm run test:data
 ```
 
 Mencakup schema, state machine, konfigurasi peta, mock repository (mode, as_of, determinisme, persistensi, localStorage rusak, abort), dan REST adapter (payload invalid, pemetaan HTTP, guard mode).
+
+## Setelah memperbarui dependency
+
+Hentikan server development sebelum menjalankan `npm install` atau `npm ci`, lalu jalankan
+kembali `npm run dev`. Webpack pada proses lama dapat menyimpan jalur paket sebelum npm
+melakukan deduplikasi, sehingga muncul `ENOENT` meskipun dependency sudah valid.
+Jika restart masih membaca cache lama, hentikan server lalu pindahkan `.next/dev` sebelum
+menjalankan ulang. Hindari mengubah `node_modules` saat server development masih berjalan.
 
 ## Pengujian browser
 

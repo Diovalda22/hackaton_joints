@@ -9,8 +9,14 @@ terbuka dan dilanjutkan setelah ada arahan berikutnya.**
 
 Bukti: [QA browser REST asli](frontend/docs/live-integration-qa.md),
 [QA backend](backend/docs/backend-qa.md), [progres frontend §19](frontend/docs/progress.md#19-sesi-frontend-2026-10-15--integrasi-browser-ke-backenddatabase-asli),
-dan [panduan menjalankan aplikasi](readme.md). Status PASS di sini merangkum hasil yang
-sudah dicatat, bukan eksekusi tes baru pada pembaruan tracker ini.
+dan [panduan menjalankan aplikasi](readme.md).
+
+Pembaruan UI pada working tree: keenam halaman diringkas, penjelasan dipindahkan ke Detail,
+panduan hanya saat diminta, serta kalender rentang/tanggal tunggal/waktu laporan menggantikan
+kontrol tanggal native. Dropdown peran/wilayah/stasiun/tugas dan bulan/tahun kalender
+kini memakai Select bersama. Verifikasi sesi UI: lint/typecheck, build mock/REST, 61 tes data,
+15 tes browser mock dan ML REST terkontrol PASS. Tidak mengulang tes database/NASA asli;
+bukti integrasi live tetap berasal dari sesi sebelumnya. Detail ada di tracker frontend §21–22.
 
 ## Pembagian untuk dua orang (baseline)
 
@@ -42,9 +48,10 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | FE-07 | Tasks/reports: form, role UI, assignment, status/history, review dan follow-up | MERGED (PR #10) dari `feat/frontend-tasks`: REST BE-06 dengan Bearer token + mock, role demo, follow-up, E2E reload lulus |
 | FE-08 | ML UI: grafik actual/predicted, metrik/baseline, versi model dan batasan | IMPLEMENTED: metrics/forecast REST, grafik + tabel, gate/batasan; browser backend asli PASS untuk BRG3/BRG6, forecast cocok artifact |
 | FE-09 | Integrasi semua read/write API, loading/error/retry dan respons filter lama | IMPLEMENTED/QA lokal: 6 halaman REST, GWT/ML sesuai data asli, pagination/filter, workflow reload dan FIRMS live 200/429; smoke deployment masih terbuka |
-| FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | QA lokal PASS: lint/typecheck/build, 60 tes data, 13 tes browser mock, browser backend asli/workflow/dashboard/hotspots/FIRMS; QA deployment dan acceptance akhir masih terbuka |
+| FE-10 | Browser/E2E, responsive 1440/768/375, accessibility, lint/typecheck/build | QA lokal PASS: lint/typecheck/build, 61 tes data, 15 tes browser mock, browser backend asli/workflow/dashboard/hotspots/FIRMS; QA deployment dan acceptance akhir masih terbuka |
 | FE-11 | README/env frontend, URL API publik, deployment frontend, smoke incognito | DITUNDA: README/env lokal tersedia; URL API publik, deployment dan smoke incognito menunggu deployment dilanjutkan |
-| FE-12 | Siapkan tampilan/alur demo untuk rekaman, screenshot dan dukung reviewer frontend | Belum; hasil diberikan ke Anda untuk submission |
+| FE-12 | Siapkan tampilan/alur demo untuk rekaman, screenshot dan dukung reviewer frontend | Belum; screenshot QA UI tersedia lokal, bahan rekaman/submission belum difinalkan |
+| FE-13 | UI ringkas, kalender dan select library | IMPLEMENTED/QA lokal PASS pada working tree: detail opsional, panduan manual, kalender/dropdown konsisten; lihat frontend/docs/progress.md §21–22 |
 
 ### Task ferren — backend dan pekerjaan lainnya
 

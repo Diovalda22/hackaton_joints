@@ -1,20 +1,16 @@
 "use client";
 
-import { Info } from "lucide-react";
+import { Database } from "lucide-react";
 import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { useMonitoring } from "@/components/providers/monitoring-context";
-import { DemoBadge } from "./demo-badge";
 
 export function DemoNotice() {
   const { mode } = useMonitoring();
   const demo = useIsDemoData();
-  return (
-    <div role="note" className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b bg-amber-50/70 px-4 py-2.5 text-xs leading-5 text-amber-950 md:px-8">
-      <Info className="size-4 shrink-0" aria-hidden="true" />
-      {demo && <DemoBadge />}
-      <span>{demo ? "Versi uji coba dengan data contoh." : "Versi uji coba dengan data dari server GambutOps."} Titik panas dari satelit belum tentu kebakaran.</span>
-      {mode === "HISTORICAL_REPLAY" && <span className="font-medium">Menampilkan data riwayat.</span>}
-      {mode === "CURRENT_MONITORING" && <span className="font-medium">Data muka air terkini tidak tersedia.</span>}
-    </div>
-  );
+  return <div role="note" className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs text-muted-foreground md:px-8">
+    <Database className="size-3.5 shrink-0" aria-hidden="true" />
+    <span>{demo ? "Data contoh · DEMO" : "Data server"}</span><span aria-hidden="true">·</span>
+    <span>{mode === "HISTORICAL_REPLAY" ? "Riwayat" : "Terkini"}</span>
+    <span className="ml-auto">Prototipe</span>
+  </div>;
 }

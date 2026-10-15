@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -49,7 +50,7 @@ test("peta: wilayah mengikuti filter, peta dasar gagal, dan tanpa WebGL", { time
     const canvas = page.getByRole("region", { name: /^Peta titik panas, \d+ titik/ });
     await canvas.waitFor();
     assert.equal(await page.getByRole("button", { name: "Perbesar" }).count(), 1, "kontrol zoom berbahasa Indonesia");
-    await page.getByRole("combobox", { name: "Wilayah", exact: true }).selectOption({ label: "Kubu Raya, Kalimantan Barat" });
+    await selectOption(page.getByRole("combobox", { name: "Wilayah", exact: true }), { label: "Kubu Raya, Kalimantan Barat" });
     await page.getByRole("region", { name: /^Peta titik panas Kubu Raya, Kalimantan Barat/ }).waitFor();
     assert.deepEqual(errors, []);
     await context.close();

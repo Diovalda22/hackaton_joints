@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
 
 // Opt-in: this consumes one NASA request and persists real cache/sync history.
 test("FIRMS live: sync browser, status database, cooldown dan pembatasan peran", {
@@ -37,9 +38,7 @@ test("FIRMS live: sync browser, status database, cooldown dan pembatasan peran",
   }
   await page.getByText("Sinkronisasi gagal", { exact: true }).waitFor();
   const users = page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" });
-  const officer = await users.locator("option").evaluateAll((items) => items.find((item) => /petugas/i.test(item.textContent ?? ""))?.value);
-  await users.selectOption(officer);
-  await panel.getByText("Hanya koordinator yang dapat menyinkronkan.", { exact: false }).waitFor();
+  await selectOption(users, { label: /petugas/i });
   assert.equal(await panel.getByRole("button", { name: /^Sinkronkan / }).count(), 0);
   console.log(`FIRMS live verified: status=${response.status()}, rows=${result.rows_received ?? "cooldown"}`);
 });

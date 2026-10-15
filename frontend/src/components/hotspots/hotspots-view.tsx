@@ -8,7 +8,7 @@ import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { useMonitoring } from "@/components/providers/monitoring-context";
 import { EmptyState, ErrorState } from "@/components/shared/async-states";
 import { DemoBadge } from "@/components/shared/demo-badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,9 +41,7 @@ export function HotspotsHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-teal">{page.eyebrow}</p>
-        <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{page.description}</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
       </div>
       <div className="flex flex-wrap gap-2">
         <Badge variant={mode === "HISTORICAL_REPLAY" ? "teal" : "warning"}>{mode === "HISTORICAL_REPLAY" ? "RIWAYAT" : "TERKINI"}</Badge>
@@ -118,8 +116,7 @@ export function HotspotsView() {
       <Alert className="border-amber-200 bg-amber-50">
         <Info className="text-amber-800" aria-hidden="true" />
         <div>
-          <AlertTitle>Titik panas belum tentu kebakaran</AlertTitle>
-          <AlertDescription>Satelit mendeteksi anomali panas. Pastikan di lapangan sebelum menyimpulkan ada kebakaran.</AlertDescription>
+          <AlertTitle>Indikasi panas · perlu verifikasi</AlertTitle>
         </div>
       </Alert>
 
@@ -176,7 +173,7 @@ export function HotspotsView() {
                 {selected ? (
                   <HotspotDetail key={selected.id} hotspot={selected} onClose={() => select(null)} />
                 ) : (
-                  <p className="rounded-xl border border-dashed px-5 py-8 text-center text-sm text-muted-foreground">Pilih titik di peta atau daftar untuk melihat detail dan membuat tugas pemeriksaan.</p>
+                  <p className="rounded-xl border border-dashed px-5 py-8 text-center text-sm text-muted-foreground">Pilih titik untuk melihat detail.</p>
                 )}
               </div>
             </div>

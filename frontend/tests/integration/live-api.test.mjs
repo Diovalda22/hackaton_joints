@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
+import { pickDate } from "../helpers/calendar.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3100";
 const apiURL = process.env.LIVE_API_BASE_URL ?? "http://127.0.0.1:8001/api/v1";
@@ -50,8 +52,10 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
     assert.equal(experiment.model_version, artifact.model_version);
     assert.equal(experiment.model_metrics.mae_cm, artifact.mae_cm);
     assert.equal(experiment.model_metrics.rmse_cm, artifact.rmse_cm);
-    await main.getByLabel("Stasiun eksperimen").selectOption(experiment.station_id);
+    await selectOption(main.getByLabel("Stasiun eksperimen"), experiment.station_id);
     await main.getByRole("heading", { name: `Evaluasi ${experiment.station_code}` }).waitFor();
+    const experimentDetails = main.locator("details").filter({ has: page.locator("summary", { hasText: "Detail eksperimen" }) }).first();
+    if ((await experimentDetails.getAttribute("open")) === null) await experimentDetails.locator("summary").first().click();
     await main.getByText(experiment.model_version, { exact: true }).waitFor();
     const metricsTable = main.getByRole("table").first();
     assert.ok((await metricsTable.innerText()).includes(decimal(artifact.mae_cm)));
@@ -59,7 +63,7 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
     const first = artifact.predictions[0];
     const inputDate = new Date(`${first.date}T00:00:00Z`);
     inputDate.setUTCDate(inputDate.getUTCDate() - 1);
-    await main.getByLabel("Tanggal input terakhir").fill(inputDate.toISOString().slice(0, 10));
+    await pickDate(page, "Tanggal input terakhir", inputDate.toISOString().slice(0, 10));
     const forecastResponse = page.waitForResponse((response) => response.url() === `${apiURL}/ml/forecast` && response.request().method() === "POST");
     await main.getByRole("button", { name: "Jalankan prediksi" }).click();
     const forecast = await (await forecastResponse).json();
@@ -69,7 +73,7 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
     assert.ok(Math.abs(forecast.predicted_gwt_m - first.predicted_gwt_m) < 1e-9);
     assert.ok(Math.abs(forecast.baseline_gwt_m - first.baseline_gwt_m) < 1e-9);
     await main.getByText(`${decimal(forecast.predicted_gwt_m)} m`, { exact: true }).first().waitFor();
-    await main.getByLabel("Tanggal input terakhir").fill("2026-10-15");
+    await pickDate(page, "Tanggal input terakhir", "2026-10-15");
     await main.getByRole("button", { name: "Jalankan prediksi" }).click();
     await main.getByText(/Prediksi belum dapat dibuat:/).waitFor();
   }
@@ -85,8 +89,8 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
   await gwtTable.waitFor();
   const stations = await page.evaluate(async (url) => (await fetch(`${url}/stations`)).json(), apiURL);
   const station = stations.find((item) => item.code === "BRG6");
-  const from = await page.getByLabel("Dari tanggal").inputValue();
-  const to = await page.getByLabel("Sampai tanggal").inputValue();
+  const from = await page.getByRole("button", { name: "Periode", exact: true }).getAttribute("data-from");
+  const to = await page.getByRole("button", { name: "Periode", exact: true }).getAttribute("data-to");
   const observations = await page.evaluate(async ({ url, id, from, to }) => (await fetch(`${url}/stations/${id}/groundwater?from=${from}&to=${to}&mode=HISTORICAL_REPLAY`)).json(), { url: apiURL, id: station.id, from, to });
   const observed = observations.find((item) => item.gwt_m !== null && item.quality_flag === "VALID");
   assert.ok(observed, "database memuat GWT valid pada periode awal");
@@ -98,7 +102,7 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
   const next = page.getByRole("navigation", { name: "Halaman daftar titik" }).getByRole("button", { name: "Berikutnya" });
   await next.click();
   await main.getByText(/^Halaman 2 dari/).waitFor();
-  await page.getByRole("combobox", { name: "Wilayah", exact: true }).selectOption("batanghari");
+  await selectOption(page.getByRole("combobox", { name: "Wilayah", exact: true }), "batanghari");
   await main.getByText(/^Halaman 1 dari/).waitFor();
 
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
@@ -109,7 +113,7 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
   await main.getByText("Data muka air terkini tidak tersedia", { exact: true }).waitFor();
   await page.locator("aside").getByRole("link", { name: "Uji prediksi (uji coba)", exact: true }).click();
-  await main.getByText(/Anda sedang dalam mode terkini/).waitFor();
+  await main.getByText(/Mode terkini ·/).waitFor();
 
   for (const route of ["dashboard", "groundwater", "hotspots", "priorities", "tasks", "experiments/ml"]) {
     await page.goto(`${baseURL}/${route}`);

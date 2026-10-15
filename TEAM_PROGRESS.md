@@ -14,18 +14,20 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 
 **QA integrasi lokal PASS. Deployment ditunda sementara sesuai arahan pengguna.**
 Status berdasarkan checkout `feat/backend-ml` sampai `8fcef3a`, termasuk commit integrasi
-`5720bd0`. Hasil berikut berasal dari catatan QA, bukan tes baru pada pembaruan tracker.
+`5720bd0`. Hasil backend/live merujuk catatan QA sebelumnya; hasil UI terbaru diverifikasi pada sesi
+penyederhanaan UI (working tree), lihat tracker frontend §21.
 
 | Area | Status | Bukti / batas |
 | --- | --- | --- |
 | Shell, repository mock/REST dan enam halaman frontend | IMPLEMENTED | Dashboard, GWT, hotspots, priorities, tasks/reports dan eksperimen ML tersedia |
 | Backend/data/FIRMS/rules/workflow/ML | IMPLEMENTED | Endpoint read/write dan seed demo tersedia; merge backend ML tercatat pada PR #9 |
 | QA backend | PASS lokal | Ruff; 67 tes, 0 skip pada PostGIS terisolasi; smoke Supabase dengan rollback |
-| QA frontend | PASS lokal | Lint/typecheck/build; 60 tes data; 13 tes browser mock |
+| QA frontend | PASS lokal | Lint/typecheck/build; 61 tes data; 15 tes browser mock |
 | Browser REST ke FastAPI lokal + Supabase | PASS lokal | Nilai GWT sesuai API; ML BRG3/BRG6 sesuai artifact; input tanpa riwayat ditolak |
 | Workflow browser | PASS lokal | Tindak lanjut, verifikasi, reload/tab baru; 2 laporan dan 9 riwayat; rollback terverifikasi |
 | FIRMS browser live | PASS lokal | HTTP 200, 50 baris; percobaan ulang 429; tombol dibatasi untuk koordinator |
 | Responsif | PASS lokal | Enam halaman setelah data termuat, 1440/768/375/320 px, tanpa overflow |
+| UI ringkas, kalender dan dropdown | IMPLEMENTED / QA lokal PASS | Keenam halaman, Detail opsional, panduan manual, kalender rentang/ML/laporan, select peran/wilayah/stasiun/tugas; lihat frontend §21–22 |
 | Review/acceptance akhir dan freeze | TERBUKA | Review kontrak, integrasi landing page, startup bersih dan checklist demo lokal |
 | Deployment dan smoke publik | DITUNDA | Hosting API/frontend, artifact host, secret/CORS publik, TLS dan smoke publik belum ditutup |
 | Demo/submission | TERBUKA | Panduan skenario, screenshot, video, pitch deck dan berkas akhir |

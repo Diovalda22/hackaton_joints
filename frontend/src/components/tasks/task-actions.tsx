@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -10,8 +10,10 @@ import { useActor } from "@/components/providers/actor-context";
 import { useRepositoryMutation } from "@/components/providers/data-hooks";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { errorMessage } from "@/lib/api";
-import { reportResultLabels, roleLabels, taskStatusLabels } from "@/lib/domain/labels";
+import { reportResultLabels, taskStatusLabels } from "@/lib/domain/labels";
 import { canSubmitReport, canTransition, isTerminal } from "@/lib/domain/task-state-machine";
 import { formatDateTime } from "@/lib/format";
 import type { FieldReportResult, InspectionTask, TaskStatus, User } from "@/types";
@@ -43,7 +45,7 @@ function AssignForm({ task, actor, followUp }: { task: InspectionTask; actor: Us
   const assign = useRepositoryMutation((repo) => repo.updateTask(task.id, { status: "ASSIGNED", assignee_id: assignee, note: note.trim() || null }, { actor }));
 
   return (
-    <Panel title={followUp ? "Tugaskan untuk tindak lanjut" : "Tugaskan petugas"} description={followUp ? "Koordinator meminta pemeriksaan ulang. Pilih petugas untuk kunjungan berikutnya." : "Tugas belum memiliki petugas."}>
+    <Panel title={followUp ? "Tugaskan untuk tindak lanjut" : "Tugaskan petugas"} description={followUp ? "Pilih petugas untuk pemeriksaan ulang." : undefined}>
       <form
         className="space-y-3"
         onSubmit={async (event) => {
@@ -58,9 +60,8 @@ function AssignForm({ task, actor, followUp }: { task: InspectionTask; actor: Us
       >
         <label className="block space-y-1.5 text-sm font-medium" htmlFor={`${id}-assignee`}>
           <span>Petugas</span>
-          <select id={`${id}-assignee`} className={fieldClass} value={assignee} onChange={(event) => setAssignee(event.target.value)} required>
-            {officers.map((user) => <option key={user.id} value={user.id}>{user.display_name}</option>)}
-          </select>
+          <Select id={`${id}-assignee`} aria-label="Petugas" value={assignee} onValueChange={setAssignee} required
+            options={officers.map((user) => ({ value: user.id, label: user.display_name }))} />
         </label>
         <label className="block space-y-1.5 text-sm font-medium" htmlFor={`${id}-note`}>
           <span>Catatan <span className="font-normal text-muted-foreground">(opsional)</span></span>
@@ -86,7 +87,7 @@ function ReviewForm({ task, actor }: { task: InspectionTask; actor: User }) {
     } catch { /* ditampilkan di bawah */ }
   };
   return (
-    <Panel title="Tinjau laporan" description="Baca laporan petugas di bawah, lalu pilih hasil tinjauan.">
+    <Panel title="Tinjau laporan">
       <label className="block space-y-1.5 text-sm font-medium" htmlFor={`${id}-note`}>
         <span>Catatan tinjauan <span className="font-normal text-muted-foreground">(opsional)</span></span>
         <textarea id={`${id}-note`} rows={2} maxLength={500} className={`${fieldClass} h-auto py-2`} value={note} onChange={(event) => setNote(event.target.value)} />
@@ -105,7 +106,7 @@ function ReviewForm({ task, actor }: { task: InspectionTask; actor: User }) {
 function StartWork({ task, actor }: { task: InspectionTask; actor: User }) {
   const start = useRepositoryMutation((repo) => repo.updateTask(task.id, { status: "IN_PROGRESS" }, { actor }));
   return (
-    <Panel title="Mulai pemeriksaan" description="Tekan saat Anda berangkat atau tiba di lokasi. Setelah itu form laporan akan muncul.">
+    <Panel title="Mulai pemeriksaan" description="Mulai untuk mengisi laporan.">
       {start.status === "error" && <MutationError error={start.error} />}
       <Button
         onClick={async () => {
@@ -124,7 +125,7 @@ function StartWork({ task, actor }: { task: InspectionTask; actor: User }) {
 
 const RESULTS: readonly FieldReportResult[] = ["ACTIVE_FIRE_FOUND", "BURN_SCAR_FOUND", "NO_FIRE_FOUND", "LOCATION_INACCESSIBLE"];
 
-/** Nilai input datetime-local (waktu lokal, presisi detik). */
+/** Waktu lokal untuk form laporan, presisi detik. */
 function localDateTimeValue(ms: number): string {
   const date = new Date(ms);
   const pad = (value: number) => String(value).padStart(2, "0");
@@ -154,13 +155,13 @@ function ReportForm({ task, actor }: { task: InspectionTask; actor: User }) {
     evidence_url: values.evidence_url || null,
     is_simulation: true,
   }, { actor }));
-  const { register, handleSubmit, formState: { errors } } = useForm<ReportValues>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<ReportValues>({
     resolver: zodResolver(reportSchema(task.created_at)),
     defaultValues: { observed_at: localDateTimeValue(openedAt), note: "", evidence_url: "" },
   });
 
   return (
-    <Panel title="Kirim laporan lapangan" description="Laporan ini berlabel SIMULASI untuk uji coba. Setelah dikirim, koordinator akan meninjaunya.">
+    <Panel title="Kirim laporan lapangan" description="SIMULASI · menunggu tinjauan setelah dikirim.">
       <form
         noValidate
         className="space-y-4"
@@ -183,11 +184,13 @@ function ReportForm({ task, actor }: { task: InspectionTask; actor: User }) {
           </div>
           <FieldError message={errors.result?.message} />
         </fieldset>
-        <label className="block space-y-1.5 text-sm font-medium" htmlFor={`${id}-time`}>
-          <span>Waktu pengamatan</span>
-          <input id={`${id}-time`} type="datetime-local" step={1} className={fieldClass} aria-invalid={Boolean(errors.observed_at)} {...register("observed_at")} />
-          <FieldError message={errors.observed_at?.message} />
-        </label>
+        <fieldset className="space-y-2 text-sm font-medium">
+          <legend>Waktu pengamatan</legend>
+          <Controller name="observed_at" control={control} render={({ field }) =>
+            <DateTimePicker value={field.value} onChange={field.onChange} invalid={Boolean(errors.observed_at)} errorId={`${id}-time-error`} />
+          } />
+          <FieldError id={`${id}-time-error`} message={errors.observed_at?.message} />
+        </fieldset>
         <label className="block space-y-1.5 text-sm font-medium" htmlFor={`${id}-note`}>
           <span>Apa yang Anda lihat?</span>
           <textarea id={`${id}-note`} rows={3} className={`${fieldClass} h-auto py-2`} aria-invalid={Boolean(errors.note)} placeholder="Contoh: tidak ada asap atau bekas terbakar di sekitar titik." {...register("note")} />
@@ -231,7 +234,7 @@ export function TaskActions({ task }: { task: InspectionTask }) {
   return (
     <Panel
       title="Belum ada tindakan untuk Anda"
-      description={`${waiting[task.status] ?? ""} Anda masuk sebagai ${roleLabels[actor.role].toLowerCase()} (${actor.display_name}). Ganti peran di bagian atas layar bila perlu.`}
+      description={waiting[task.status]}
     />
   );
 }

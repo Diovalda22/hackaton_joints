@@ -1,17 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Brand } from "./brand";
 import { navigation } from "./navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/utils";
-import { useGuide } from "@/components/guide/guide-provider";
 
 export function SidebarContent({ pathname, compact = false, onNavigate, onToggle }: {
   pathname: string; compact?: boolean; onNavigate?: () => void; onToggle?: () => void;
 }) {
-  const { openGuide } = useGuide();
   return (
     <>
       <div className={cn("flex h-24 shrink-0 items-center border-b px-6", compact && "px-0")}><Brand compact={compact} onNavigate={onNavigate} /></div>
@@ -38,16 +36,7 @@ export function SidebarContent({ pathname, compact = false, onNavigate, onToggle
             );
           })}
         </nav>
-        {!compact && (
-          <div className="mt-auto pt-10 pb-5">
-            <div className="rounded-lg border bg-card p-4">
-              <BookOpen className="size-5 text-primary" aria-hidden="true" />
-              <p className="mt-3 text-sm font-semibold">Baru pertama kali?</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">Pelajari cara memakai GambutOps dan arti istilah penting.</p>
-              <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => { onNavigate?.(); openGuide("steps"); }}>Buka panduan</Button>
-            </div>
-          </div>
-        )}
+
       </div>
       <div className={cn("flex min-h-16 shrink-0 items-center justify-between gap-2 border-t px-6 py-3", compact && "justify-center px-0")}>
         {!compact && <span className="text-[10px] tracking-wide text-muted-foreground">JOINTS HACKATHON 2026</span>}
