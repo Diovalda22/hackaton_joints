@@ -6,6 +6,7 @@ import { addDays, daysBetween } from "@/lib/domain/dates";
 import { GWT_REFERENCE_M, gapRuns, type GwtDay, type GwtGapKind } from "@/lib/domain/groundwater";
 import { gwtDayStatusLabels } from "@/lib/domain/labels";
 import { describeDepth, formatDate, formatDecimal, formatMeters, formatMonthYear, formatShortDate } from "@/lib/format";
+import { useMediaQuery } from "@/lib/hooks/use-media-query";
 import { AXIS_COLOR, GAP_STYLE, LINE_COLOR, valueAxis } from "./chart-style";
 
 function dateTicks(from: string, to: string, maxTicks: number): string[] {
@@ -63,6 +64,9 @@ export function GroundwaterChart({ days, stationCode, from, to, summary }: Groun
   const axis = valueAxis(values);
   const longRange = daysBetween(from, to) > 120;
   const presentKinds = new Set(runs.map((run) => run.kind));
+  // Layar sempit: lebih sedikit label tanggal agar tidak bertumpuk.
+  const wide = useMediaQuery("(min-width: 640px)");
+  const tickFontSize = wide ? 12 : 11;
 
   return (
     // Tanpa role="img": navigasi keyboard Recharts (panah kiri/kanan menampilkan tooltip) tetap terjangkau.
@@ -80,13 +84,13 @@ export function GroundwaterChart({ days, stationCode, from, to, summary }: Groun
             );
           })}
           <XAxis
-            dataKey="date" ticks={dateTicks(from, to, 6)} interval={0} padding={{ left: 8, right: 8 }}
+            dataKey="date" ticks={dateTicks(from, to, wide ? 6 : 4)} interval={0} padding={{ left: 8, right: 8 }}
             tickFormatter={(date: string) => (longRange ? formatMonthYear : formatShortDate)(date)}
-            tick={{ fill: AXIS_COLOR, fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#dce4de" }}
+            tick={{ fill: AXIS_COLOR, fontSize: tickFontSize }} tickLine={false} axisLine={{ stroke: "#dce4de" }}
           />
           <YAxis
             domain={axis.domain} ticks={axis.ticks} interval={0} tickFormatter={(value: number) => `${formatDecimal(value, axis.digits)} m`} width={62}
-            tick={{ fill: AXIS_COLOR, fontSize: 12 }} tickLine={false} axisLine={false}
+            tick={{ fill: AXIS_COLOR, fontSize: tickFontSize }} tickLine={false} axisLine={false}
           />
           <ReferenceLine y={0} stroke="#9aa8a0" label={{ value: "Permukaan tanah (0 m)", position: "insideTopLeft", fill: AXIS_COLOR, fontSize: 11 }} />
           <ReferenceLine y={GWT_REFERENCE_M} stroke={AXIS_COLOR} strokeDasharray="6 4" label={{ value: `Acuan ${formatMeters(GWT_REFERENCE_M, 1)}`, position: "insideBottomRight", fill: AXIS_COLOR, fontSize: 11 }} />
@@ -116,14 +120,14 @@ export function GroundwaterChart({ days, stationCode, from, to, summary }: Groun
       <figcaption id={descriptionId} className="sr-only">{summary}</figcaption>
 
       <ul aria-label="Keterangan grafik" className="flex flex-wrap gap-x-5 gap-y-2 text-xs leading-5 text-muted-foreground">
-        <li className="inline-flex items-center gap-2"><span className="h-0.5 w-5 rounded-full" style={{ background: LINE_COLOR }} aria-hidden="true" />Muka air tanah terukur</li>
-        <li className="inline-flex items-center gap-2">
-          <span className="w-5 border-t-2 border-dashed" style={{ borderColor: AXIS_COLOR }} aria-hidden="true" />
+        <li className="flex items-start gap-2"><span className="mt-2.5 h-0.5 w-5 shrink-0 rounded-full" style={{ background: LINE_COLOR }} aria-hidden="true" />Muka air tanah terukur</li>
+        <li className="flex items-start gap-2">
+          <span className="mt-2.5 w-5 shrink-0 border-t-2 border-dashed" style={{ borderColor: AXIS_COLOR }} aria-hidden="true" />
           Batas acuan regulasi {formatMeters(GWT_REFERENCE_M, 1)} (PP 57/2016) — konteks, bukan ambang bahaya kebakaran
         </li>
         {(Object.keys(GAP_STYLE) as GwtGapKind[]).filter((kind) => presentKinds.has(kind)).map((kind) => (
-          <li key={kind} className="inline-flex items-center gap-2">
-            <span className="size-3 rounded-sm" style={{ background: GAP_STYLE[kind].fill, opacity: Math.min(1, GAP_STYLE[kind].opacity * 2) }} aria-hidden="true" />
+          <li key={kind} className="flex items-start gap-2">
+            <span className="mt-1 size-3 shrink-0 rounded-sm" style={{ background: GAP_STYLE[kind].fill, opacity: Math.min(1, GAP_STYLE[kind].opacity * 2) }} aria-hidden="true" />
             {GAP_STYLE[kind].label}
           </li>
         ))}

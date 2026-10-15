@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CircleDashed, ShieldCheck } from "lucide-react";
 import { navigation } from "@/components/layout/navigation";
@@ -9,10 +10,11 @@ import { MonitoringContextPanel } from "./monitoring-context-panel";
 const quickStart = [
   { title: "Pilih jenis data", text: "Riwayat atau Terkini, di bagian atas layar." },
   { title: "Atur periode dan wilayah", text: "Di panel Data yang ditampilkan." },
-  { title: "Buka menu", text: "Mulai dari Muka air tanah atau Titik panas." },
+  { title: "Buka menu", text: "Mulai dari Muka air tanah yang sudah siap dipakai." },
 ];
 
-export function ModulePlaceholder({ href }: { href: string }) {
+/** `preview` menampilkan bagian yang sudah bisa dipakai di bawah kartu "sedang disiapkan". */
+export function ModulePlaceholder({ href, preview }: { href: string; preview?: ReactNode }) {
   const item = navigation.find((entry) => entry.href === href);
   if (!item) throw new Error(`Route modul tidak terdaftar: ${href}`);
   const Icon = item.icon;
@@ -43,6 +45,29 @@ export function ModulePlaceholder({ href }: { href: string }) {
         </section>
       )}
 
+      {dashboard && (
+        <section id="modul" aria-labelledby="module-list-title" className="scroll-mt-6">
+          <h2 id="module-list-title" className="mb-4 text-base font-semibold">Pilih menu</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {navigation.filter((entry) => entry.href !== "/dashboard").sort((a, b) => Number(b.available) - Number(a.available)).map((entry) => {
+              const ModuleIcon = entry.icon;
+              return (
+                <Link key={entry.href} href={entry.href} className="group flex items-start gap-3 rounded-xl border bg-card p-4 transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-teal"><ModuleIcon className="size-[18px]" aria-hidden="true" /></span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold">{entry.label}</h3>
+                    {entry.available
+                      ? <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium leading-5 text-primary"><span aria-hidden="true" className="size-1.5 rounded-full bg-primary" />Siap dipakai</p>
+                      : <p className="mt-1 text-xs leading-5 text-muted-foreground">{entry.experimental ? "Uji coba · segera tersedia" : "Segera tersedia"}</p>}
+                  </div>
+                  <ArrowUpRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
         <Card className="flex flex-col overflow-hidden">
           <CardHeader className="gap-4 p-5 sm:p-7">
@@ -65,26 +90,7 @@ export function ModulePlaceholder({ href }: { href: string }) {
         <div className="order-first xl:order-none"><MonitoringContextPanel /></div>
       </div>
 
-      {dashboard && (
-        <section id="modul" aria-labelledby="module-list-title" className="scroll-mt-6">
-          <h2 id="module-list-title" className="mb-4 text-base font-semibold">Menu</h2>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {navigation.filter((entry) => entry.href !== "/dashboard").map((entry) => {
-              const ModuleIcon = entry.icon;
-              return (
-                <Link key={entry.href} href={entry.href} className="group flex items-start gap-3 rounded-xl border bg-card p-4 transition-colors duration-150 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-teal"><ModuleIcon className="size-[18px]" aria-hidden="true" /></span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-semibold">{entry.label}</h3>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{entry.available ? "Tersedia" : entry.experimental ? "Uji coba · segera tersedia" : "Segera tersedia"}</p>
-                  </div>
-                  <ArrowUpRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {preview}
 
       <div className="flex items-start gap-3 rounded-lg border border-primary/15 bg-secondary/40 p-4 text-sm leading-6">
         <ShieldCheck className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" />

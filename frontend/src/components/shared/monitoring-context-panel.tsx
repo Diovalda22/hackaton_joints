@@ -38,7 +38,8 @@ export function MonitoringContextPanel({ id: sectionId }: { id?: string } = {}) 
 
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium">Periode dan wilayah</legend>
-          <div className="grid grid-cols-2 gap-3">
+          {/* Di layar sangat sempit input tanggal ditumpuk agar tanggal tidak terpotong. */}
+          <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
             <label className="space-y-1.5 text-xs text-muted-foreground" htmlFor={`${id}-from`}>
               <span>Dari tanggal</span>
               <input id={`${id}-from`} type="date" className={fieldClass} value={filter.from} min={bounds.min_date} max={bounds.max_date}

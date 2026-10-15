@@ -42,7 +42,7 @@ export function GroundwaterStats({ summary, change7, change14, periodEnd }: { su
   const empty = "Tidak ada pengukuran pada periode ini";
 
   return (
-    <dl className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <dl className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-4">
       <StatCard
         label="Pengukuran terakhir"
         value={latest ? formatMeters(latest.value) : "—"}
