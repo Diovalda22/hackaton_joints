@@ -58,8 +58,9 @@ curl -H 'Authorization: Bearer demo-coordinator-token' \
   http://localhost:8000/api/v1/auth/me
 ```
 
-Endpoint stations, groundwater, dan hotspots sudah membaca database. Endpoint priorities,
-tasks/reports, dan ML masih mengembalikan `501` sampai milestone masing-masing selesai.
+Endpoint stations, groundwater, hotspots, dan priorities sudah membaca database.
+Priorities juga menyimpan snapshot ber-versi secara idempotent; lihat
+[kontrak BE-05](docs/priorities-handoff.md). Tasks/reports dan ML masih merespons `501`.
 
 ## Audit dan import data
 

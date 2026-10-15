@@ -19,11 +19,16 @@ Penanggung jawab serta handoff tugas integrasi tercantum pada dokumen tersebut.
 | Backend data/read API | IMPLEMENTED | `feat/backend-data` | Audit/ETL GWT, importer COPY VIIRS idempotent, provenance/import runs, stations/GWT/hotspots API, mode/filter/pagination | Ruff PASS; 20 pytest PASS termasuk PostGIS nyata; migration upgrade/downgrade PASS; audit dataset nyata PASS | Frontend integrasikan tiga endpoint read; berikutnya FIRMS live dan priorities |
 | Database aplikasi / handoff read API | IMPLEMENTED — frontend menunggu adaptasi | `feat/backend-read-contract` | PostGIS aplikasi port 5433, seed GWT dan hotspot dua bbox DEMO, metadata periode/sumber stations, 14 snapshot respons API nyata | Reimport GWT/dua sampel hotspot menambah 0 observasi; smoke filter/mode/pagination PASS | Teman menyesuaikan Zod/REST adapter menurut `backend/docs/read-api-handoff.md` |
 | BE-04 FIRMS live | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Client NASA, endpoint coordinator/CLI, lock/cooldown DB, status/riwayat, upsert mode terkini | 39 tes PASS termasuk PostGIS; Ruff PASS; uji live Batanghari/SNPP SUCCESS: 11 hotspot; smoke cache PASS; data historis utuh | Teman integrasikan status sync dan cache NRT; kita lanjut BE-05 setelah review |
+| BE-05 Decision engine | IMPLEMENTED — review/integrasi UI menunggu | `feat/backend-firms-priorities` | Rules 1.0, prioritas dua area demo, snapshot/provenance DB idempotent, cutoff UTC dan pemisahan mode | 50 tes backend termasuk PostGIS; cutoff, gap, pengulangan, laporan setelah cutoff dan simulasi current diuji | Teman ikuti `backend/docs/priorities-handoff.md`; lanjut BE-06 tasks/reports |
 
 ## Catatan integrasi backend
 
 - Endpoint aktif: `GET /health`, `GET /api/v1/auth/me`, `/docs`, `/openapi.json`, stations,
-  groundwater, dan hotspots. Priorities/workflow/ML masih merespons `501`.
+  groundwater, hotspots, dan priorities. Workflow/ML masih merespons `501`.
+- Priorities: `GET /api/v1/priorities?mode=HISTORICAL_REPLAY&as_of=2019-09-15T23:59:59Z`.
+  Dua area demo (bukan enam blok), snapshot objek, timestamp bertimezone wajib.
+  Panduan: [handoff priorities](backend/docs/priorities-handoff.md). BE-05 bukan
+  penyelesaian seluruh Tahap 3/4: pembuatan tugas dan alur verifikasi menunggu BE-06.
 - FIRMS: `POST /api/v1/admin/hotspots/sync` (bearer coordinator),
   `GET /api/v1/hotspots/sync-status`. Kontrak pagination read hotspot tetap sama.
   Detail status, error/cooldown dan contoh aktual: [handoff FIRMS](backend/docs/firms-handoff.md).

@@ -42,7 +42,7 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | BE-02 | FastAPI, auth/role, CORS, environment, SQLAlchemy, migration PostGIS dan seed demo | Implementasi/tes tersedia |
 | BE-03 | ETL/audit GWT, import VIIRS, provenance, stations/GWT/hotspots API | Implementasi/tes tersedia; database aplikasi diseed dan handoff kontrak siap, adaptasi frontend menunggu teman |
 | BE-04 | FIRMS live: client, sync endpoint, cache/dedup, status/waktu sync dan error handling | Implementasi tersedia; uji live Batanghari/SNPP berhasil 11 hotspot; review dan integrasi UI menunggu |
-| BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Belum; branch `feat/backend-firms-priorities` |
+| BE-05 | Decision engine: rules ber-versi, snapshot/as_of, reasons/missing dan priorities API | Implementasi tersedia; snapshot DB idempotent, cutoff/mode/gap/report teruji; dua area demo; review/UI dan tasks BE-06 menunggu |
 | BE-06 | Tasks/reports API, role/ownership, state machine, history dan persistensi | Belum; branch `feat/backend-tasks` |
 | BE-07 | Baseline ML, fitur tanpa leakage, split kronologis, training Random Forest dan evaluasi | Belum; branch `feat/backend-ml` |
 | BE-08 | Artifact/version, metrics/forecast API dan validasi input historis | Belum; branch `feat/backend-ml` |
