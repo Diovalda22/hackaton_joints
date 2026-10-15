@@ -22,7 +22,7 @@ bergantian agar tidak konflik. Kontrak API ditulis Anda dan direview teman sebel
 | ID | Task | Status / hasil yang harus diserahkan |
 | --- | --- | --- |
 | FE-01 | Setup frontend, design system, shell, routing, konteks mode, shared states | IMPLEMENTED di `feat/f0-foundation`: MapLibre + fallback + layar penuh, responsif 320–1280, `npm ci` bersih, smoke browser 9/9; menunggu review gate F0 |
-| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | Belum; selaraskan dengan OpenAPI dan pagination hotspot |
+| FE-02 | Types/Zod, mock deterministik, repository mock/REST, provider dan validasi payload | IMPLEMENTED: mock/provider di `main` (`feat/f0-data`); REST disesuaikan dengan read API + pagination hotspot di `feat/fe-read-contract` (PR #5), menunggu merge |
 | FE-03 | Dashboard: filter, statistik, aktivitas, provenance dan peta ringkas | Belum; komposisikan data dari API, lengkapi saat priorities/tasks siap |
 | FE-04 | Groundwater: pilihan stasiun, grafik, gap/null, statistik valid dan empty state terkini | IMPLEMENTED di `feat/fe-groundwater` (mock + REST diuji); menunggu review |
 | FE-05 | Hotspots: MapLibre, marker/popup, daftar/selection, filter, pagination dan fallback | Belum; CSV/read API siap, status live menyusul BE-04 |
