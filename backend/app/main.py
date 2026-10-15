@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.contracts import router as contracts_router
+from app.api.routes.firms import router as firms_router
 from app.api.routes.health import router as health_router
 from app.api.routes.monitoring import router as monitoring_router
+from app.api.routes.priorities import router as priorities_router
 from app.core.config import get_settings
 
 
@@ -27,7 +29,9 @@ def create_app() -> FastAPI:
     )
     application.include_router(health_router)
     application.include_router(auth_router)
+    application.include_router(firms_router)
     application.include_router(monitoring_router)
+    application.include_router(priorities_router)
     application.include_router(contracts_router)
     return application
 

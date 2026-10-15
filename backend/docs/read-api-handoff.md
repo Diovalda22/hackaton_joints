@@ -1,8 +1,13 @@
 # Handoff read API: frontend mengikuti backend
 
 Keputusan: Pydantic/OpenAPI backend menjadi acuan bentuk JSON HTTP. Teman frontend memiliki
-schema Zod respons API, pemetaan REST adapter, dan model UI. Endpoint priorities, tasks/reports,
-users dan ML tidak termasuk integrasi ini; endpoint tersebut belum siap untuk alur aplikasi.
+schema Zod respons API, pemetaan REST adapter, dan model UI. Priorities memiliki handoff
+terpisah di [priorities-handoff.md](priorities-handoff.md). Tasks/reports, users dan ML
+belum termasuk integrasi ini.
+
+Pembaruan BE-04: Current Monitoring kini memiliki cache dari sync NASA nyata. Status/waktu
+global tersedia melalui endpoint terpisah; lihat [firms-handoff.md](firms-handoff.md).
+Angka dan contoh kosong di bawah adalah snapshot sebelum BE-04, bukan kondisi database terbaru.
 
 ## Database aplikasi yang diverifikasi
 
@@ -87,11 +92,11 @@ interface repository yang sama. Jangan otomatis mengunduh seluruh halaman datase
 Collection UI boleh menambah `mode` dari query setelah seluruh item lolos validasi mode.
 Field waktu collection dapat memakai maksimum timestamp import item yang sedang tampil,
 tetapi harus dilabeli “waktu import pada hasil halaman ini”; pada halaman kosong nilainya null.
-API belum menyediakan waktu/status sync global. Status tersebut ditambahkan pada tahap FIRMS live.
+Status sync global kini tersedia; lihat endpoint BE-04 di [firms-handoff.md](firms-handoff.md).
 
 Dashboard total hotspot harus memakai `total`, bukan `items.length`. Jumlah UNVERIFIED yang
 dihitung dari item satu halaman hanya berlaku untuk halaman itu; jangan dipresentasikan sebagai
-statistik seluruh hasil. Dashboard juga masih bergantung pada priorities/tasks yang belum tersedia.
+statistik seluruh hasil. Priorities tersedia melalui BE-05; tasks masih menunggu BE-06.
 
 ## Kasus yang wajib diperiksa teman frontend
 

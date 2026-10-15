@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import json
 from collections.abc import Sequence
 from datetime import date
@@ -53,6 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
     import_viirs.add_argument("--apply", action="store_true")
     import_viirs.add_argument("--allow-full-dataset", action="store_true")
     _add_hotspot_filters(import_viirs)
+    sync = commands.add_parser("sync-hotspots", help="Sync latest NASA FIRMS hotspots")
+    sync.add_argument("--area", required=True, choices=["batanghari", "kubu-raya"])
+    sync.add_argument("--product", required=True, choices=["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"])
+    sync.add_argument("--days", type=int, default=3, choices=range(1, 6))
+    sync.add_argument("--apply", action="store_true")
     return parser
 
 
@@ -62,6 +68,44 @@ def _validate_dates(parser: argparse.ArgumentParser, args: argparse.Namespace) -
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    if args.command == "sync-hotspots":
+        from app.core.config import get_settings
+        from app.core.security import DEMO_COORDINATOR_ID
+        from app.data.firms_client import AREAS, FirmsClient, FirmsError
+        from app.data.firms_sync import FirmsSyncService
+        from app.db.session import async_engine
+        from app.schemas.firms import SyncRequest
+
+        request = SyncRequest(
+            area_id=args.area, source_product=args.product, day_range=args.days
+        )
+        if not args.apply:
+            bbox = AREAS[args.area]
+            _print_json({
+                "dry_run": True, **request.model_dump(),
+                "bbox": [bbox.west, bbox.south, bbox.east, bbox.north],
+                "key_configured": bool(get_settings().firms_map_key),
+                "message": "Run with --apply to contact NASA and store data",
+            })
+            return 0
+
+        async def perform():
+            try:
+                service = FirmsSyncService(
+                    async_engine, FirmsClient(get_settings().firms_map_key)
+                )
+                return await service.sync(request, DEMO_COORDINATOR_ID)
+            finally:
+                await async_engine.dispose()
+
+        try:
+            _print_json(asyncio.run(perform()).model_dump(mode="json"))
+            return 0
+        except FirmsError as exc:
+            _print_json({"error_code": exc.code, "detail": exc.detail,
+                         "retry_after": exc.retry_after})
+            return 1
+
     if args.command == "audit-gwt":
         audit = audit_groundwater(args.file)
         output_dir: Path = args.output_dir

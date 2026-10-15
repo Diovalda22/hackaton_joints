@@ -1,12 +1,10 @@
-from datetime import datetime
 from typing import Annotated, NoReturn
 
 from fastapi import APIRouter, Depends, status
 
 from app.core.security import get_current_user, require_roles
-from app.schemas.common import MonitoringMode, UserRole
+from app.schemas.common import UserRole
 from app.schemas.ml import MlForecast, MlForecastRequest, MlMetrics
-from app.schemas.priority import PriorityAssessment
 from app.schemas.report import FieldReport, FieldReportCreate
 from app.schemas.task import InspectionTask, InspectionTaskCreate, InspectionTaskUpdate
 from app.schemas.user import User
@@ -21,15 +19,6 @@ def not_implemented() -> NoReturn:
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="The contract is published; implementation belongs to a later milestone",
     )
-
-
-@router.get("/priorities", response_model=list[PriorityAssessment], tags=["priorities"])
-async def list_priorities(
-    mode: MonitoringMode,
-    as_of: datetime,
-) -> NoReturn:
-    del mode, as_of
-    not_implemented()
 
 
 @router.get("/tasks", response_model=list[InspectionTask], tags=["tasks"])
