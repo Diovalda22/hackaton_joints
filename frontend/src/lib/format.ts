@@ -58,3 +58,11 @@ export function describeDepth(value: number): string {
 export function formatCentimeters(value: number): string {
   return `${integerFormatter.format(Math.round(Math.abs(value) * 100))} cm`;
 }
+
+const utcDateTimeFormatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+
+/** Waktu satelit dalam UTC, untuk dicocokkan dengan sumber FIRMS. */
+export function formatUtcDateTime(isoDateTime: string): string {
+  const date = new Date(isoDateTime);
+  return Number.isNaN(date.getTime()) ? "Waktu tidak valid" : `${utcDateTimeFormatter.format(date)} UTC`;
+}

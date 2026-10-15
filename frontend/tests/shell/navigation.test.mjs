@@ -63,9 +63,9 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
 
   const modules = [
     ["Muka air tanah", "/groundwater", "Muka air tanah"],
-    ["Titik panas (segera tersedia)", "/hotspots", "Titik panas satelit"],
-    ["Prioritas pemeriksaan (segera tersedia)", "/priorities", "Prioritas pemeriksaan"],
-    ["Tugas lapangan (segera tersedia)", "/tasks", "Tugas & laporan lapangan"],
+    ["Titik panas", "/hotspots", "Titik panas satelit"],
+    ["Prioritas pemeriksaan", "/priorities", "Prioritas pemeriksaan"],
+    ["Tugas lapangan", "/tasks", "Tugas & laporan lapangan"],
     ["Uji prediksi (uji coba)", "/experiments/ml", "Uji prediksi muka air tanah"],
     ["Ringkasan (segera tersedia)", "/dashboard", "Ringkasan pemantauan"],
   ];
@@ -111,7 +111,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
     await guide.waitFor({ state: "hidden" });
 
     await trigger.click();
-    await drawer.getByRole("link", { name: "Titik panas (segera tersedia)", exact: true }).click();
+    await drawer.getByRole("link", { name: "Titik panas", exact: true }).click();
     await page.waitForURL("**/hotspots");
     await drawer.waitFor({ state: "hidden" });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);

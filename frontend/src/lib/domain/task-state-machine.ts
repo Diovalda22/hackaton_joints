@@ -1,4 +1,4 @@
-import type { InspectionTask, TaskStatus, User, UserRole } from "@/types";
+import type { InspectionTask, TaskStatus, TaskStatusChange, User, UserRole } from "@/types";
 
 /** Alur PRD: OPEN → ASSIGNED → IN_PROGRESS → SUBMITTED → VERIFIED | DISMISSED | NEEDS_FOLLOWUP; NEEDS_FOLLOWUP → ASSIGNED. */
 export const TASK_TRANSITIONS: Readonly<Record<TaskStatus, readonly TaskStatus[]>> = {
@@ -75,4 +75,12 @@ export function canSubmitReport(task: Pick<InspectionTask, "status" | "assignee_
 
 export function isTerminal(status: TaskStatus): boolean {
   return TERMINAL_STATUSES.includes(status);
+}
+
+/** Riwayat urut waktu; pada waktu yang sama, entri pembuatan (tanpa status asal) didahulukan. */
+export function orderedHistory(history: readonly TaskStatusChange[]): TaskStatusChange[] {
+  return history
+    .map((change, index) => ({ change, index }))
+    .sort((a, b) => Date.parse(a.change.at) - Date.parse(b.change.at) || Number(a.change.from !== null) - Number(b.change.from !== null) || a.index - b.index)
+    .map(({ change }) => change);
 }

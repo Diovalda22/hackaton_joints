@@ -6,6 +6,7 @@ import { createRepository, readRepositoryConfig } from "@/lib/api/create-reposit
 import { RepositoryProvider } from "./gambutops-repository";
 import { MonitoringProvider } from "./monitoring-context";
 import { QueryCacheProvider } from "./query-cache";
+import { ActorProvider } from "./actor-context";
 import { Toaster } from "@/components/ui/sonner";
 import { GuideProvider } from "@/components/guide/guide-provider";
 
@@ -22,10 +23,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <RepositoryProvider repository={repository}>
       <QueryCacheProvider>
         <MonitoringProvider>
-          <GuideProvider>
-            {children}
-            <Toaster />
-          </GuideProvider>
+          <ActorProvider>
+            <GuideProvider>
+              {children}
+              <Toaster />
+            </GuideProvider>
+          </ActorProvider>
         </MonitoringProvider>
       </QueryCacheProvider>
     </RepositoryProvider>

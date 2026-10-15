@@ -197,3 +197,12 @@ test("hotspot mock: pagination dan urutan mengikuti backend", async () => {
   assert.ok(snpp.total > 0 && snpp.total < all.total, "filter satellite memakai kode seperti backend");
   assert.ok(snpp.items.every((item) => item.satellite === "N"));
 });
+
+test("mock: status sync FIRMS berlabel DEMO dan sync manual ditolak (tidak berpura-pura live)", async () => {
+  const repo = createMockRepository({ storage: createMemoryStorage() });
+  const status = await repo.getHotspotSyncStatus();
+  assert.equal(status.length, 4);
+  assert.ok(status.every((item) => item.status === "SUCCESS"));
+  const coordinator = (await repo.listUsers()).find((user) => user.role === "coordinator")!;
+  await assert.rejects(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 3 }, { actor: coordinator }), /hanya tersedia saat terhubung ke server/);
+});

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { availableTransitions, canSubmitReport, canTransition } from "@/lib/domain/task-state-machine";
+import { availableTransitions, canSubmitReport, canTransition, orderedHistory } from "@/lib/domain/task-state-machine";
 import type { User } from "@/types";
 
 const coordinator: User = { id: "c1", role: "coordinator", display_name: "K" };
@@ -36,4 +36,15 @@ test("availableTransitions hanya menampilkan aksi yang boleh dilakukan aktor", (
   assert.deepEqual(availableTransitions({ status: "ASSIGNED", assignee_id: "f1" }, officer), ["IN_PROGRESS"]);
   assert.deepEqual(availableTransitions({ status: "IN_PROGRESS", assignee_id: "f1" }, officer), []);
   assert.deepEqual(availableTransitions({ status: "SUBMITTED", assignee_id: "f1" }, coordinator), ["VERIFIED", "DISMISSED", "NEEDS_FOLLOWUP"]);
+});
+
+test("orderedHistory: urut waktu, entri pembuatan didahulukan bila waktunya sama", () => {
+  const at = "2026-10-15T03:00:00Z";
+  const later = "2026-10-15T03:05:00Z";
+  const history = [
+    { from: "OPEN" as const, to: "ASSIGNED" as const, actor_id: "c", actor_role: "coordinator" as const, at, note: null },
+    { from: "ASSIGNED" as const, to: "IN_PROGRESS" as const, actor_id: "f", actor_role: "field_officer" as const, at: later, note: null },
+    { from: null, to: "OPEN" as const, actor_id: "c", actor_role: "coordinator" as const, at, note: null },
+  ];
+  assert.deepEqual(orderedHistory(history).map((change) => change.to), ["OPEN", "ASSIGNED", "IN_PROGRESS"]);
 });

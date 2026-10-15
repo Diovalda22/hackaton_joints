@@ -96,3 +96,31 @@ export const hotspotCollectionSchema = z.object({
   last_synced_at: isoDateTimeSchema.nullable(),
   last_synced_scope: lastSyncedScopeSchema,
 });
+
+/** Status sync FIRMS per wilayah × produk NRT (`GET /api/v1/hotspots/sync-status`). */
+export const hotspotSyncAttemptSchema = z.object({
+  id: z.string().min(1).optional(),
+  status: z.string().min(1),
+  date_from: isoDateSchema.nullable().optional(),
+  date_to: isoDateSchema.nullable().optional(),
+  started_at: isoDateTimeSchema.nullable().optional(),
+  completed_at: isoDateTimeSchema.nullable().optional(),
+  rows_received: z.number().int().nonnegative().nullable().optional(),
+  rows_inserted: z.number().int().nonnegative().nullable().optional(),
+  rows_conflicts: z.number().int().nonnegative().nullable().optional(),
+  error_code: z.string().nullable().optional(),
+}).loose();
+
+export const hotspotSyncStatusSchema = z.object({
+  area_id: z.string().min(1),
+  source_product: z.string().min(1),
+  status: z.enum(["NOT_SYNCED", "RUNNING", "SUCCESS", "FAILED"]),
+  last_attempt: hotspotSyncAttemptSchema.nullable(),
+  last_successful_at: isoDateTimeSchema.nullable(),
+});
+
+export const hotspotSyncInputSchema = z.object({
+  area_id: z.string().min(1),
+  source_product: z.enum(["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"]),
+  day_range: z.number().int().min(1).max(5),
+});

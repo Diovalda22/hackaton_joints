@@ -31,19 +31,19 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     href: "/hotspots", label: "Titik panas", title: "Titik panas satelit",
-    eyebrow: "DETEKSI · TITIK PANAS", phase: "F1.3", available: false, icon: Satellite,
+    eyebrow: "DETEKSI · TITIK PANAS", phase: "F1.3", available: true, icon: Satellite,
     description: "Lihat titik panas yang tertangkap satelit. Titik panas belum tentu kebakaran, sehingga perlu dicek di lapangan.",
     capabilities: ["Melihat titik panas pada peta dan memperbesar lokasi", "Memilih titik di peta atau daftar untuk melihat detailnya", "Menyaring berdasarkan tanggal, satelit, dan wilayah"],
   },
   {
     href: "/priorities", label: "Prioritas pemeriksaan", title: "Prioritas pemeriksaan",
-    eyebrow: "CEGAH · PRIORITAS", phase: "F1.4", available: false, icon: ListOrdered,
+    eyebrow: "CEGAH · PRIORITAS", phase: "F1.4", available: true, icon: ListOrdered,
     description: "Lihat lokasi mana yang sebaiknya diperiksa lebih dulu, lengkap dengan alasan dan data yang dipakai.",
     capabilities: ["Melihat urutan prioritas: tinggi, sedang, rendah, atau data kurang", "Membaca alasan prioritas dan data yang belum tersedia", "Membuat tugas pemeriksaan langsung dari lokasi prioritas"],
   },
   {
     href: "/tasks", label: "Tugas lapangan", title: "Tugas & laporan lapangan",
-    eyebrow: "TINDAK · TUGAS LAPANGAN", phase: "F1.5", available: false, icon: ClipboardCheck,
+    eyebrow: "TINDAK · TUGAS LAPANGAN", phase: "F1.5", available: true, icon: ClipboardCheck,
     description: "Bagikan tugas pemeriksaan ke petugas, kirim laporan dari lapangan, lalu tinjau hasilnya.",
     capabilities: ["Koordinator membuat tugas dan memilih petugas", "Petugas memulai tugas dan mengirim laporan hasil pemeriksaan", "Setiap perubahan status tercatat: siapa, kapan, dan apa"],
   },
