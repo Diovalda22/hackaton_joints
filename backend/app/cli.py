@@ -59,6 +59,14 @@ def build_parser() -> argparse.ArgumentParser:
     sync.add_argument("--product", required=True, choices=["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"])
     sync.add_argument("--days", type=int, default=3, choices=range(1, 6))
     sync.add_argument("--apply", action="store_true")
+    train_gwt = commands.add_parser(
+        "train-gwt", help="Train and evaluate the historical GWT +1 day experiment"
+    )
+    train_gwt.add_argument("file", type=Path)
+    train_gwt.add_argument(
+        "--stations", nargs="+", default=["BRG6", "BRG3"], metavar="CODE"
+    )
+    train_gwt.add_argument("--output-dir", type=Path, default=Path("var/ml"))
     return parser
 
 
@@ -68,6 +76,32 @@ def _validate_dates(parser: argparse.ArgumentParser, args: argparse.Namespace) -
 
 
 def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
+    if args.command == "train-gwt":
+        from app.ml.pipeline import (
+            train_station_experiment,
+            write_experiment_result,
+            write_model_artifact,
+        )
+
+        audit = audit_groundwater(args.file)
+        source_sha256 = audit.report["source"]["sha256"]
+        results = []
+        for station in args.stations:
+            model, result = train_station_experiment(audit.records, station, source_sha256)
+            artifact_path = write_model_artifact(model, result, args.output_dir)
+            output_path = args.output_dir / f"{station.strip().lower()}.metrics.json"
+            write_experiment_result(result, output_path)
+            results.append(
+                {
+                    **result,
+                    "predictions": [],
+                    "output": output_path.as_posix(),
+                    "artifact": artifact_path.as_posix(),
+                }
+            )
+        _print_json({"experiments": results})
+        return 0
+
     if args.command == "sync-hotspots":
         from app.core.config import get_settings
         from app.core.security import DEMO_COORDINATOR_ID

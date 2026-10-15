@@ -250,14 +250,18 @@ class InspectionTask(Base, TimestampMixin):
         ForeignKey("hotspots.id", ondelete="SET NULL")
     )
     status: Mapped[str] = mapped_column(String(30), nullable=False, server_default="OPEN")
+    mode: Mapped[str] = mapped_column(String(30), nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     priority: Mapped[str] = mapped_column(String(30), nullable=False)
+    area_id: Mapped[str | None] = mapped_column(String(30))
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
     created_by_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
+    note: Mapped[str | None] = mapped_column(Text)
+    is_simulation: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
 
     __table_args__ = (
         CheckConstraint(
@@ -269,7 +273,18 @@ class InspectionTask(Base, TimestampMixin):
             "priority IN ('LOW', 'MEDIUM', 'HIGH', 'INSUFFICIENT_DATA')",
             name="priority_value",
         ),
+        CheckConstraint(
+            "mode IN ('HISTORICAL_REPLAY', 'CURRENT_MONITORING')", name="mode_value"
+        ),
+        CheckConstraint(
+            "area_id IS NULL OR area_id IN ('batanghari', 'kubu-raya')", name="area_value"
+        ),
         Index("ix_inspection_tasks_status_assignee", "status", "assignee_id"),
+        Index("ix_inspection_tasks_assessment_id", "assessment_id"),
+        Index("ix_inspection_tasks_hotspot_id", "hotspot_id"),
+        Index("ix_inspection_tasks_assignee_id", "assignee_id"),
+        Index("ix_inspection_tasks_created_by_id", "created_by_id"),
+        Index("ix_inspection_tasks_mode_updated", "mode", "updated_at"),
     )
 
 
@@ -292,6 +307,16 @@ class FieldReport(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    __table_args__ = (
+        CheckConstraint(
+            "result IN ('ACTIVE_FIRE_FOUND', 'BURN_SCAR_FOUND', 'NO_FIRE_FOUND', "
+            "'LOCATION_INACCESSIBLE')",
+            name="result_value",
+        ),
+        Index("ix_field_reports_task_id", "task_id"),
+        Index("ix_field_reports_submitted_by_id", "submitted_by_id"),
+    )
+
 
 class TaskStatusHistory(Base):
     __tablename__ = "task_status_history"
@@ -305,9 +330,27 @@ class TaskStatusHistory(Base):
     actor_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
+    actor_role: Mapped[str] = mapped_column(String(30), nullable=False)
     changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    note: Mapped[str | None] = mapped_column(Text)
 
-    __table_args__ = (Index("ix_task_status_history_task_changed", "task_id", "changed_at"),)
+    __table_args__ = (
+        CheckConstraint(
+            "from_status IS NULL OR from_status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', "
+            "'SUBMITTED', 'VERIFIED', 'DISMISSED', 'NEEDS_FOLLOWUP')",
+            name="from_status_value",
+        ),
+        CheckConstraint(
+            "to_status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'SUBMITTED', 'VERIFIED', "
+            "'DISMISSED', 'NEEDS_FOLLOWUP')",
+            name="to_status_value",
+        ),
+        CheckConstraint(
+            "actor_role IN ('coordinator', 'field_officer')", name="actor_role_value"
+        ),
+        Index("ix_task_status_history_task_changed", "task_id", "changed_at"),
+        Index("ix_task_status_history_actor_id", "actor_id"),
+    )
 
