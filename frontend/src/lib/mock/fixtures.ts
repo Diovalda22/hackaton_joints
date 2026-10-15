@@ -28,9 +28,12 @@ const stationMeta: ReadonlyArray<readonly [id: string, region: string, from: str
   ["BRG20", "Kubu Raya", "2018-04-13", "2019-12-31", -0.32, 0.42],
 ];
 
-/** Koordinat stasiun tidak tersedia pada sumber, sehingga tetap null dan tidak dipetakan. */
+/**
+ * Koordinat stasiun tidak tersedia pada sumber, sehingga tetap null dan tidak dipetakan.
+ * ID mock memakai kode stasiun; pada REST ID berupa UUID dan label tetap dari `code`.
+ */
 export const STATIONS: readonly Station[] = stationMeta.map(([id, region, from, to]) => ({
-  id, region, lat: null, lon: null, coordinate_source: null, period_start: from, period_end: to, source: STATION_SOURCE,
+  id, code: id, region, lat: null, lon: null, coordinate_source: null, period_start: from, period_end: to, source: STATION_SOURCE,
 }));
 
 export const USERS: readonly User[] = [
@@ -122,7 +125,8 @@ function buildHotspots(mode: MonitoringMode, from: string, to: string, scale: nu
           id: `hs-${mode === "HISTORICAL_REPLAY" ? "h" : "c"}-${block.id}-${date}-${index}`,
           external_key: `${satellite.product}:${latitude.toFixed(5)}:${longitude.toFixed(5)}:${date}T${time}Z`,
           source_product: `${satellite.product}_${mode === "HISTORICAL_REPLAY" ? "SP" : "NRT"}`,
-          satellite: satellite.name,
+          // Kode satelit seperti kolom `satellite` FIRMS/backend (N, N20), bukan nama.
+          satellite: satellite.code,
           instrument: "VIIRS",
           observed_at: `${date}T${time}:00Z`,
           latitude,
@@ -132,6 +136,7 @@ function buildHotspots(mode: MonitoringMode, from: string, to: string, scale: nu
           daynight: night ? "N" : "D",
           verification_status: "UNVERIFIED",
           area_id: block.area_id,
+          imported_at: null,
           source: DEMO_HOTSPOT_SOURCE,
           quality_flag: "VALID",
           mode,

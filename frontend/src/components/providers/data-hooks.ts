@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GambutOpsRepository, TaskQuery } from "@/lib/api";
+import { HOTSPOT_DEFAULT_LIMIT } from "@/lib/domain/pagination";
 import { useRepository } from "./gambutops-repository";
 import { useMonitoring } from "./monitoring-context";
 import { useQueryCache } from "./query-cache";
@@ -27,11 +28,13 @@ export function useGroundwater(stationId: string | null) {
   return useModeQuery(mode, "groundwater", params, (repo, signal) => repo.getGroundwater({ mode, station_id: stationId ?? "", from: filter.from, to: filter.to }, { signal }));
 }
 
-export function useHotspots(options: { source_product?: string | null } = {}) {
+/** Satu halaman hotspot. Halaman yang memakai hook memegang `offset` dan meresetnya ke 0 saat mode/filter berubah. */
+export function useHotspots(options: { source_product?: string | null; limit?: number; offset?: number } = {}) {
   const { mode, filter } = useMonitoring();
   const sourceProduct = options.source_product ?? null;
-  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct }, (repo, signal) =>
-    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct }, { signal }));
+  const page = { limit: options.limit ?? HOTSPOT_DEFAULT_LIMIT, offset: options.offset ?? 0 };
+  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, ...page }, (repo, signal) =>
+    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, ...page }, { signal }));
 }
 
 export function usePriorities() {

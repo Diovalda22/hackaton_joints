@@ -3,29 +3,41 @@ import { isoDateSchema, isoDateTimeSchema, monitoringModeSchema, provenanceShape
 
 export const stationSchema = z
   .object({
+    /** ID opaque (UUID pada REST). Jangan ditampilkan; gunakan `code` sebagai label. */
     id: z.string().min(1),
-    region: z.string().min(1),
+    /** Kode stasiun pada sumber, misalnya BRG6. */
+    code: z.string().min(1),
+    region: z.string().min(1).nullable(),
     lat: z.number().min(-90).max(90).nullable(),
     lon: z.number().min(-180).max(180).nullable(),
     coordinate_source: z.string().min(1).nullable(),
+    /** Min/max tanggal observasi stasiun, termasuk baris missing/duplikat. */
     period_start: isoDateSchema.nullable(),
     period_end: isoDateSchema.nullable(),
-    source: z.string().min(1),
+    source: z.string().min(1).nullable(),
   })
   // Koordinat tanpa sumber tidak boleh dipakai sebagai pin peta.
   .refine((station) => (station.lat === null) === (station.lon === null), "lat dan lon harus sama-sama terisi atau kosong")
   .refine((station) => station.lat === null || station.coordinate_source !== null, "Koordinat stasiun wajib memiliki coordinate_source");
+
+/** Flag yang boleh tanpa nilai: tidak ada pengamatan, atau konflik duplikat yang tidak diselesaikan. */
+const NULLABLE_GWT_FLAGS = new Set(["MISSING", "DUPLICATE_FLAGGED"]);
 
 export const groundwaterObservationSchema = z
   .object({
     id: z.string().min(1),
     station_id: z.string().min(1),
     ...provenanceShape,
+    /** Tanggal harian. Jam pengukuran tidak diketahui. */
     observed_at: isoDateSchema,
-    /** Meter. Negatif berarti di bawah permukaan. Null berarti tidak ada pengamatan, bukan nol. */
+    /** Meter. Negatif berarti di bawah permukaan. Null berarti tidak ada nilai, bukan nol. */
     gwt_m: z.number().nullable(),
+    /** Provenance tambahan dari backend (ID sumber dan hash file). Tidak ada pada mock. */
+    source_id: z.string().min(1).nullable().optional(),
+    source_sha256: z.string().min(1).nullable().optional(),
   })
-  .refine((obs) => (obs.gwt_m === null) === (obs.quality_flag === "MISSING"), "gwt_m null harus berstatus MISSING");
+  .refine((obs) => obs.quality_flag !== "MISSING" || obs.gwt_m === null, "Observasi MISSING harus bernilai null")
+  .refine((obs) => obs.gwt_m !== null || NULLABLE_GWT_FLAGS.has(obs.quality_flag), "gwt_m null hanya untuk MISSING atau DUPLICATE_FLAGGED");
 
 export const groundwaterAvailabilitySchema = z.enum(["AVAILABLE", "NOT_AVAILABLE"]);
 
@@ -34,6 +46,7 @@ export const groundwaterSeriesSchema = z.object({
   mode: monitoringModeSchema,
   from: isoDateSchema,
   to: isoDateSchema,
+  /** AVAILABLE berarti ada baris pada hasil query, bukan berarti semua baris bernilai. */
   availability: groundwaterAvailabilitySchema,
   /** Penjelasan ketika data tidak tersedia, mis. GWT terkini pada Current Monitoring. */
   notice: z.string().nullable(),
@@ -57,14 +70,29 @@ export const hotspotSchema = z.object({
   frp_mw: z.number().nonnegative().nullable(),
   /** Nilai mentah FIRMS (VIIRS: l/n/h). Bukan probabilitas kebakaran. */
   confidence_raw: z.string().min(1).nullable(),
+  /** Belum tersedia dari API; jangan ditebak dari waktu pengamatan. */
   daynight: z.enum(["D", "N"]).nullable(),
   verification_status: hotspotVerificationStatusSchema,
+  /** Hasil lookup bbox DEMO frontend, bukan relasi resmi. */
   area_id: z.string().min(1).nullable(),
+  /** Waktu import CSV lokal per item (REST). Bukan waktu sync NASA live. */
+  imported_at: isoDateTimeSchema.nullable(),
   is_simulation: z.boolean(),
 });
+
+/**
+ * Asal `last_synced_at`: PAGE_IMPORT = maksimum waktu import item pada halaman ini;
+ * SYNC = waktu sync sumber (saat ini hanya demo mock).
+ */
+export const lastSyncedScopeSchema = z.enum(["PAGE_IMPORT", "SYNC"]);
 
 export const hotspotCollectionSchema = z.object({
   mode: monitoringModeSchema,
   items: z.array(hotspotSchema),
+  /** Jumlah seluruh hasil filter, bukan hanya halaman ini. */
+  total: z.number().int().nonnegative(),
+  limit: z.number().int().positive(),
+  offset: z.number().int().nonnegative(),
   last_synced_at: isoDateTimeSchema.nullable(),
+  last_synced_scope: lastSyncedScopeSchema,
 });

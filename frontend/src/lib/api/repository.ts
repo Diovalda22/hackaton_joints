@@ -23,6 +23,11 @@ export interface HotspotQuery {
   area_id?: string | null;
   bbox?: Bbox | null;
   source_product?: string | null;
+  satellite?: string | null;
+  /** Default 200, maksimum 1000. Satu halaman saja; tidak ada pengambilan seluruh dataset otomatis. */
+  limit?: number;
+  /** Reset ke 0 ketika mode/filter berubah. */
+  offset?: number;
 }
 
 export interface PriorityQuery {
