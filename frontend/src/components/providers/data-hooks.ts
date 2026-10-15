@@ -29,12 +29,18 @@ export function useGroundwater(stationId: string | null) {
 }
 
 /** Satu halaman hotspot. Halaman yang memakai hook memegang `offset` dan meresetnya ke 0 saat mode/filter berubah. */
-export function useHotspots(options: { source_product?: string | null; limit?: number; offset?: number } = {}) {
+export function useHotspots(options: { source_product?: string | null; satellite?: string | null; limit?: number; offset?: number } = {}) {
   const { mode, filter } = useMonitoring();
   const sourceProduct = options.source_product ?? null;
+  const satellite = options.satellite ?? null;
   const page = { limit: options.limit ?? HOTSPOT_DEFAULT_LIMIT, offset: options.offset ?? 0 };
-  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, ...page }, (repo, signal) =>
-    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, ...page }, { signal }));
+  return useModeQuery(mode, "hotspots", { from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, satellite, ...page }, (repo, signal) =>
+    repo.listHotspots({ mode, from: filter.from, to: filter.to, area_id: filter.area_id, source_product: sourceProduct, satellite, ...page }, { signal }));
+}
+
+/** Status sync FIRMS NRT; hanya relevan untuk mode terkini. */
+export function useHotspotSyncStatus(enabled: boolean) {
+  return useRepositoryQuery(enabled ? ["hotspot-sync-status"] : null, (repo, signal) => repo.getHotspotSyncStatus({ signal }));
 }
 
 export function usePriorities() {

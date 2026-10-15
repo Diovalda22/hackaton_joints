@@ -163,3 +163,15 @@ test("health memanggil /health pada origin API", async () => {
   assert.deepEqual(await repo.health(), { status: "ok", detail: "ok" });
   assert.equal(calls[0]?.url.toString(), "http://api.test/health");
 });
+
+test("sync FIRMS: status dibaca tanpa token; sync manual memakai Bearer koordinator dan memetakan 429", async () => {
+  const status = [{ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", status: "SUCCESS", last_attempt: { id: "a1", status: "SUCCESS", rows_received: 11 }, last_successful_at: "2026-10-14T23:00:00Z" }];
+  const { repo, calls } = fakeFetch((url) => (url.pathname.endsWith("/sync-status") ? json(status) : json({ detail: "Cooldown aktif." }, 429)));
+  const [target] = await repo.getHotspotSyncStatus();
+  assert.equal(target?.status, "SUCCESS");
+  assert.equal((calls[0]?.init.headers as Record<string, string>).Authorization, undefined);
+  await assert.rejects(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 3 }, { actor }), (error: unknown) => error instanceof RepositoryError && error.status === 429 && error.message === "Cooldown aktif.");
+  assert.equal(calls[1]?.url.pathname, "/api/v1/admin/hotspots/sync");
+  assert.equal((calls[1]?.init.headers as Record<string, string>).Authorization, "Bearer coord-token");
+  await rejectsWith(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 9 }, { actor }), "VALIDATION");
+});

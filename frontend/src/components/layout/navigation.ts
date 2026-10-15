@@ -31,7 +31,7 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     href: "/hotspots", label: "Titik panas", title: "Titik panas satelit",
-    eyebrow: "DETEKSI · TITIK PANAS", phase: "F1.3", available: false, icon: Satellite,
+    eyebrow: "DETEKSI · TITIK PANAS", phase: "F1.3", available: true, icon: Satellite,
     description: "Lihat titik panas yang tertangkap satelit. Titik panas belum tentu kebakaran, sehingga perlu dicek di lapangan.",
     capabilities: ["Melihat titik panas pada peta dan memperbesar lokasi", "Memilih titik di peta atau daftar untuk melihat detailnya", "Menyaring berdasarkan tanggal, satelit, dan wilayah"],
   },

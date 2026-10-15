@@ -16,6 +16,9 @@ export type Hotspot = z.infer<typeof s.hotspotSchema>;
 export type HotspotVerificationStatus = z.infer<typeof s.hotspotVerificationStatusSchema>;
 export type HotspotCollection = z.infer<typeof s.hotspotCollectionSchema>;
 export type LastSyncedScope = z.infer<typeof s.lastSyncedScopeSchema>;
+export type HotspotSyncAttempt = z.infer<typeof s.hotspotSyncAttemptSchema>;
+export type HotspotSyncStatus = z.infer<typeof s.hotspotSyncStatusSchema>;
+export type HotspotSyncInput = z.infer<typeof s.hotspotSyncInputSchema>;
 
 export type PriorityLevel = z.infer<typeof s.priorityLevelSchema>;
 export type PriorityDecision = z.infer<typeof s.priorityDecisionSchema>;

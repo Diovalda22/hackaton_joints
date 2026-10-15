@@ -192,6 +192,19 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
       });
     },
 
+    getHotspotSyncStatus({ signal } = {}) {
+      // Status DEMO: satu waktu sync tetap untuk setiap target, tanpa menghubungi NASA.
+      return respond(signal, () => AREAS.flatMap((area) => (["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"] as const).map((product) => ({
+        area_id: area.id, source_product: product, status: "SUCCESS" as const, last_attempt: null, last_successful_at: CURRENT_DEMO_LAST_SYNC,
+      }))));
+    },
+
+    syncHotspots(_input, _context, { signal } = {}) {
+      return respond(signal, () => {
+        throw new RepositoryError("HTTP", "Sinkronisasi NASA FIRMS hanya tersedia saat terhubung ke server GambutOps.");
+      });
+    },
+
     listPriorities(query, { signal } = {}) {
       return respond(signal, () => {
         const { tasks, reports } = getStore();

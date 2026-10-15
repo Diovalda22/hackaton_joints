@@ -3,7 +3,7 @@ import { AREAS, findArea } from "@/lib/domain/areas";
 import { composeDashboardSummary } from "@/lib/domain/dashboard";
 import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
-  createReportInputSchema, createTaskInputSchema, fieldReportSchema,
+  createReportInputSchema, createTaskInputSchema, fieldReportSchema, hotspotSyncAttemptSchema, hotspotSyncInputSchema, hotspotSyncStatusSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
   updateTaskInputSchema, userSchema,
 } from "@/lib/schemas";
@@ -50,6 +50,7 @@ function errorFromResponse(status: number, detail: string | null): RepositoryErr
   if (status === 404) return new RepositoryError("NOT_FOUND", detail ?? undefined, { status });
   if (status === 401 || status === 403) return new RepositoryError("FORBIDDEN", detail ?? undefined, { status });
   if (status === 409) return new RepositoryError("ILLEGAL_TRANSITION", detail ?? undefined, { status });
+  if (status === 429) return new RepositoryError("HTTP", detail ?? "Terlalu sering. Tunggu beberapa menit sebelum mencoba lagi.", { status });
   if (status === 400 || status === 422) return new RepositoryError("VALIDATION", detail ?? undefined, { status });
   return new RepositoryError("HTTP", detail ?? `Server mengembalikan status ${status}.`, { status });
 }
@@ -152,6 +153,12 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
         signal,
       });
       return toHotspotCollection(query, page);
+    },
+
+    getHotspotSyncStatus: ({ signal }: RequestOptions = {}) => request(api("/hotspots/sync-status"), z.array(hotspotSyncStatusSchema), { signal }),
+
+    async syncHotspots(input, { actor }, { signal } = {}) {
+      return request(api("/admin/hotspots/sync"), hotspotSyncAttemptSchema, { method: "POST", body: validateInput(hotspotSyncInputSchema, input), actor, signal });
     },
 
     async listPriorities(query, { signal } = {}) {

@@ -21,7 +21,7 @@ const STYLE_URL = resolveMapStyleUrl();
 // Unduh MapLibre (±600 KB) segera setelah modul ini dimuat, sejajar dengan hydrate,
 // bukan baru setelah efek komponen berjalan.
 let maplibreModule: Promise<typeof import("maplibre-gl")> | null = null;
-function loadMaplibre() {
+export function loadMaplibre() {
   return (maplibreModule ??= import("maplibre-gl"));
 }
 if (typeof window !== "undefined") void loadMaplibre().catch(() => { maplibreModule = null; });
@@ -46,6 +46,8 @@ export function BaseMap({ label, bounds, onStyleReady, className }: {
   const initialBounds = useRef(bounds);
   const mapRef = useRef<MapLibreMap | null>(null);
   const labelRef = useRef(label);
+  // `map.isStyleLoaded()` bernilai false selama source GeoJSON memuat ulang, jadi dipakai penanda sendiri.
+  const styleReadyRef = useRef(false);
   const [status, setStatus] = useState<BaseMapStatus>("loading");
   const [basemapFailed, setBasemapFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -60,7 +62,7 @@ export function BaseMap({ label, bounds, onStyleReady, className }: {
   useEffect(() => {
     onStyleReadyRef.current = onStyleReady;
     const map = mapRef.current;
-    if (map?.isStyleLoaded()) onStyleReady?.(map);
+    if (map && styleReadyRef.current) onStyleReady?.(map);
   }, [onStyleReady]);
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export function BaseMap({ label, bounds, onStyleReady, className }: {
       const switchToFallbackStyle = () => {
         if (cancelled || styleLoaded || !map) return;
         setBasemapFailed(true);
+        styleReadyRef.current = false;
         map.setStyle(FALLBACK_MAP_STYLE);
       };
       try {
@@ -117,6 +120,7 @@ export function BaseMap({ label, bounds, onStyleReady, className }: {
       map.on("style.load", () => {
         if (cancelled) return;
         styleLoaded = true;
+        styleReadyRef.current = true;
         window.clearTimeout(timeoutId);
         setStatus("ready");
         if (map) onStyleReadyRef.current?.(map);
@@ -135,6 +139,7 @@ export function BaseMap({ label, bounds, onStyleReady, className }: {
       cancelled = true;
       window.clearTimeout(timeoutId);
       mapRef.current = null;
+      styleReadyRef.current = false;
       map?.remove();
     };
   }, [attempt]);

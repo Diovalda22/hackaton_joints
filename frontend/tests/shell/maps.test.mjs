@@ -46,12 +46,11 @@ test("peta: wilayah mengikuti filter, peta dasar gagal, dan tanpa WebGL", { time
   await t.test("peta tampil dan mengikuti filter wilayah", async () => {
     const { context, page, errors, map } = await openHotspots(browser);
     assert.equal(await waitForStatus(map, ["ready"]), "ready");
-    const canvas = page.getByRole("region", { name: /^Peta wilayah pemantauan\./ });
+    const canvas = page.getByRole("region", { name: /^Peta titik panas, \d+ titik/ });
     await canvas.waitFor();
     assert.equal(await page.getByRole("button", { name: "Perbesar" }).count(), 1, "kontrol zoom berbahasa Indonesia");
     await page.getByRole("combobox", { name: "Wilayah", exact: true }).selectOption({ label: "Kubu Raya, Kalimantan Barat" });
-    await page.getByRole("region", { name: /^Peta wilayah pemantauan Kubu Raya/ }).waitFor();
-    await page.getByRole("region", { name: "Wilayah pemantauan", exact: true }).getByText("Kubu Raya, Kalimantan Barat", { exact: true }).waitFor();
+    await page.getByRole("region", { name: /^Peta titik panas Kubu Raya, Kalimantan Barat/ }).waitFor();
     assert.deepEqual(errors, []);
     await context.close();
   });

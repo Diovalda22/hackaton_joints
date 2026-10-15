@@ -19,7 +19,8 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | QA F0 | IMPLEMENTED | `feat/f0-foundation`: `npm ci` bersih, lint/typecheck/build, test:data 51/51, test:shell 9/9 (production), responsif 320–1280; menunggu review gate; lihat bagian 14 |
 | F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
 | F1.4 Priorities + F1.5 Tasks | IMPLEMENTED | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
-| F1.1, F1.3, F1.6, F1.7 | TODO | Ringkasan, titik panas, ML, dan QA akhir |
+| F1.3 Hotspots | IMPLEMENTED | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
+| F1.1, F1.6, F1.7 | TODO | Ringkasan, ML, dan QA akhir |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
 | FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
 
@@ -113,10 +114,10 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 
 ### F1.3 — Hotspots
 
-- [ ] MapLibre zoom/pan, marker/popup, serta sinkronisasi selection peta/daftar.
-- [ ] Filter tanggal/sensor/area; sumber, waktu, confidence mentah, FRP, dan verifikasi.
-- [ ] Label DEMO pada data sintetis; fallback ketika basemap/WebGL gagal.
-- [ ] Empty/error state dan keterangan anomali panas, bukan kebakaran terkonfirmasi.
+- [x] MapLibre zoom/pan, marker/popup, serta sinkronisasi selection peta/daftar.
+- [x] Filter tanggal/sensor/area; sumber, waktu, confidence mentah, FRP, dan verifikasi.
+- [x] Label DEMO pada data sintetis; fallback ketika basemap/WebGL gagal.
+- [x] Empty/error state dan keterangan anomali panas, bukan kebakaran terkonfirmasi.
 
 ### F1.4 — Priorities
 
@@ -394,3 +395,29 @@ Catatan:
 - Pengujian REST memakai salinan database lokal `gambutops_fe` (dimigrasi ke `20261015_0005`); database `gambutops` milik backend tidak diubah. PostgreSQL lokal sempat tidak bisa start karena `postmaster.pid` basi; file dipindah ke `postmaster.pid.stale-20261015`.
 - Data hotspot historis lokal berakhir 31 Agu 2019, sehingga periode default (s.d. 15 Sep) menghasilkan MONITOR; pilih "Sampai" ≤ 31 Agu 2019 untuk melihat REVIEW/HIGH.
 - REST hanya punya satu petugas demo; mock punya dua.
+
+## 16. Sesi frontend 2026-10-15 — halaman Titik panas (FE-05, `feat/frontend-hotspots`)
+
+**Status:** IMPLEMENTED, belum commit/push. Branch dari `feat/frontend-tasks` + `main` terbaru (backend Tasks/ML). Kontrak: [read-api-handoff](../../backend/docs/read-api-handoff.md), [firms-handoff](../../backend/docs/firms-handoff.md).
+
+- **Peta:** titik GeoJSON berwarna status verifikasi, cincin titik terpilih, popup (isi via `textContent`), garis kotak wilayah DEMO, peta mengikuti filter wilayah, layar penuh dan fallback dari F0.
+- **Daftar ↔ peta:** pilih di daftar → sorot + popup (peta bergeser bila titik di luar layar); klik titik di peta → baris tersorot dan digulir (layar lebar).
+- **Pagination server:** 100 titik/halaman, total dari `total`, kembali ke halaman 1 saat mode/periode/wilayah/satelit berubah. Di HP daftar diringkas 10 baris + "Tampilkan semua", ada tautan "Ubah tanggal/wilayah".
+- **Detail titik:** waktu WIB dan UTC, wilayah, koordinat, satelit, confidence mentah (bukan peluang), FRP, sumber, waktu pembaruan server; koordinator dapat **membuat tugas dari titik** (dialog tugas kini menerima assessment atau hotspot).
+- **Sinkron FIRMS (mode Terkini):** status per wilayah × produk (`GET /hotspots/sync-status`), tombol "Sinkronkan" untuk koordinator pada REST (`POST /admin/hotspots/sync`, Bearer, 3 hari); 429/502/503 tampil sebagai pesan. Mock menampilkan status DEMO dan menolak sync (tidak berpura-pura live).
+- Perbaikan `BaseMap`: pembaruan data tidak lagi bergantung pada `isStyleLoaded()` (false saat source GeoJSON memuat ulang) sehingga pilihan beruntun tidak terlewat.
+- Pratinjau "Wilayah pemantauan" F0 dihapus karena digantikan halaman ini.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 57/57 lulus (sync REST + Bearer + 429, sync mock ditolak) |
+| `npm run test:shell` (production, mock) | 11/11 lulus (tes baru `hotspots.test.mjs`) |
+| `hotspots.test.mjs` di dev REST ke backend `main` (`:8000`, DB `gambutops_fe`) | Lulus, termasuk membuat tugas dari titik |
+| Sapuan responsif 6 halaman × 320/375/414/768/1024/1280 | Tanpa overflow |
+
+Catatan:
+
+- Tanpa filter wilayah, REST mengembalikan semua hotspot yang diimpor (mis. 14.261 untuk periode default, termasuk di luar kotak DEMO); pilih wilayah untuk fokus.
+- Uji klik langsung pada titik peta belum otomatis (posisi piksel kanvas); dicek manual lewat screenshot.
+- DB uji belum berisi data NRT (status NOT_SYNCED); tombol sinkron belum dicoba ke NASA dari frontend.

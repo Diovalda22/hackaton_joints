@@ -151,7 +151,7 @@ function AssessmentCard({ assessment, tasks }: { assessment: PriorityAssessment;
           <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-muted p-3 text-[11px] leading-4">{JSON.stringify(assessment.raw_input_snapshot, null, 2)}</pre>
         </details>
       )}
-      {creating && <CreateTaskDialog assessment={assessment} open={creating} onOpenChange={setCreating} />}
+      {creating && <CreateTaskDialog source={{ kind: "assessment", assessment }} open={creating} onOpenChange={setCreating} />}
     </article>
   );
 }
@@ -176,7 +176,7 @@ export function PrioritiesView() {
   const counts = LEVELS.map((level) => [level, items.filter((item) => item.priority === level).length] as const);
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <Alert className="border-amber-200 bg-amber-50">
         <Info className="text-amber-800" aria-hidden="true" />
         <div>

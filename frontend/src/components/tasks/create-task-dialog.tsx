@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { errorMessage } from "@/lib/api";
 import { priorityLabels } from "@/lib/domain/labels";
-import type { PriorityAssessment, PriorityLevel } from "@/types";
+import { findArea } from "@/lib/domain/areas";
+import type { Hotspot, PriorityAssessment, PriorityLevel } from "@/types";
 import { fieldClass, FieldError } from "./form-fields";
 
 const formSchema = z.object({
@@ -24,12 +25,28 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-/** Form pembuatan tugas pemeriksaan dari satu assessment prioritas. */
-export function CreateTaskDialog({ assessment, open, onOpenChange }: {
-  assessment: PriorityAssessment;
+export type TaskSource = { kind: "assessment"; assessment: PriorityAssessment } | { kind: "hotspot"; hotspot: Hotspot };
+
+function describeSource(source: TaskSource) {
+  if (source.kind === "assessment") {
+    const { assessment } = source;
+    return { label: assessment.target.label, mode: assessment.mode, priority: assessment.priority, assessment_id: assessment.id, hotspot_id: null, area_id: assessment.area_id };
+  }
+  const { hotspot } = source;
+  const area = findArea(hotspot.area_id);
+  return {
+    label: `titik ${hotspot.latitude.toFixed(4)}, ${hotspot.longitude.toFixed(4)}${area ? ` (${area.region})` : ""}`,
+    mode: hotspot.mode, priority: "MEDIUM" as PriorityLevel, assessment_id: null, hotspot_id: hotspot.id, area_id: hotspot.area_id,
+  };
+}
+
+/** Form pembuatan tugas pemeriksaan dari assessment prioritas atau satu titik panas. */
+export function CreateTaskDialog({ source, open, onOpenChange }: {
+  source: TaskSource;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const origin = describeSource(source);
   const router = useRouter();
   const id = useId();
   const { actor, users } = useActor();
@@ -37,12 +54,12 @@ export function CreateTaskDialog({ assessment, open, onOpenChange }: {
   const createTask = useRepositoryMutation((repo, values: FormValues) => {
     if (!actor) throw new Error("Pengguna demo belum dimuat.");
     return repo.createTask({
-      mode: assessment.mode,
+      mode: origin.mode,
       title: values.title,
       priority: values.priority,
-      assessment_id: assessment.id,
-      hotspot_id: null,
-      area_id: assessment.area_id,
+      assessment_id: origin.assessment_id,
+      hotspot_id: origin.hotspot_id,
+      area_id: origin.area_id,
       assignee_id: values.assignee_id || null,
       note: values.note || null,
     }, { actor });
@@ -51,8 +68,8 @@ export function CreateTaskDialog({ assessment, open, onOpenChange }: {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: `Periksa anomali panas — ${assessment.target.label}`,
-      priority: assessment.priority,
+      title: `Periksa anomali panas — ${origin.label}`.slice(0, 120),
+      priority: origin.priority,
       assignee_id: officers[0]?.id ?? "",
       note: "",
     },
@@ -79,7 +96,7 @@ export function CreateTaskDialog({ assessment, open, onOpenChange }: {
           <div className="border-b px-5 pt-5 pb-4 sm:px-6">
             <div className="pr-9">
               <DialogTitle>Buat tugas pemeriksaan</DialogTitle>
-              <DialogDescription className="mt-1">{assessment.target.label} · tugas lapangan berlabel SIMULASI.</DialogDescription>
+              <DialogDescription className="mt-1">{source.kind === "hotspot" ? "Dari titik panas" : "Dari prioritas"} {origin.label} · tugas lapangan berlabel SIMULASI.</DialogDescription>
             </div>
           </div>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">

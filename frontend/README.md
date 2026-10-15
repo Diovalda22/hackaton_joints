@@ -33,11 +33,12 @@ Script dev/build menggunakan Webpack, opsi resmi Next.js. Turbopack membutuhkan 
 - Panduan gaya UI: [style.md](style.md) — flat, tanpa shadow berlebih, hover halus.
 - **Panduan penggunaan dalam aplikasi** (modal): muncul otomatis pada kunjungan pertama, bisa dibuka lagi lewat tombol **Panduan** di header, kartu sidebar, atau kartu "Mulai dari sini". Isi: Kenalan, Cara pakai (langkah bertanda "Segera tersedia" bila modul belum siap), Istilah, Penting (termasuk nomor darurat 112). Teks ada di `src/components/guide/guide-content.ts`; status modul mengikuti `available` di `navigation.ts`.
 - Bahasa antarmuka untuk pengguna awam: tanpa kode fase internal (F0/F1/P1) dan tanpa judul berbahasa Inggris.
+- **Titik panas** (`/hotspots`): peta MapLibre (warna = status verifikasi, popup, kotak wilayah DEMO), daftar yang sinkron dengan peta, pagination server 100 titik/halaman (reset saat filter berubah), filter satelit, detail (waktu WIB/UTC, confidence mentah, FRP, sumber), buat tugas dari titik, dan status sinkron NASA FIRMS + tombol sinkron koordinator (REST).
 - **Prioritas pemeriksaan** (`/priorities`): assessment per wilayah dengan alasan, data yang belum tersedia, indikator dari snapshot, rekomendasi, versi aturan, snapshot mentah untuk audit, dan tombol **Buat tugas** (koordinator).
 - **Tugas lapangan** (`/tasks`): saringan "Perlu tindakan saya", detail, riwayat status, laporan; koordinator menugaskan/meninjau (verifikasi, tindak lanjut, tutup), petugas memulai dan mengirim laporan SIMULASI. Pilih peran demo di header.
 - Pengatur periode (tanggal native) dan wilayah di panel "Data yang ditampilkan", tersimpan terpisah per jenis data.
 
-- **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Pratinjau kotak wilayah DEMO tampil di `/hotspots` dan mengikuti filter wilayah. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
+- **Fondasi peta (MapLibre 6):** `src/components/maps/base-map.tsx` dengan tombol **Layar penuh** (desktop dan mobile, termasuk iPhone), kontrol berbahasa Indonesia, tombol zoom 40px di layar sentuh, geser dua jari/Ctrl+gulir agar halaman tetap bisa digulir, fallback latar polos saat peta dasar gagal, dan pesan + "Coba lagi" bila WebGL tidak tersedia. Koordinat stasiun tidak tersedia dari sumber, jadi tidak ada pin stasiun.
 
 ### Peta dasar dan worker MapLibre
 
