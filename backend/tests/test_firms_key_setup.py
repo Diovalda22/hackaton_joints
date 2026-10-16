@@ -15,14 +15,14 @@ def test_local_key_setup_preserves_environment_and_private_permissions(tmp_path,
     key_file = tmp_path / "api_key_firms.md"
     key_file.write_text("FIRMS_MAP_KEY=test-secret-value\n", encoding="utf-8")
     env = backend / ".env"
-    env.write_text("GAMBUTOPS_DATABASE_URL=unchanged\nGAMBUTOPS_FIRMS_MAP_KEY=\n", encoding="utf-8")
+    env.write_text("DATABASE_URL=unchanged\nFIRMS_MAP_KEY=\n", encoding="utf-8")
     monkeypatch.chdir(backend)
     monkeypatch.setattr(
         configure_firms_key, "get_settings", lambda: SimpleNamespace(firms_map_key=None)
     )
     configure_firms_key.main()
     assert env.read_text() == (
-        "GAMBUTOPS_DATABASE_URL=unchanged\nGAMBUTOPS_FIRMS_MAP_KEY=test-secret-value\n"
+        "DATABASE_URL=unchanged\nFIRMS_MAP_KEY=test-secret-value\n"
     )
     assert env.stat().st_mode & 0o077 == 0
     monkeypatch.setattr(
@@ -30,4 +30,4 @@ def test_local_key_setup_preserves_environment_and_private_permissions(tmp_path,
     )
     key_file.unlink()
     configure_firms_key.main()
-    assert "GAMBUTOPS_DATABASE_URL=unchanged" in env.read_text()
+    assert "DATABASE_URL=unchanged" in env.read_text()

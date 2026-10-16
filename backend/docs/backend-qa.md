@@ -41,7 +41,7 @@ atau pastikan database yang ada memang khusus QA sebelum melanjutkan.
 
 ```bash
 docker compose exec -T postgres createdb -U gambutops gambutops_qa_20261015_test
-GAMBUTOPS_TEST_DATABASE_URL=postgresql+psycopg://gambutops:gambutops@127.0.0.1:5433/gambutops_qa_20261015_test \
+TEST_DATABASE_URL=postgresql+psycopg://gambutops:gambutops@127.0.0.1:5433/gambutops_qa_20261015_test \
   .venv/bin/pytest
 .venv/bin/ruff check .
 ```
@@ -51,7 +51,7 @@ Hanya database khusus QA yang digunakan oleh migration test; `.env` aplikasi tid
 ## Mengulang smoke Supabase
 
 Gunakan `.env` backend yang sudah dikonfigurasi ke database Supabase dan artifact lokal
-pada `GAMBUTOPS_ML_ARTIFACT_DIR` (default `var/ml`). Jika artifact belum tersedia,
+pada `ML_ARTIFACT_DIR` (default `var/ml`). Jika artifact belum tersedia,
 ikuti [handoff ML](ml-handoff.md) untuk training dari dataset sumber.
 
 ```bash

@@ -20,7 +20,7 @@ cd backend
 ```
 
 Perintah menghasilkan manifest `var/ml/{station}.metrics.json` dan artifact `.joblib` ber-versi.
-Folder dapat diganti melalui `GAMBUTOPS_ML_ARTIFACT_DIR`. Jalankan training sebagai release step
+Folder dapat diganti melalui `ML_ARTIFACT_DIR`. Jalankan training sebagai release step
 sebelum memulai API; jika artifact belum ada, metrics mengembalikan `NOT_AVAILABLE`.
 
 ## Kontrak API

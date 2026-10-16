@@ -22,15 +22,15 @@ DATASET = Path(__file__).resolve().parents[2] / "dataset"
 
 @pytest.fixture
 def database(monkeypatch):
-    url = os.getenv("GAMBUTOPS_TEST_DATABASE_URL")
+    url = os.getenv("TEST_DATABASE_URL")
     if not url:
-        pytest.skip("Set GAMBUTOPS_TEST_DATABASE_URL to an isolated PostgreSQL/PostGIS database")
+        pytest.skip("Set TEST_DATABASE_URL to an isolated PostgreSQL/PostGIS database")
     engine = create_engine(url)
     with engine.connect() as connection:
         database_name = connection.scalar(text("select current_database()"))
     if not database_name.endswith("_test"):
         pytest.fail("Database name must end in _test; migration tests drop domain tables")
-    monkeypatch.setenv("GAMBUTOPS_DATABASE_URL", url)
+    monkeypatch.setenv("DATABASE_URL", url)
     from app.core.config import get_settings
 
     get_settings.cache_clear()

@@ -21,12 +21,12 @@ def main() -> None:
         raise SystemExit("Local key file has no valid FIRMS_MAP_KEY entry.")
     env_file = Path(".env")
     original = env_file.read_text() if env_file.exists() else Path(".env.example").read_text()
-    key_line = f"GAMBUTOPS_FIRMS_MAP_KEY={match.group(1)}"
+    key_line = f"FIRMS_MAP_KEY={match.group(1)}"
     old_line = next((line for line in original.splitlines()
-                     if line.startswith("GAMBUTOPS_FIRMS_MAP_KEY=")), None)
+                     if line.startswith("FIRMS_MAP_KEY=")), None)
     if old_line is not None:
         updated = "\n".join(
-            key_line if line.startswith("GAMBUTOPS_FIRMS_MAP_KEY=") else line
+            key_line if line.startswith("FIRMS_MAP_KEY=") else line
             for line in original.splitlines()
         ) + "\n"
     else:

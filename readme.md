@@ -42,13 +42,13 @@ docker compose ps
 Tunggu container database berstatus `healthy`. Pastikan `backend/.env` memuat:
 
 ```dotenv
-GAMBUTOPS_APP_ENV=development
-GAMBUTOPS_DATABASE_URL=postgresql+psycopg://gambutops:gambutops@127.0.0.1:5433/gambutops
-GAMBUTOPS_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-GAMBUTOPS_COORDINATOR_TOKEN=
-GAMBUTOPS_FIELD_OFFICER_TOKEN=
-GAMBUTOPS_FIRMS_MAP_KEY=
-GAMBUTOPS_ML_ARTIFACT_DIR=var/ml
+APP_ENV=development
+DATABASE_URL=postgresql+psycopg://gambutops:gambutops@127.0.0.1:5433/gambutops
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+COORDINATOR_TOKEN=
+FIELD_OFFICER_TOKEN=
+FIRMS_MAP_KEY=
+ML_ARTIFACT_DIR=var/ml
 ```
 
 Database Docker memakai port host **5433**. Backend membaca `.env` relatif terhadap
@@ -62,7 +62,7 @@ Docker tidak diperlukan jika memakai Supabase. Dari folder `backend/`:
 [ -f .env ] || cp .env.supabase.example .env
 ```
 
-Edit `backend/.env`: isi `GAMBUTOPS_DATABASE_URL` menggunakan connection string
+Edit `backend/.env`: isi `DATABASE_URL` menggunakan connection string
 PostgreSQL/Supavisor **session mode** milik project. Jika menggunakan template repository,
 ganti `URL_ENCODED_DATABASE_PASSWORD` dengan password database yang sudah di-URL-encode.
 Gunakan password database, bukan publishable/anon key.
@@ -70,8 +70,8 @@ Gunakan password database, bukan publishable/anon key.
 Pastikan origin frontend diizinkan:
 
 ```dotenv
-GAMBUTOPS_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-GAMBUTOPS_ML_ARTIFACT_DIR=var/ml
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+ML_ARTIFACT_DIR=var/ml
 ```
 
 Frontend mengakses Supabase **melalui FastAPI**; connection string database tetap hanya
@@ -115,7 +115,7 @@ tidak digunakan oleh mesin prioritas. Data GWT historis tidak mewakili kondisi t
 
 ### Opsional — Aktifkan NASA FIRMS live
 
-Isi `GAMBUTOPS_FIRMS_MAP_KEY` pada `backend/.env`. Jika file key lokal
+Isi `FIRMS_MAP_KEY` pada `backend/.env`. Jika file key lokal
 `api_key_firms.md` tersedia, gunakan helper yang tidak mencetak key:
 
 ```bash
@@ -238,7 +238,7 @@ sebagai belum tersedia. Kembalikan ke `rest` untuk memakai backend/database asli
 | Data historis kosong | Migration dan import sudah dijalankan; periksa mode, tanggal, serta wilayah |
 | Hasil ML belum tersedia | Jalankan `train-gwt`; pastikan metrics dan `.joblib` ada di direktori artifact backend |
 | Buat tugas/laporan gagal 401/403 | Token frontend sesuai backend dan pengguna demo memiliki peran yang tepat |
-| Browser melaporkan CORS | Origin frontend harus ada di `GAMBUTOPS_CORS_ALLOWED_ORIGINS`; restart backend |
+| Browser melaporkan CORS | Origin frontend harus ada di `CORS_ALLOWED_ORIGINS`; restart backend |
 | Frontend pindah ke port 3001 | Hentikan proses lain pada 3000, atau tambahkan origin port baru pada CORS backend |
 | Peta dasar tidak termuat | Periksa internet; aplikasi menyediakan fallback latar polos |
 

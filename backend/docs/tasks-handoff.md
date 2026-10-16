@@ -16,7 +16,7 @@ Token development:
 - field officer: `demo-field-officer-token`
 
 Nilai tersebut hanya untuk development/test. Environment production wajib memakai token kuat
-yang berbeda melalui `GAMBUTOPS_COORDINATOR_TOKEN` dan `GAMBUTOPS_FIELD_OFFICER_TOKEN`.
+yang berbeda melalui `COORDINATOR_TOKEN` dan `FIELD_OFFICER_TOKEN`.
 
 ## Endpoint
 
@@ -122,7 +122,7 @@ cd backend
 Integration test workflow memerlukan database PostGIS terisolasi dengan nama berakhiran `_test`:
 
 ```bash
-GAMBUTOPS_TEST_DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/gambutops_test \
+TEST_DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/gambutops_test \
   .venv/bin/pytest tests/test_tasks.py
 ```
 
