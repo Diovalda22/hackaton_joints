@@ -194,3 +194,15 @@ test("peta memuat marker Kalimantan di luar halaman pertama daftar", async () =>
   assert.equal(calls[0]!.url.searchParams.has("limit"), false);
   assert.equal(calls[0]!.url.searchParams.has("offset"), false);
 });
+
+test("signIn: identitas diverifikasi lewat GET /auth/me dengan Bearer sesuai peran", async () => {
+  const me: User = { id: "00000000-0000-4000-8000-000000000001", role: "coordinator", display_name: "Koordinator Demo" };
+  const { repo, calls } = fakeFetch(() => json(me));
+  assert.deepEqual(await repo.signIn({ ...me, display_name: "Dari daftar" }), me, "nama dan ID mengikuti server");
+  assert.equal(calls[0]?.url.pathname, "/api/v1/auth/me");
+  assert.equal((calls[0]?.init.headers as Record<string, string>).Authorization, "Bearer coord-token");
+  const officer: User = { id: "f", role: "field_officer", display_name: "Petugas" };
+  await rejectsWith(repo.signIn(officer), "FORBIDDEN"); // server mengembalikan koordinator
+  const { repo: denied } = fakeFetch(() => json({ detail: "Invalid token" }, 401));
+  await rejectsWith(denied.signIn(actor), "FORBIDDEN");
+});

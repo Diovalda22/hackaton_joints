@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { errorMessage } from "@/lib/api";
-import { reportResultLabels, taskStatusLabels } from "@/lib/domain/labels";
+import { reportResultLabels, roleLabels, taskStatusLabels } from "@/lib/domain/labels";
 import { canSubmitReport, canTransition, isTerminal } from "@/lib/domain/task-state-machine";
 import { formatDateTime } from "@/lib/format";
 import type { FieldReportResult, InspectionTask, TaskStatus, User } from "@/types";
@@ -234,7 +234,7 @@ export function TaskActions({ task }: { task: InspectionTask }) {
   return (
     <Panel
       title="Belum ada tindakan untuk Anda"
-      description={waiting[task.status]}
+      description={`${waiting[task.status] ?? ""} Anda masuk sebagai ${roleLabels[actor.role].toLowerCase()} (${actor.display_name}). Untuk peran lain, keluar lalu masuk dengan akun lain.`}
     />
   );
 }

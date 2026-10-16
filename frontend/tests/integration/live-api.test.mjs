@@ -1,3 +1,4 @@
+import { signIn } from "../shell/helpers.mjs";
 import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import test from "node:test";
@@ -39,7 +40,7 @@ test("live API: browser membaca data asli, metrics/forecast cocok artifact dan m
   });
 
   // Browser fetch exercises the real CORS policy; no Playwright route interception.
-  await page.goto(`${baseURL}/experiments/ml`);
+  await signIn(page, baseURL, "coordinator", "/experiments/ml");
   const main = page.locator("main");
   const health = await page.evaluate(async (url) => (await fetch(new URL("/health", url))).json(), apiURL);
   assert.equal(health.status, "ok");

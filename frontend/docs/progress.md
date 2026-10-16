@@ -593,3 +593,88 @@ Tidak ada perubahan dependency tambahan atau kontrak aplikasi pada perbaikan ini
 Smoke browser development PASS: keenam route HTTP 200, judul halaman termuat, tidak ada
 ENOENT/Module not found atau exception browser, serta menu wilayah dan pemilih tahun
 kalender dapat dibuka/ditutup. Server development dibiarkan aktif di http://localhost:3000.
+## 18. Sesi frontend 2026-10-15 — landing page (`feat/landing-page`)
+
+**Status:** IMPLEMENTED, belum commit/push. Branch dari `main` setelah PR #11.
+
+- `/` tidak lagi redirect ke `/dashboard`; menjadi landing statis (server component, tanpa MapLibre/Recharts/panduan otomatis).
+- Struktur route: root layout hanya `<html>/<body>`; halaman aplikasi dipindah ke `src/app/(app)/` dengan layout `AppProviders` + `AppShell`. URL tidak berubah. Halaman 404 berdiri sendiri dengan tautan ke Ringkasan dan beranda.
+- Isi: header lengket (logo, anchor, "Buka aplikasi"), hero, masalah (3 kartu, tanpa angka tanpa sumber), Cegah·Deteksi·Tindak dengan screenshot, alur tugas + dua peran (teks dari `guide-content`), data & batasan, CTA penutup + catatan darurat 112/BPBD, footer stack. Metadata + Open Graph.
+- Screenshot asli aplikasi (data contoh DEMO) di `public/landing/*.jpg` (±500 KB total), dibuat oleh `scripts/capture-landing-screens.mjs`; gambar memakai `next/image` `unoptimized` dengan ukuran tetap (tanpa layout shift).
+- Di bawah 400 px logo hanya ikon agar tombol "Buka aplikasi" muat.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus; semua route tetap statis |
+| `npm run test:data` | 58/58 lulus |
+| `npm run test:shell` (production, mock) | 13/13 lulus (tes baru `landing.test.mjs`: satu h1, section, alt gambar, aset 200, anchor, CTA, tanpa overflow 1024/768/375/320) |
+| Sapuan responsif 6 halaman aplikasi × 320–1280 | Tanpa overflow |
+
+### 18b. Login demo sebelum masuk aplikasi
+
+- `/login` (di luar shell aplikasi): daftar akun dari `listUsers`, pilih akun → `repository.signIn` (REST: `GET /auth/me` dengan Bearer peran, peran harus cocok; mock: akun demo dikenal) → sesi di `localStorage` → kembali ke `?next=`.
+- `AuthGate` membungkus `src/app/(app)/layout.tsx`: tanpa sesi → `/login?next=<path+query>`; selama status sesi belum diketahui tampil "Memeriksa sesi…". `safeNextPath` menolak `//…`, `/\…`, URL absolut, dan `/login`.
+- Pemilih peran di header diganti **menu akun** (nama, peran, tombol Keluar). Berganti peran = keluar lalu masuk dengan akun lain; halaman tujuan dipertahankan.
+- Landing: tombol "Masuk" / "Masuk ke aplikasi" langsung ke `/login`; teks "Tanpa login" diganti.
+- Tes: helper `tests/shell/helpers.mjs` (`signIn`, `signOut`, `switchRole`); tes baru `auth.test.mjs` (semua route dijaga, kembali ke tujuan, sesi bertahan setelah reload, `next` berbahaya diabaikan, sesi rusak, 320 px). Semua tes lain masuk lewat halaman login.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus (`/login` statis) |
+| `npm run test:data` | 60/60 lulus (signIn REST + mock) |
+| `npm run test:shell` (production, mock) | 14/14 lulus |
+| `auth`, `workflow`, `dashboard` test di dev REST ke backend `:8000` | Lulus; `GET /auth/me` tercatat di log backend |
+| Sapuan responsif `/`, `/login`, 6 halaman aplikasi × 320–1280 | Tanpa overflow (ditemukan dan diperbaiki: header kartu login 320 px pada mode SERVER) |
+
+## 19. Style guide v2 dari referensi (`feat/landing-page`)
+
+`frontend/style.md` diganti dengan v2 (target; kode masih v1). Diturunkan dari d-form.doscom.org (struktur landing), recruitment.doscom.org (tipografi display Bricolage Grotesque, navbar pill, animasi scroll dengan Lenis + Motion) dan halaman login fotomomen.studio/admin (split-screen, label kapital, input bergaris bawah, tombol glow). Isi panel admin fotomomen tidak dapat dilihat (butuh login), sehingga gaya panel diturunkan dari halaman login. Keputusan: warna utama tetap hijau GambutOps `#15803D` (bukan biru referensi); `primary-2 #22C55E` dan `info-bright #1D90FF` hanya untuk dekorasi karena kontras teks < 4,5:1. Animasi memakai komponen React Bits yang dipetakan per section; aplikasi/admin hanya animasi mikro. Urutan migrasi: landing → login → shell admin → halaman modul.
+
+## 20. Landing v2 sesuai style.md (`feat/landing-page`)
+
+- Dependensi baru (versi pasti): `motion@12.43.0`, `gsap@3.15.0`, `@gsap/react@2.1.2`, `lenis@1.3.26`. Font Bricolage Grotesque + Poppins lewat `next/font` hanya pada subtree landing (`themeV2ClassName`); `/dashboard` tidak memuatnya.
+- Komponen React Bits dari registry resmi (`reactbits.dev/r/*-TS-TW.json`), ditinjau (hanya impor react/gsap/motion, tanpa akses jaringan/penyimpanan), lalu diperbaiki seminimal mungkin agar lolos TS strict (`noUncheckedIndexedAccess`) dan aturan React Hooks. `LogoLoop` (1.344 baris) diganti marquee CSS.
+- Token v2 per subtree (`.theme-v2`), latar `bg-glow-hero`, `bg-band`, `bg-grid-overlay`, `bg-dot-grid`; marquee berhenti saat hover/fokus dan dimatikan saat reduced motion.
+- Isi: hero "Cegah kebakaran gambut *sebelum meluas.*", angka faktual (2 wilayah, 8 stasiun, 2 satelit VIIRS, 6 modul), pernyataan masalah ScrollReveal + 3 kartu, panel lengket Cegah·Deteksi·Tindak, 6 fitur, alur 5 langkah + peran, data & batasan + marquee sumber, FAQ (`<details>`), band CTA, catatan darurat, footer.
+- Aman: elemen beranimasi tampil tanpa JS (`<noscript>` style untuk `.js-reveal`/`.split-parent`); Lenis mati saat reduced motion.
+- Diperbaiki saat uji: `--font-display` merujuk variabel tema yang tidak diterbitkan `@theme inline` sehingga H1 jatuh ke Poppins; judul hero 4 baris di 1440 px.
+
+| Perintah | Hasil |
+| --- | --- |
+| `npm run lint` / `typecheck` / `build` | Lulus |
+| `npm run test:data` | 60/60 |
+| `npm run test:shell` (production, mock) | 14/14; `landing.test.mjs` kini menguji navbar pill, anchor, FAQ keyboard, reduced motion, dan tampilan tanpa JavaScript |
+| Sapuan responsif `/`, `/login`, 6 halaman aplikasi × 320–1280 | Halaman tanpa overflow (marquee sengaja melebar di dalam wadah `overflow-hidden`) |
+
+### 20b. Landing diringkas
+
+Atas masukan: teks dikurangi drastis (±215 kata di `<main>`, halaman desktop 9.028 → 6.257 px, HP 13.141 → 7.001 px), satu ide per section. Dihapus: section Fitur, tiga kartu masalah, poin-poin per langkah, kartu mengambang hero, daftar centang, marquee sumber, kartu peran. Juga dihapus: bayangan/glow tombol, titik di badge, pola titik di latar, bullet bulat, dan pemisah "·" dekoratif (0 di `<main>`). `style.md` diperbarui: tombol tanpa bayangan, larangan titik dekoratif dan teks panjang. `landing.test.mjs` kini membatasi ≤220 kata dan memeriksa tombol tanpa bayangan. test:shell 14/14.
+
+### 20c. Landing: foto hero, tanpa DEMO/angka/badge
+
+- Hero memakai foto Unsplash (Unsplash License) oleh Yosafat Gusti, Kapuas Hulu, Kalimantan Barat (`public/landing/hero-kalimantan.jpg`, 1280×960, ±310 KB) dengan kredit kecil; juga dipakai untuk Open Graph. `dashboard.jpg` dan langkah pengambilannya dihapus.
+- Dihapus: badge "JOINTS Hackathon 2026, prototipe", baris angka (2/8/2/6), seluruh teks "DEMO" di landing (badge gambar, FAQ, footer).
+- Alur: setiap langkah kini punya penjelasan satu baris.
+- `landing.test.mjs` memeriksa tidak ada teks demo/badge acara/baris angka, foto hero + kredit, dan penjelasan per langkah. ±208 kata di `<main>`; test:shell 14/14.
+
+### 20d. Performa scroll, ilustrasi dinamis, peta MapLibre, login v2
+
+- **Audit performa:** scroll terasa berat karena Lenis (menahan input ±1,1 s dan menjalankan JS tiap frame), animasi SVG berulang via JS yang tetap jalan di luar layar, `filter: blur` per kata pada ScrollReveal, dan `backdrop-filter` navbar. Diperbaiki: Lenis dihapus (scroll native, dependensi `lenis` dicabut), animasi berulang jadi CSS `transform`/`opacity` (kelas `lp-*` di `globals.css`) yang berhenti di luar layar (`data-paused`) dan saat reduced motion, blur dihapus. Saat diam: 60 layout/detik → 0. Scroll 60 langkah (CPU 4×): layout 475 → 116, recalc style 869 → 239.
+- **Hero:** foto diganti panel pemantauan SVG (kontur kubah gambut, sapuan satelit pelan, denyut titik panas, kartu titik panas + sparkline air tanah). Foto tetap dipakai sebagai gambar Open Graph.
+- **Cara kerja:** screenshot diganti visual dinamis: grafik air tanah yang tergambar saat terlihat, peta **MapLibre** titik panas pemantauan terkini dari repository (statis tanpa gesture, dimuat lewat `next/dynamic` saat mendekati layar, sorotan deteksi terbaru), daftar prioritas → "Tugas dikirim".
+- Teks: kredit foto dan screenshot alur dihapus; "Jujur soal batasan" → "Prinsip penggunaan data".
+- **Login v2:** split 50/50 (form kiri, panel kontur gelap kanan; HP: pita atas), kartu akun dengan ikon, tombol 48 px dengan spinner. Logika masuk tidak berubah. Kontur dipakai bersama lewat `src/components/landing/topo-backdrop.tsx`.
+- Tes: `landing.test.mjs` disesuaikan (ilustrasi berlabel, peta siap, hitungan kata tanpa label ilustrasi, FAQ via `#faq details` karena atribusi MapLibre juga `<details>`). `landing` dan `auth` lulus di dev.
+
+
+## Integrasi PR #13 — 16 Oktober 2026
+
+- Gabungkan `origin/main` ke `feat/backend-ml`; selesaikan 16 file konflik.
+- Pertahankan landing/login dan route group dari main bersama UI ML, kalender, Select,
+  serta peta hotspot nasional dari branch PR. Penggantian peran memakai keluar/masuk.
+- Gabungkan dependency dan lockfile, CSS kalender/landing, dokumentasi dan tes kedua branch.
+- Sesuaikan tes ML, kalender, Select dan integrasi REST agar melewati login; tambahkan
+  respons `/auth/me` pada fixture browser ML REST.
+- Verifikasi: backend **66 passed, 4 skipped**; frontend **65 tes data passed**,
+  lint, typecheck, build produksi mock dan **17 tes browser mock passed**.
+- Tidak menjalankan sinkronisasi NASA atau tes database live pada sesi resolusi ini.

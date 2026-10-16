@@ -1,3 +1,4 @@
+import { signIn } from "./helpers.mjs";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import test from "node:test";
@@ -14,7 +15,7 @@ test("select: keyboard, kelompok stasiun, opsi kosong, formulir dialog dan mobil
   page.on("pageerror", (error) => errors.push(error.message));
   const screenshots = process.env.UI_SCREENSHOT_DIR;
   if (screenshots) await mkdir(screenshots, { recursive: true });
-  await page.goto(`${process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000"}/groundwater`);
+  await signIn(page, process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000", "coordinator", "/groundwater");
   await page.getByRole("heading", { name: "Grafik muka air tanah harian" }).waitFor();
   const area = page.getByRole("combobox", { name: "Wilayah", exact: true });
   await area.focus();

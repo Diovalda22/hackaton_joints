@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
 import { selectOption } from "../helpers/select.mjs";
+import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -23,7 +24,7 @@ test("titik panas: daftar ↔ peta, detail, pagination, filter, tugas dari titik
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
-  await page.goto(`${baseURL}/hotspots`);
+  await signIn(page, baseURL, "coordinator", "/hotspots");
   const main = page.locator("main");
   const list = page.getByRole("list", { name: "Daftar titik panas" });
   await list.getByRole("button").first().waitFor();

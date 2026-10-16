@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
 import { selectOption } from "../helpers/select.mjs";
+import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -23,7 +24,7 @@ async function openHotspots(browser, { blockBasemap = false, disableWebgl = fals
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${baseURL}/hotspots`);
+  await signIn(page, baseURL, "coordinator", "/hotspots");
   return { context, page, errors, map: page.locator("main [data-map-status]") };
 }
 

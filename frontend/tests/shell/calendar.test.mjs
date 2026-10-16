@@ -1,3 +1,4 @@
+import { signIn } from "./helpers.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdir } from "node:fs/promises";
@@ -13,7 +14,7 @@ test("kalender: draft, batal, batas mode, rentang sehari, keyboard dan mobile", 
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, timezoneId: "Asia/Jakarta" });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto(`${baseURL}/groundwater`);
+  await signIn(page, baseURL, "coordinator", "/groundwater");
   await page.getByRole("heading", { name: "Grafik muka air tanah harian" }).waitFor();
   assert.equal(await page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" }).count(), 0);
   assert.equal(await page.locator('input[type="date"], input[type="datetime-local"]').count(), 0);

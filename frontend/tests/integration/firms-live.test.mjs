@@ -1,7 +1,7 @@
+import { signIn, switchRole } from "../shell/helpers.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
-import { selectOption } from "../helpers/select.mjs";
 
 // Opt-in: this consumes one NASA request and persists real cache/sync history.
 test("FIRMS live: sync browser, status database, cooldown dan pembatasan peran", {
@@ -14,7 +14,7 @@ test("FIRMS live: sync browser, status database, cooldown dan pembatasan peran",
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(60_000);
   await page.addInitScript(() => localStorage.setItem("gambutops:guide-seen:v1", "1"));
-  await page.goto(`${baseURL}/hotspots`);
+  await signIn(page, baseURL, "coordinator", "/hotspots");
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
   const panel = page.getByRole("region", { name: "Pembaruan data satelit (NASA FIRMS)" });
   const button = panel.getByRole("button", { name: "Sinkronkan Batanghari VIIRS Suomi NPP", exact: true });
@@ -37,8 +37,7 @@ test("FIRMS live: sync browser, status database, cooldown dan pembatasan peran",
     assert.equal((await again).status(), 429);
   }
   await page.getByText("Sinkronisasi gagal", { exact: true }).waitFor();
-  const users = page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" });
-  await selectOption(users, { label: /petugas/i });
+  await switchRole(page, "field_officer");
   assert.equal(await panel.getByRole("button", { name: /^Sinkronkan / }).count(), 0);
   console.log(`FIRMS live verified: status=${response.status()}, rows=${result.rows_received ?? "cooldown"}`);
 });

@@ -218,3 +218,10 @@ test("mock: seluruh marker peta konsisten dengan halaman daftar", async () => {
   assert.deepEqual(map.items.slice(100, 200).map((point) => point.id), page.items.map((point) => point.id));
   assert.equal(map.items[100]!.list_offset, 100);
 });
+
+test("mock signIn: hanya akun demo yang dikenal", async () => {
+  const repo = createMockRepository({ storage: createMemoryStorage(), latencyMs: 0 });
+  const [first] = await repo.listUsers();
+  assert.deepEqual(await repo.signIn(first!), first);
+  await assert.rejects(repo.signIn({ id: "palsu", role: "coordinator", display_name: "X" }), /tidak dikenal/);
+});

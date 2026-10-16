@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
 import { selectOption } from "../helpers/select.mjs";
+import { signIn, switchRole } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -18,13 +19,15 @@ test("ringkasan: kartu perhatian, angka, peta, kegiatan, dan peran demo", { time
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
 
-  await page.goto(baseURL);
-  await page.waitForURL("**/dashboard");
+  // Belum masuk: diarahkan ke login dengan tujuan semula.
+  await page.goto(`${baseURL}/dashboard`);
+  await page.waitForURL((url) => url.pathname === "/login" && url.searchParams.get("next") === "/dashboard");
+  await signIn(page, baseURL, "coordinator", "/dashboard");
   const main = page.locator("main");
   await page.getByRole("heading", { name: "Ringkasan pemantauan", level: 1 }).waitFor();
   await main.getByRole("heading", { name: "Perlu diperiksa lebih dulu" }).waitFor();
   await main.getByRole("heading", { name: "Tugas yang menunggu Anda" }).waitFor();
-  await page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" }).waitFor();
+  await page.getByRole("button", { name: /^Keluar/ }).waitFor();
 
   // Empat angka ringkasan, masing-masing menuju halamannya.
   const tiles = page.getByLabel("Angka ringkasan").getByRole("link");
@@ -37,9 +40,7 @@ test("ringkasan: kartu perhatian, angka, peta, kegiatan, dan peran demo", { time
   await main.getByText(/^Data sampai /).waitFor();
 
   // Ganti peran: kartu tugas mengikuti peran petugas.
-  const select = page.getByRole("combobox", { name: "Masuk sebagai pengguna demo" });
-  await selectOption(select, { label: /petugas/i });
-  assert.match(await select.innerText(), /petugas/i);
+  await switchRole(page, "field_officer");
   await main.getByRole("heading", { name: "Tugas yang menunggu Anda" }).waitFor();
 
   // Filter wilayah ikut mengubah ringkasan.

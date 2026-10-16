@@ -3,6 +3,7 @@ import test from "node:test";
 import { chromium } from "playwright";
 import { selectOption } from "../helpers/select.mjs";
 import { pickRange } from "../helpers/calendar.mjs";
+import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -17,7 +18,7 @@ test("groundwater: stasiun, periode, gap, tooltip, tabel, mode terkini, dan resp
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") pageErrors.push(message.text()); });
 
-  await page.goto(`${baseURL}/groundwater`);
+  await signIn(page, baseURL, "coordinator", "/groundwater");
 
   const main = page.locator("main");
   const picker = page.getByLabel("Stasiun pengukuran");

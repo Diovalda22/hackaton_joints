@@ -1,3 +1,4 @@
+import { signIn } from "./helpers.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdir } from "node:fs/promises";
@@ -29,6 +30,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
     await page.route("**/api/v1/**", async (route) => {
       const url = new URL(route.request().url());
       let body = [];
+      if (url.pathname.endsWith("/auth/me")) body = { id: "coordinator-fixture", role: "coordinator", display_name: "Koordinator Demo" };
       if (url.pathname.endsWith("/users")) body = [{ id: "coordinator-fixture", role: "coordinator", display_name: "Koordinator Demo" }];
       if (url.pathname.endsWith("/ml/metrics")) {
         if (metricsStatus === "ERROR") return route.fulfill({ status: 503, json: { detail: "Server uji tidak tersedia" } });
@@ -45,7 +47,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
       await route.fulfill({ json: body });
     });
   }
-  await page.goto(`${baseURL}/experiments/ml`);
+  await signIn(page, baseURL, "coordinator", "/experiments/ml");
   const main = page.locator("main");
   await main.getByRole("heading", { name: "Uji prediksi muka air tanah", exact: true }).waitFor();
   if (!rest) {

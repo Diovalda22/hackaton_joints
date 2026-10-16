@@ -141,6 +141,14 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
     health: ({ signal }: RequestOptions = {}) => respond(signal, () => ({ status: "ok" as const, detail: "Mock repository (DEMO)" })),
     listAreas: ({ signal }: RequestOptions = {}) => respond(signal, () => [...AREAS]),
     listUsers: ({ signal }: RequestOptions = {}) => respond(signal, () => [...USERS]),
+
+    signIn(user, { signal } = {}) {
+      return respond(signal, () => {
+        const known = USERS.find((item) => item.id === user.id && item.role === user.role);
+        if (!known) throw new RepositoryError("FORBIDDEN", "Akun demo tidak dikenal.");
+        return known;
+      });
+    },
     listStations: ({ signal }: RequestOptions = {}) => respond(signal, () => [...STATIONS]),
 
     getGroundwater(query, { signal } = {}) {
