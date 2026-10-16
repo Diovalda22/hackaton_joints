@@ -4,7 +4,7 @@ import "./globals.css";
 import { bricolage, poppins } from "@/lib/fonts";
 
 export const metadata: Metadata = {
-  title: { default: "GambutOps — Cegah, Deteksi, Tindak", template: "%s | GambutOps" },
+  title: { default: "PeatSignal — Prevent, Detection, Action", template: "%s | PeatSignal" },
   description: "Prototipe pemantauan lahan gambut: muka air tanah, titik panas satelit, prioritas pemeriksaan, dan tugas lapangan yang dapat ditelusuri.",
   robots: { index: false, follow: false },
 };

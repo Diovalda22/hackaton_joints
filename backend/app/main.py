@@ -7,7 +7,9 @@ from app.api.routes.contracts import router as contracts_router
 from app.api.routes.firms import router as firms_router
 from app.api.routes.health import router as health_router
 from app.api.routes.monitoring import router as monitoring_router
+from app.api.routes.prevention import router as prevention_router
 from app.api.routes.priorities import router as priorities_router
+from app.api.routes.rainfall import router as rainfall_router
 from app.api.routes.tasks import router as tasks_router
 from app.core.config import get_settings
 
@@ -35,6 +37,8 @@ def create_app() -> FastAPI:
     application.include_router(firms_router)
     application.include_router(monitoring_router)
     application.include_router(priorities_router)
+    application.include_router(prevention_router)
+    application.include_router(rainfall_router)
     application.include_router(tasks_router)
     application.include_router(contracts_router)
     return application

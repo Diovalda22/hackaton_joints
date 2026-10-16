@@ -11,6 +11,7 @@ import { cn } from "@/components/ui/utils";
 export const LANDING_SECTIONS = [
   { id: "masalah", label: "Masalah" },
   { id: "cara-kerja", label: "Cara kerja" },
+  { id: "forecasting", label: "Forecasting" },
   { id: "alur", label: "Alur" },
   { id: "data", label: "Data" },
   { id: "faq", label: "FAQ" },
@@ -50,8 +51,8 @@ export function LandingNavbar() {
           floating ? "max-w-[1120px] rounded-full border border-border bg-white/95 shadow-sm" : "max-w-[1200px] border border-transparent",
         )}
       >
-        <span className="min-[400px]:hidden"><Brand compact href="/" label="GambutOps — beranda" /></span>
-        <span className="hidden min-[400px]:block"><Brand href="/" label="GambutOps — beranda" /></span>
+        <span className="min-[400px]:hidden"><Brand compact href="/" label="PeatSignal — beranda" /></span>
+        <span className="hidden min-[400px]:block"><Brand href="/" label="PeatSignal — beranda" /></span>
         <nav aria-label="Bagian halaman" className="hidden items-center gap-1 lg:flex">
           {LANDING_SECTIONS.map((section) => (
             <a

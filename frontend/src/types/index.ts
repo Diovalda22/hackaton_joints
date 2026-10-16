@@ -48,3 +48,8 @@ export type DashboardSummary = z.infer<typeof s.dashboardSummarySchema>;
 
 export type HotspotMapPoint = z.infer<typeof s.hotspotMapPointSchema>;
 export type HotspotMapData = z.infer<typeof s.hotspotMapSchema>;
+
+export type PreventionInput = z.infer<typeof s.preventionInputSchema>;
+export type PreventionResponse = z.infer<typeof s.preventionResponseSchema>;
+
+export type ChirpsRainfall = z.infer<typeof s.chirpsRainfallSchema>;

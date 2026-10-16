@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "GambutOps API"
+    app_name: str = "PeatSignal API"
     app_version: str = "0.1.0"
     app_env: Environment = "development"
     database_url: str = (

@@ -7,7 +7,7 @@ def test_health_is_public_and_contains_no_database_claim(client: AsgiClient) -> 
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "service": "GambutOps API",
+        "service": "PeatSignal API",
         "version": "0.1.0",
         "environment": "development",
     }

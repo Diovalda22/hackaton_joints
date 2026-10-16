@@ -19,7 +19,7 @@ export interface NavigationItem {
 export const navigation: readonly NavigationItem[] = [
   {
     href: "/dashboard", label: "Ringkasan", title: "Ringkasan pemantauan",
-    eyebrow: "GAMBUTOPS · RINGKASAN", phase: "F1.1", available: true, icon: LayoutDashboard,
+    eyebrow: "PEATSIGNAL · RINGKASAN", phase: "F1.1", available: true, icon: LayoutDashboard,
     description: "Lihat kondisi lahan gambut, titik panas, dan tugas pemeriksaan dalam satu halaman.",
     capabilities: ["Melihat jumlah titik panas, tugas, dan kelengkapan data sesuai periode dan wilayah", "Melihat peta ringkas dan daftar lokasi yang perlu diperiksa", "Melihat kegiatan terbaru beserta sumber dan waktu datanya"],
   },
@@ -48,7 +48,7 @@ export const navigation: readonly NavigationItem[] = [
     capabilities: ["Koordinator membuat tugas dan memilih petugas", "Petugas memulai tugas dan mengirim laporan hasil pemeriksaan", "Setiap perubahan status tercatat: siapa, kapan, dan apa"],
   },
   {
-    href: "/experiments/ml", label: "Uji prediksi", title: "Uji prediksi muka air tanah",
+    href: "/experiments/ml", label: "GWT Forecasting", title: "Uji prediksi muka air tanah",
     eyebrow: "EKSPERIMEN · PREDIKSI", phase: "F1.6", available: true, experimental: true, icon: FlaskConical,
     description: "Uji coba memperkirakan muka air tanah satu hari ke depan. Hasilnya belum dipakai untuk keputusan.",
     capabilities: ["Membandingkan perkiraan model dengan cara sederhana (nilai hari ini = besok)", "Melihat grafik nilai sebenarnya dan nilai perkiraan", "Hasil hanya tampil bila model sudah diuji; tidak ada angka karangan"],

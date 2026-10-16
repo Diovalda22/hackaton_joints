@@ -4,6 +4,7 @@ import { EMERGENCY_NOTE } from "@/components/guide/guide-content";
 import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/utils";
+import { ForecastFeature } from "./forecast-feature";
 import { LandingNavbar } from "./landing-navbar";
 import { GroundwaterVisual, HeroIllustration, HotspotVisual, PriorityVisual } from "./illustrations";
 import { HeroLine, Reveal, ScrollStatement } from "./reveal";
@@ -53,7 +54,7 @@ function Problem() {
     <section id="masalah" aria-labelledby="masalah-title" className="scroll-mt-24 bg-card py-20 md:py-28">
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
         <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">Masalah</p>
-        <span id="masalah-title" className="sr-only">Masalah yang diselesaikan GambutOps</span>
+        <span id="masalah-title" className="sr-only">Masalah yang diselesaikan PeatSignal</span>
         <div className="mt-4 max-w-4xl">
           <ScrollStatement>Gambut bisa terbakar dari bawah tanah. Satelit melihat panasnya, belum tentu apinya. Tim butuh tahu lokasi mana yang dicek lebih dulu.</ScrollStatement>
         </div>
@@ -81,7 +82,7 @@ function HowItWorks() {
   return (
     <section id="cara-kerja" aria-labelledby="cara-kerja-title" className="scroll-mt-24 py-20 md:py-28">
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
-        <SectionHeading id="cara-kerja-title" eyebrow="Cara kerja" center title={<>Cegah, deteksi, <span className="text-primary italic">tindak</span></>} />
+        <SectionHeading id="cara-kerja-title" eyebrow="Cara kerja" center title={<>Prevent, detection, <span className="text-primary italic">action</span></>} />
         <ol className="mt-14 space-y-6 lg:space-y-10">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
@@ -145,7 +146,7 @@ function Flow() {
 const PRINCIPLES = [
   { title: "Titik panas belum tentu api", text: "Selalu dicek di lapangan." },
   { title: "Prioritas bukan ramalan", text: "Urutan pemeriksaan, bukan peluang kebakaran." },
-  { title: "Data 2019 untuk latihan", text: "Tidak dianggap kondisi sekarang." },
+  { title: "Historis melatih, input baru menguji", text: "Model dilatih dari 2018–2019. Prediksi dengan input terkini masih eksperimental." },
 ] as const;
 
 function DataPrinciples() {
@@ -163,7 +164,7 @@ function DataPrinciples() {
             </li>
           ))}
         </ul>
-        <p className="mt-6 text-sm text-muted-foreground">Sumber: NASA FIRMS (VIIRS) dan stasiun BRG (mmc1.xlsx).</p>
+        <p className="mt-6 text-sm text-muted-foreground">Sumber: NASA FIRMS (VIIRS), data stasiun BRG, Open-Meteo, dan CHIRPS.</p>
       </div>
     </section>
   );
@@ -171,6 +172,7 @@ function DataPrinciples() {
 
 const FAQ = [
   { q: "Apakah titik panas berarti kebakaran?", a: "Tidak selalu. Titik panas perlu dicek petugas di lapangan." },
+  { q: "Apakah GWT terkini diambil otomatis?", a: "GWT diisi dari pengukuran lapangan tujuh hari berurutan, atau skenario demo berlabel. Hujan dapat diambil otomatis. Model dibandingkan dengan baseline dan belum divalidasi untuk kondisi terkini." },
   { q: "Perlu kata sandi untuk masuk?", a: "Tidak. Cukup pilih akun Koordinator atau Petugas." },
   { q: "Bisa dipakai di HP?", a: "Bisa, termasuk peta layar penuh." },
   { q: "Melihat kebakaran sungguhan?", a: "Jangan menunggu aplikasi. Hubungi 112 atau BPBD setempat." },
@@ -220,8 +222,8 @@ function Footer() {
   return (
     <footer className="border-t bg-card">
       <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-8 md:px-8">
-        <Brand href="/" label="GambutOps — beranda" />
-        <p className="text-xs text-muted-foreground">© 2026 GambutOps</p>
+        <Brand href="/" label="PeatSignal — beranda" />
+        <p className="text-xs text-muted-foreground">© 2026 PeatSignal</p>
       </div>
     </footer>
   );
@@ -238,6 +240,7 @@ export function LandingPage() {
         <Hero />
         <Problem />
         <HowItWorks />
+        <ForecastFeature />
         <Flow />
         <DataPrinciples />
         <Faq />

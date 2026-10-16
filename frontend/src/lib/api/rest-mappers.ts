@@ -106,7 +106,7 @@ export function priorityCutoff(asOfDate: string, nowMs: number): string {
   return `${new Date(Math.floor(nowMs / 1000) * 1000).toISOString().slice(0, 19)}Z`;
 }
 
-const ENGINE_SOURCE = "Decision engine GambutOps (server)";
+const ENGINE_SOURCE = "Decision engine PeatSignal (server)";
 
 /** Snapshot objek backend → indikator yang dapat dibaca pengguna; snapshot asli tetap disertakan. */
 export function snapshotInputs(raw: Record<string, unknown>): AssessmentInput[] {
@@ -129,7 +129,7 @@ export function snapshotInputs(raw: Record<string, unknown>): AssessmentInput[] 
     const last = trend.observations.at(-1)?.date ?? null;
     inputs.push({ key: `GWT_TREND_${trend.station}`, label: `Perubahan muka air tanah 7 hari · ${trend.station}`, value: trend.delta_m, unit: "m", source: "mmc1.xlsx (GWT harian)", observed_at: last });
   }
-  inputs.push({ key: "FIELD_REPORTS", label: "Laporan lapangan terverifikasi", value: supporting_reports.length + verification_reports.length, unit: "laporan", source: "Tugas lapangan GambutOps", observed_at: null });
+  inputs.push({ key: "FIELD_REPORTS", label: "Laporan lapangan terverifikasi", value: supporting_reports.length + verification_reports.length, unit: "laporan", source: "Tugas lapangan PeatSignal", observed_at: null });
   return inputs;
 }
 

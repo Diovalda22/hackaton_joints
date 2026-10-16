@@ -10,6 +10,8 @@ import { createReportInputSchema, createTaskInputSchema, updateTaskInputSchema }
 import type { FieldReport, GroundwaterObservation, Hotspot, HotspotVerificationStatus, InspectionTask, MonitoringMode, TaskStatusChange, User } from "@/types";
 import { CURRENT_DEMO_DATE, CURRENT_DEMO_LAST_SYNC, CURRENT_HOTSPOTS, GROUNDWATER, HISTORICAL_DEMO_LAST_SYNC, HISTORICAL_HOTSPOTS, STATIONS, USERS } from "./fixtures";
 import { evaluateAll } from "./priority-rules";
+import { unavailableAutomatic, unavailableChirps, assessMockPrevention } from "./prevention";
+import { preventionInputSchema } from "@/lib/schemas/prevention";
 import { createMemoryStorage, getBrowserStorage, loadStore, saveStore, type DemoStore, type KeyValueStorage, type StorageIssue } from "./storage";
 
 export interface MockRepositoryOptions {
@@ -219,7 +221,7 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
 
     syncHotspots(_input, _context, { signal } = {}) {
       return respond(signal, () => {
-        throw new RepositoryError("HTTP", "Sinkronisasi NASA FIRMS hanya tersedia saat terhubung ke server GambutOps.");
+        throw new RepositoryError("HTTP", "Sinkronisasi NASA FIRMS hanya tersedia saat terhubung ke server PeatSignal.");
       });
     },
 
@@ -338,6 +340,12 @@ export function createMockRepository(options: MockRepositoryOptions = {}): Gambu
         return report;
       });
     },
+
+    getAutomaticRainfall: (query, { signal } = {}) => respond(signal, () => unavailableAutomatic(query.area_id, query.date_to)),
+
+    getChirpsRainfall: (query, { signal } = {}) => respond(signal, () => unavailableChirps(query.area_id, query.date_to)),
+
+    assessPrevention: (input, { signal } = {}) => respond(signal, () => assessMockPrevention(parseOrThrow(preventionInputSchema, input), now().toISOString().slice(0, 10))),
 
     getMlMetrics: ({ signal }: RequestOptions = {}) => respond(signal, () => ({
       status: "NOT_AVAILABLE" as const,

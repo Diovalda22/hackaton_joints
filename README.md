@@ -1,4 +1,4 @@
-# GambutOps
+# PeatSignal
 
 Aplikasi pemantauan gambut: muka air tanah, titik panas satelit, prioritas pemeriksaan,
 tugas/laporan lapangan, dan eksperimen prediksi muka air tanah +1 hari.

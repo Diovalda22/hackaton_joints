@@ -19,7 +19,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   // Panduan dibuka saat diminta setelah login.
   await signIn(page, baseURL, "coordinator", "/dashboard");
   assert.equal(await page.locator("html").getAttribute("lang"), "id");
-  const guide = page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" });
+  const guide = page.getByRole("dialog", { name: "Panduan penggunaan PeatSignal" });
   await page.getByRole("heading", { name: "Ringkasan pemantauan", level: 1 }).waitFor();
   assert.equal(await guide.count(), 0, "Panduan tidak terbuka otomatis");
   await page.getByRole("button", { name: "Buka panduan penggunaan" }).click();
@@ -93,7 +93,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
     await page.setViewportSize({ width, height: 900 });
     const trigger = page.getByRole("button", { name: "Buka navigasi" });
     await trigger.click();
-    const drawer = page.getByRole("dialog", { name: "Navigasi GambutOps" });
+    const drawer = page.getByRole("dialog", { name: "Navigasi PeatSignal" });
     await drawer.waitFor();
     await page.keyboard.press("Tab");
     assert.equal(await drawer.evaluate((element) => element.contains(document.activeElement)), true);
