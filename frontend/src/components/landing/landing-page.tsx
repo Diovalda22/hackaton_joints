@@ -4,7 +4,6 @@ import { EMERGENCY_NOTE } from "@/components/guide/guide-content";
 import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/utils";
-import { themeV2ClassName } from "@/lib/fonts";
 import { LandingNavbar } from "./landing-navbar";
 import { GroundwaterVisual, HeroIllustration, HotspotVisual, PriorityVisual } from "./illustrations";
 import { HeroLine, Reveal, ScrollStatement } from "./reveal";
@@ -230,7 +229,7 @@ function Footer() {
 
 export function LandingPage() {
   return (
-    <div className={cn(themeV2ClassName, "min-h-dvh bg-background text-foreground")}>
+    <div className={cn("theme-v2", "min-h-dvh bg-background text-foreground")}>
       {/* Tanpa JavaScript, elemen beranimasi tetap tampil. */}
       <noscript><style>{".js-reveal,.split-parent,.js-anim *{visibility:visible!important;opacity:1!important;transform:none!important}.js-anim [pathLength]{stroke-dasharray:none!important;stroke-dashoffset:0!important}.js-anim .js-pre{display:none}"}</style></noscript>
       <a href="#konten" className="fixed top-3 left-3 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-3 text-sm text-white focus:translate-y-0">Lewati ke konten utama</a>

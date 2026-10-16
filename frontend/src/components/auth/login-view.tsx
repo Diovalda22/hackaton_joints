@@ -18,7 +18,6 @@ import { errorMessage } from "@/lib/api";
 import { createRepository, readRepositoryConfig } from "@/lib/api/create-repository";
 import { safeNextPath, saveSession, useSession } from "@/lib/auth/session";
 import { roleLabels } from "@/lib/domain/labels";
-import { themeV2ClassName } from "@/lib/fonts";
 import type { User } from "@/types";
 
 const ROLE_DUTIES: Record<User["role"], readonly string[]> = {
@@ -169,7 +168,7 @@ export function LoginView() {
   return (
     <RepositoryProvider repository={repository}>
       <QueryCacheProvider>
-        <main className={cn(themeV2ClassName, "grid min-h-dvh bg-background text-foreground lg:grid-cols-2")}>
+        <main className={cn("theme-v2", "grid min-h-dvh bg-background text-foreground lg:grid-cols-2")}>
           <div className="order-2 flex items-start justify-center px-4 py-10 sm:px-8 lg:order-1 lg:items-center lg:py-16">
             <LoginForm />
           </div>

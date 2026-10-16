@@ -7,7 +7,6 @@ import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/components/ui/utils";
-import { themeV2ClassName } from "@/lib/fonts";
 
 export const LANDING_SECTIONS = [
   { id: "masalah", label: "Masalah" },
@@ -75,7 +74,7 @@ export function LandingNavbar() {
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full lg:hidden" aria-label="Buka menu bagian halaman"><Menu aria-hidden="true" /></Button>
             </SheetTrigger>
-            <SheetContent className={themeV2ClassName}>
+            <SheetContent className={"theme-v2"}>
               <SheetTitle className="sr-only">Bagian halaman</SheetTitle>
               <SheetDescription className="sr-only">Lompat ke bagian landing page.</SheetDescription>
               <nav aria-label="Bagian halaman (menu)" className="mt-16 flex flex-col gap-1 px-4">

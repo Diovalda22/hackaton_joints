@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { bricolage, poppins } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: { default: "GambutOps — Cegah, Deteksi, Tindak", template: "%s | GambutOps" },
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 
 /** Layout akar hanya memuat dokumen; landing dan aplikasi punya layout sendiri. */
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="id"><body>{children}</body></html>;
+  return <html lang="id"><body className={`${bricolage.variable} ${poppins.variable}`}>{children}</body></html>;
 }
