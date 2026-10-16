@@ -61,7 +61,7 @@ Pagination hotspot: `limit` default 200, maksimum 1000 (`src/lib/domain/paginati
 
 Mock mengikuti kontrak yang sama (pagination, urutan, kode satelit `N`/`N20`). ID stasiun mock tetap `BRG6` dkk.; UI harus selalu menampilkan `code`.
 
-Menjalankan REST lokal: `NEXT_PUBLIC_DATA_SOURCE=rest NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1`. CORS backend default hanya `http://localhost:3000`; buka frontend lewat `localhost`, bukan `127.0.0.1`, atau tambahkan origin di `GAMBUTOPS_CORS_ALLOWED_ORIGINS`.
+Menjalankan REST lokal: `NEXT_PUBLIC_DATA_SOURCE=rest NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1`. CORS backend default hanya `http://localhost:3000`; buka frontend lewat `localhost`, bukan `127.0.0.1`, atau tambahkan origin di `CORS_ALLOWED_ORIGINS`.
 
 ## State machine tugas
 

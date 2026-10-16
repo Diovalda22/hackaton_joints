@@ -1,9 +1,48 @@
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
 from app.core.config import Settings
 from app.schemas.common import MonitoringMode, QualityFlag
 from app.schemas.groundwater import GroundwaterObservation
+
+
+@pytest.mark.parametrize("source", ["environment", "dotenv"])
+def test_settings_load_unprefixed_keys(
+    source: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    values = {
+        "APP_NAME": "Deployment Test API",
+        "APP_VERSION": "0.2.0",
+        "APP_ENV": "production",
+        "DATABASE_URL": "postgresql+psycopg://user:password@localhost:5433/config_test",
+        "CORS_ALLOWED_ORIGINS": "https://demo.example.com,http://localhost:3000",
+        "COORDINATOR_TOKEN": "coordinator-token-with-at-least-32-characters",
+        "FIELD_OFFICER_TOKEN": "field-officer-token-with-at-least-32-characters",
+        "FIRMS_MAP_KEY": "test-firms-key",
+        "ML_ARTIFACT_DIR": "deployment/ml",
+    }
+    for key in values:
+        monkeypatch.delenv(key, raising=False)
+    env_file = tmp_path / ".env"
+    if source == "environment":
+        for key, value in values.items():
+            monkeypatch.setenv(key, value)
+    else:
+        env_file.write_text("\n".join(f"{key}={value}" for key, value in values.items()))
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.app_name == values["APP_NAME"]
+    assert settings.app_version == values["APP_VERSION"]
+    assert settings.app_env == "production"
+    assert settings.database_url == values["DATABASE_URL"]
+    assert settings.allowed_origins == ["https://demo.example.com", "http://localhost:3000"]
+    assert settings.resolved_coordinator_token == values["COORDINATOR_TOKEN"]
+    assert settings.resolved_field_officer_token == values["FIELD_OFFICER_TOKEN"]
+    assert settings.firms_map_key == values["FIRMS_MAP_KEY"]
+    assert settings.ml_artifact_dir == Path("deployment/ml")
 
 
 def test_production_requires_distinct_role_tokens() -> None:

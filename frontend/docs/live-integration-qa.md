@@ -36,7 +36,7 @@ data aplikasi yang ada; bukan migration test dan tidak melakukan seed otomatis.
 Terminal pertama, dari `backend/`:
 
 ```bash
-GAMBUTOPS_CORS_ALLOWED_ORIGINS=http://127.0.0.1:3100,http://localhost:3100 \
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:3100,http://localhost:3100 \
   .venv/bin/python scripts/serve_browser_qa.py
 ```
 
@@ -73,7 +73,7 @@ Untuk menguji NASA live, hentikan server QA, konfigurasi key lalu jalankan ulang
 ```bash
 # Dari backend/:
 .venv/bin/python scripts/configure_firms_key.py
-GAMBUTOPS_CORS_ALLOWED_ORIGINS=http://127.0.0.1:3100,http://localhost:3100 \
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:3100,http://localhost:3100 \
   .venv/bin/python scripts/serve_browser_qa.py --allow-live-sync
 # Dari frontend/, dengan server frontend REST masih aktif:
 LIVE_FIRMS_SYNC=1 SHELL_BASE_URL=http://127.0.0.1:3100 \

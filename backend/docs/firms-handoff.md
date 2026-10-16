@@ -7,7 +7,7 @@ Definisi NASA tersedia di https://firms.modaps.eosdis.nasa.gov/api/area/.
 
 ## Konfigurasi dan menjalankan
 
-Key dibaca dari `GAMBUTOPS_FIRMS_MAP_KEY` pada environment/`.env`. File `api_key_firms.md`
+Key dibaca dari `FIRMS_MAP_KEY` pada environment/`.env`. File `api_key_firms.md`
 yang sudah tersedia lokal dapat dimuat tanpa menampilkan key:
 
 ```bash

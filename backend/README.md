@@ -17,12 +17,12 @@ python3 -m venv .venv
 ```
 
 API tersedia di `http://localhost:8000`, dokumentasi interaktif di `/docs`, kontrak mesin
-di `/openapi.json`, dan liveness di `/health`. Konfigurasi memakai prefix
-`GAMBUTOPS_`; jangan commit `.env` atau kunci FIRMS.
+di `/openapi.json`, dan liveness di `/health`. Konfigurasi memakai nama environment tanpa
+prefix, seperti `DATABASE_URL` dan `FIRMS_MAP_KEY`; jangan commit `.env` atau kunci FIRMS.
 
 PostgreSQL Docker diekspos pada `127.0.0.1:5433` (port container tetap 5432), sehingga dapat
 berjalan bersama PostgreSQL lokal pada port 5432. Jika `.env` sudah ada, sesuaikan port
-`GAMBUTOPS_DATABASE_URL` ke 5433; file tersebut tidak ditimpa otomatis.
+`DATABASE_URL` ke 5433; file tersebut tidak ditimpa otomatis.
 
 ### Supabase `hackaton_joints`
 
@@ -70,7 +70,7 @@ membaca cache. Keduanya tidak memanggil NASA. Cooldown berlaku sepuluh menit per
 
 Endpoint write memakai `Authorization: Bearer <token>`. Pada development/test saja tersedia
 token deterministik `demo-coordinator-token` dan `demo-field-officer-token`. Untuk production,
-`GAMBUTOPS_COORDINATOR_TOKEN` dan `GAMBUTOPS_FIELD_OFFICER_TOKEN` wajib diisi dengan nilai kuat
+`COORDINATOR_TOKEN` dan `FIELD_OFFICER_TOKEN` wajib diisi dengan nilai kuat
 minimal 32 karakter dan berbeda; aplikasi menolak startup bila keduanya tidak valid. Kedua identitas demo memiliki
 UUID stabil yang diseed oleh migration awal.
 
@@ -227,7 +227,7 @@ Integration test memakai database khusus dengan nama berakhiran `_test`, lalu me
 migration upgrade/downgrade; jangan arahkan ke database aplikasi yang memiliki data penting.
 
 ```bash
-GAMBUTOPS_TEST_DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/gambutops_test \
+TEST_DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/gambutops_test \
   .venv/bin/pytest
 ```
 
