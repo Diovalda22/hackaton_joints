@@ -32,6 +32,11 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
       let body = [];
       if (url.pathname.endsWith("/auth/me")) body = { id: "coordinator-fixture", role: "coordinator", display_name: "Koordinator Demo" };
       if (url.pathname.endsWith("/users")) body = [{ id: "coordinator-fixture", role: "coordinator", display_name: "Koordinator Demo" }];
+      if (url.pathname.includes("/rainfall/")) {
+        const end = url.searchParams.get("date_to");
+        const dates = Array.from({ length: 7 }, (_, i) => { const day = new Date(`${end}T00:00:00Z`); day.setUTCDate(day.getUTCDate()+i-6); return day.toISOString().slice(0,10); });
+        body = { status: "NOT_AVAILABLE", dataset_id: "UCSB-CHG/CHIRPS/DAILY", provider: "CLIMATESERV", scope: "REGIONAL_DEMO_BBOX", area_id: "batanghari", area_label: "Batanghari", bbox: [102.9,-2.2,104,-1.3], resolution_degrees: 0.05, statistic: "MEAN_VALID_CELLS", date_from: dates[0], date_to: end, retrieved_at: new Date().toISOString(), days: dates.map((date) => ({ date, rainfall_mm: null, valid_cells: null, source_url: "https://climateserv.servirglobal.net/api/" })), note: "Fixture hujan belum tersedia" };
+      }
       if (url.pathname.endsWith("/ml/metrics")) {
         if (metricsStatus === "ERROR") return route.fulfill({ status: 503, json: { detail: "Server uji tidak tersedia" } });
         body = metricsStatus === "AVAILABLE" ? { status: "AVAILABLE", experiments } : { status: "NOT_AVAILABLE", reason: "Artifact pengujian belum tersedia" };
@@ -50,6 +55,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
   await signIn(page, baseURL, "coordinator", "/experiments/ml");
   const main = page.locator("main");
   await main.getByRole("heading", { name: "Uji prediksi muka air tanah", exact: true }).waitFor();
+  await main.locator("summary").filter({ hasText: "Evaluasi model historis" }).click();
   if (!rest) {
     await main.getByRole("heading", { name: "Hasil eksperimen belum tersedia" }).waitFor();
     await main.getByRole("button", { name: "Periksa lagi" }).click();
@@ -58,7 +64,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
   } else {
     await main.getByRole("heading", { name: "Evaluasi BRG6" }).waitFor();
     await main.getByText("Eksperimen saja", { exact: true }).waitFor();
-    const details = main.locator("details").filter({ has: page.locator("summary", { hasText: "Detail eksperimen" }) }).first();
+    const details = main.locator("details").filter({ has: page.locator("summary", { hasText: "Detail eksperimen" }) }).last();
     assert.equal(await details.getAttribute("open"), null, "metode tersembunyi pada tampilan awal");
     await details.locator("summary").first().focus();
     await page.keyboard.press("Enter");
@@ -94,6 +100,7 @@ test("ML: empty state atau REST metrics/forecast, pergantian stasiun, dan respon
   if (rest) {
     metricsStatus = "ERROR";
     await page.reload();
+    await main.locator("summary").filter({ hasText: "Evaluasi model historis" }).click();
     await main.getByRole("alert").waitFor();
     metricsStatus = "NOT_AVAILABLE";
     await main.getByRole("button", { name: "Coba lagi" }).click();

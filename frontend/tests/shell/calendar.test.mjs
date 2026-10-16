@@ -16,7 +16,7 @@ test("kalender: draft, batal, batas mode, rentang sehari, keyboard dan mobile", 
   page.on("pageerror", (error) => errors.push(error.message));
   await signIn(page, baseURL, "coordinator", "/groundwater");
   await page.getByRole("heading", { name: "Grafik muka air tanah harian" }).waitFor();
-  assert.equal(await page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" }).count(), 0);
+  assert.equal(await page.getByRole("dialog", { name: "Panduan penggunaan PeatSignal" }).count(), 0);
   assert.equal(await page.locator('input[type="date"], input[type="datetime-local"]').count(), 0);
   const trigger = page.getByRole("button", { name: "Periode", exact: true });
   const calendar = page.getByRole("dialog", { name: "Pilih periode" });

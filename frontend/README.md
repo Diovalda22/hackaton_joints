@@ -1,4 +1,4 @@
-# GambutOps — frontend
+# PeatSignal — frontend
 
 **Prevent · Detect · Act.** Fondasi tampilan prototype JOINTS Hackathon 2026. Bahasa antarmuka Indonesia; seluruh identitas demo berlabel simulasi. Sumber kebutuhan: 10 PRD dalam `../prdFiles/`.
 

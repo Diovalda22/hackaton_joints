@@ -5,7 +5,7 @@ import { HISTORICAL_BOUNDS, currentBounds } from "@/lib/domain/periods";
 import {
   createReportInputSchema, createTaskInputSchema, hotspotMapSchema, fieldReportSchema, hotspotSyncAttemptSchema, hotspotSyncInputSchema, hotspotSyncStatusSchema,
   inspectionTaskDetailSchema, inspectionTaskSchema, mlForecastInputSchema, mlForecastResponseSchema, mlMetricsResponseSchema,
-  updateTaskInputSchema, userSchema,
+  updateTaskInputSchema, userSchema, preventionInputSchema, preventionResponseSchema, chirpsRainfallSchema,
 } from "@/lib/schemas";
 import type { User, UserRole } from "@/types";
 import { RepositoryError, isAbortError } from "./errors";
@@ -209,6 +209,14 @@ export function createRestRepository(options: RestRepositoryOptions): GambutOpsR
 
     async createReport(taskId, input, { actor }, { signal } = {}) {
       return request(api(`/tasks/${encodeURIComponent(taskId)}/reports`), fieldReportSchema, { method: "POST", body: validateInput(createReportInputSchema, input), actor, signal });
+    },
+
+    getAutomaticRainfall: (query, { signal } = {}) => request(api("/rainfall/automatic"), chirpsRainfallSchema, { query, signal }),
+
+    getChirpsRainfall: (query, { signal } = {}) => request(api("/rainfall/chirps"), chirpsRainfallSchema, { query, signal }),
+
+    async assessPrevention(input, { signal } = {}) {
+      return request(api("/prevention/assess"), preventionResponseSchema, { method: "POST", body: validateInput(preventionInputSchema, input), signal });
     },
 
     getMlMetrics: ({ signal }: RequestOptions = {}) => request(api("/ml/metrics"), mlMetricsResponseSchema, { signal }),

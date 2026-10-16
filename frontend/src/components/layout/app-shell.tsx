@@ -30,15 +30,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild><Button variant="outline" size="icon" className="lg:hidden" aria-label="Buka navigasi"><Menu aria-hidden="true" /></Button></SheetTrigger>
             <SheetContent>
-              <SheetTitle className="sr-only">Navigasi GambutOps</SheetTitle>
+              <SheetTitle className="sr-only">Navigasi PeatSignal</SheetTitle>
               <SheetDescription className="sr-only">Pilih modul pemantauan atau eksperimen.</SheetDescription>
               <SidebarContent pathname={pathname} onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
           <div className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground">
-            <span className="hidden sm:inline">{active?.experimental ? "Eksperimen" : "GambutOps"}</span>
+            <span className="hidden sm:inline">{active?.experimental ? "Eksperimen" : "PeatSignal"}</span>
             <ChevronRight className="hidden size-3.5 sm:block" aria-hidden="true" />
-            <span className="truncate font-medium text-foreground">{active?.label ?? "GambutOps"}</span>
+            <span className="truncate font-medium text-foreground">{active?.label ?? "PeatSignal"}</span>
           </div>
           <Button variant="outline" onClick={() => openGuide()} aria-label="Buka panduan penggunaan" className="px-3 sm:px-4"><CircleHelp aria-hidden="true" /><span className="hidden sm:inline">Panduan</span></Button>
           <AccountMenu />
@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mx-auto max-w-[1280px]">{children}</div>
         </main>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-4 text-[11px] text-muted-foreground md:px-8">
-          <span>GambutOps · Cegah, Deteksi, Tindak</span>
+          <span>PeatSignal · Prevent, Detection, Action</span>
 
         </footer>
       </div>

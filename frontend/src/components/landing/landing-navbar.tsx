@@ -7,11 +7,11 @@ import { Brand } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/components/ui/utils";
-import { themeV2ClassName } from "@/lib/fonts";
 
 export const LANDING_SECTIONS = [
   { id: "masalah", label: "Masalah" },
   { id: "cara-kerja", label: "Cara kerja" },
+  { id: "forecasting", label: "Forecasting" },
   { id: "alur", label: "Alur" },
   { id: "data", label: "Data" },
   { id: "faq", label: "FAQ" },
@@ -51,8 +51,8 @@ export function LandingNavbar() {
           floating ? "max-w-[1120px] rounded-full border border-border bg-white/95 shadow-sm" : "max-w-[1200px] border border-transparent",
         )}
       >
-        <span className="min-[400px]:hidden"><Brand compact href="/" label="GambutOps — beranda" /></span>
-        <span className="hidden min-[400px]:block"><Brand href="/" label="GambutOps — beranda" /></span>
+        <span className="min-[400px]:hidden"><Brand compact href="/" label="PeatSignal — beranda" /></span>
+        <span className="hidden min-[400px]:block"><Brand href="/" label="PeatSignal — beranda" /></span>
         <nav aria-label="Bagian halaman" className="hidden items-center gap-1 lg:flex">
           {LANDING_SECTIONS.map((section) => (
             <a
@@ -75,7 +75,7 @@ export function LandingNavbar() {
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full lg:hidden" aria-label="Buka menu bagian halaman"><Menu aria-hidden="true" /></Button>
             </SheetTrigger>
-            <SheetContent className={themeV2ClassName}>
+            <SheetContent className={"theme-v2"}>
               <SheetTitle className="sr-only">Bagian halaman</SheetTitle>
               <SheetDescription className="sr-only">Lompat ke bagian landing page.</SheetDescription>
               <nav aria-label="Bagian halaman (menu)" className="mt-16 flex flex-col gap-1 px-4">

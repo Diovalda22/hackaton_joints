@@ -23,7 +23,7 @@ test("login: wajib masuk, kembali ke tujuan, next aman, sesi bertahan, keluar", 
     await page.goto(`${baseURL}${path}`);
     await page.waitForURL((url) => url.pathname === "/login" && url.searchParams.get("next") === path);
   }
-  await page.getByRole("heading", { name: "Masuk ke GambutOps", level: 1 }).waitFor();
+  await page.getByRole("heading", { name: "Masuk ke PeatSignal", level: 1 }).waitFor();
   assert.equal(await page.getByRole("navigation", { name: "Navigasi utama" }).count(), 0, "login tanpa shell aplikasi");
 
   // Masuk sebagai petugas → kembali ke halaman tujuan terakhir.

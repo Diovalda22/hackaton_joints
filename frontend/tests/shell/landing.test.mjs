@@ -6,7 +6,8 @@ import { signIn } from "./helpers.mjs";
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
 
 const SECTION_HEADINGS = [
-  "Cegah, deteksi, tindak",
+  "Prevent, detection, action",
+  /Data hari ini/,
   "Setiap langkah tercatat",
   "Prinsip penggunaan data",
   "Pertanyaan singkat",
@@ -40,7 +41,7 @@ test("landing: isi, navigasi, animasi aman, tanpa JS, dan responsif", { timeout:
   for (const name of SECTION_HEADINGS) await page.getByRole("heading", { level: 2, name }).waitFor({ state: "attached" });
   await page.getByRole("heading", { level: 2, name: /Gambut bisa terbakar dari bawah tanah/ }).waitFor({ state: "attached" });
 
-  // Ringkas: copy di main tidak lebih dari ±220 kata, tombol tanpa bayangan.
+  // Ringkas: copy di main tetap ringkas setelah penambahan forecasting, tombol tanpa bayangan.
   // Label di dalam ilustrasi (.js-anim) bukan copy, jadi tidak dihitung.
   const copy = await page.locator("main").evaluate((main) => {
     const clone = main.cloneNode(true);
@@ -48,13 +49,14 @@ test("landing: isi, navigasi, animasi aman, tanpa JS, dan responsif", { timeout:
     return clone.textContent ?? "";
   });
   const words = copy.split(/\s+/).filter(Boolean).length;
-  assert.ok(words <= 220, `teks landing ringkas (${words} kata)`);
+  assert.ok(words <= 500, `teks landing ringkas (${words} kata)`);
   const shadows = await page.locator("main a[data-slot=button], header a[data-slot=button]").evaluateAll((items) => items.map((item) => getComputedStyle(item).boxShadow));
   assert.ok(shadows.length > 0 && shadows.every((value) => value === "none" || /^(rgba\(0, 0, 0, 0\) 0px 0px 0px 0px,? ?)+$/.test(value)), `tombol tanpa bayangan: ${shadows.join(" | ")}`);
 
-  // Tanpa teks DEMO, badge acara, atau baris angka di landing; hero memakai ilustrasi.
+  // Forecasting menyatakan ilustrasi demo dan mengarahkan ke input baru.
   const mainText = await page.locator("main").innerText();
-  assert.doesNotMatch(mainText, /demo/i, "tidak ada teks demo");
+  assert.match(mainText, /DEMO/);
+  assert.equal(await page.locator("#forecasting").getByRole("link", { name: "Coba Groundwater Forecasting" }).getAttribute("href"), "/login?next=%2Fexperiments%2Fml");
   assert.doesNotMatch(mainText, /JOINTS Hackathon/);
   assert.equal(await page.locator("main dl").count(), 0, "tanpa baris angka");
   // Hero dan panel cara kerja memakai ilustrasi SVG (bukan foto/screenshot).
@@ -77,7 +79,7 @@ test("landing: isi, navigasi, animasi aman, tanpa JS, dan responsif", { timeout:
 
   // Ilustrasi: label deskriptif.
   const labels = await page.locator("main [role=img]").evaluateAll((items) => items.map((svg) => svg.getAttribute("aria-label") ?? ""));
-  assert.ok(labels.length === 3 && labels.every((label) => label.length > 20), "aria-label deskriptif");
+  assert.ok(labels.length === 4 && labels.every((label) => label.length > 20), "aria-label deskriptif");
 
   // Navbar menjadi pill setelah digulir; anchor menuju section.
   const bar = page.getByRole("banner").locator("> div");

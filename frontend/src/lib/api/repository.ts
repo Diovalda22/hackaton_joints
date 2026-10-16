@@ -96,6 +96,12 @@ export interface GambutOpsRepository {
   updateTask(id: string, input: UpdateTaskInput, context: MutationContext, options?: RequestOptions): Promise<InspectionTask>;
   createReport(taskId: string, input: CreateReportInput, context: MutationContext, options?: RequestOptions): Promise<FieldReport>;
 
+  getAutomaticRainfall(query: { area_id: "batanghari" | "kubu-raya"; date_to: string }, options?: RequestOptions): Promise<import("@/types").ChirpsRainfall>;
+
+  getChirpsRainfall(query: { area_id: "batanghari" | "kubu-raya"; date_to: string }, options?: RequestOptions): Promise<import("@/types").ChirpsRainfall>;
+
+  assessPrevention(input: import("@/types").PreventionInput, options?: RequestOptions): Promise<import("@/types").PreventionResponse>;
+
   getMlMetrics(options?: RequestOptions): Promise<MlMetricsResponse>;
   forecastGroundwater(input: MlForecastInput, options?: RequestOptions): Promise<MlForecastResponse>;
 

@@ -39,7 +39,7 @@ export function MonitoringContextPanel({ id: sectionId }: { id?: string } = {}) 
       <details className="border-t pt-3 text-xs leading-5 text-muted-foreground">
         <summary className="cursor-pointer font-medium hover:text-foreground">Detail data</summary>
         <div className="mt-2 space-y-2">
-          <p>{demo ? "Data contoh (DEMO). Tugas dan laporan tersimpan di browser." : "Data dari server GambutOps. Laporan demo berlabel SIMULASI."}</p>
+          <p>{demo ? "Data contoh (DEMO). Tugas dan laporan tersimpan di browser." : "Data dari server PeatSignal. Laporan demo berlabel SIMULASI."}</p>
           <p>Rentang tersedia: {formatDate(bounds.min_date)} – {formatDate(bounds.max_date)}.</p>
           <p>{historical ? `Data setelah ${formatDate(asOf)} tidak dipakai.` : "Data GWT 2018–2019 tidak mewakili kondisi terkini."}</p>
         </div>

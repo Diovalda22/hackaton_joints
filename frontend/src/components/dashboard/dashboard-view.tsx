@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import { Activity as ActivityIcon, ArrowRight, ClipboardCheck, Database, ListOrdered, Satellite, Waves } from "lucide-react";
 import { navigation } from "@/components/layout/navigation";
 import { useActor } from "@/components/providers/actor-context";
-import { useDashboardSummary, useHotspots, usePriorities, useTasks } from "@/components/providers/data-hooks";
+import { useDashboardSummary, useHotspotMap, usePriorities, useTasks } from "@/components/providers/data-hooks";
 import { useIsDemoData } from "@/components/providers/gambutops-repository";
 import { useMonitoring } from "@/components/providers/monitoring-context";
 import { ErrorState } from "@/components/shared/async-states";
 import { DemoBadge } from "@/components/shared/demo-badge";
 import { HotspotMap } from "@/components/hotspots/hotspot-map";
-import { HOTSPOTS_PER_PAGE } from "@/components/hotspots/hotspots-view";
 import { PriorityBadge, TaskStatusBadge } from "@/components/tasks/task-badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -185,12 +184,12 @@ function Provenance({ summary }: { summary: DashboardSummary }) {
 
 export function DashboardView() {
   const router = useRouter();
-  const { filter } = useMonitoring();
+  const { mode, filter } = useMonitoring();
   const summary = useDashboardSummary();
   const priorities = usePriorities();
   const tasks = useTasks();
-  // Kunci sama dengan halaman Titik panas (halaman pertama) sehingga cache dipakai bersama.
-  const hotspots = useHotspots({ satellite: null, limit: HOTSPOTS_PER_PAGE, offset: 0 });
+  // Gunakan seluruh marker dan cache yang sama dengan peta halaman Titik panas.
+  const hotspots = useHotspotMap();
 
   return (
     <div className="min-w-0 space-y-5">
@@ -212,9 +211,13 @@ export function DashboardView() {
           <h2 id="map-title" className="flex items-center gap-2 text-sm font-semibold"><Satellite className="size-4 text-teal" aria-hidden="true" />Peta titik panas terbaru</h2>
           <Button asChild variant="outline" size="sm"><Link href="/hotspots">Buka peta lengkap<ArrowRight aria-hidden="true" /></Link></Button>
         </div>
-        <HotspotMap hotspots={hotspots.data?.items ?? []} selectedId={null} onSelect={() => router.push("/hotspots")} areaId={filter.area_id} className="h-[280px] sm:h-[360px]" />
+        {hotspots.status === "error" ? (
+          <ErrorState title="Peta titik panas belum dapat dimuat" description={errorMessage(hotspots.error)} onRetry={hotspots.refetch} />
+        ) : (
+          <HotspotMap hotspots={hotspots.data?.items ?? []} selectedId={null} onSelect={() => router.push("/hotspots")} areaId={filter.area_id} national={mode === "CURRENT_MONITORING"} className="h-[280px] sm:h-[360px]" />
+        )}
         <p className="text-xs text-muted-foreground">
-          {hotspots.data ? `Menampilkan ${formatCount(hotspots.data.items.length)} titik terbaru dari ${formatCount(hotspots.data.total)}.` : "Memuat titik panas…"}
+          {hotspots.data ? `Menampilkan ${formatCount(hotspots.data.items.length)} titik sesuai filter · ${mode === "CURRENT_MONITORING" ? "Seluruh Indonesia" : "cakupan sama dengan halaman Titik panas"}.` : hotspots.status === "loading" ? "Memuat titik panas…" : ""}
         </p>
       </section>
 

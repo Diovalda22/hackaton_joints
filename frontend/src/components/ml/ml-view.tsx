@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { PreventionWorkbench } from "@/components/prevention/prevention-workbench";
 import { useMlMetrics } from "@/components/providers/data-hooks";
 import { useMonitoring } from "@/components/providers/monitoring-context";
 import { useRepositoryQuery } from "@/components/providers/use-repository-query";
@@ -111,10 +112,14 @@ export function MlView() {
 
   return <div className="space-y-6">
     <header><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Uji prediksi muka air tanah</h1></header>
+    <PreventionWorkbench />
+    <details className="space-y-5 rounded-xl border bg-card p-4 sm:p-6">
+    <summary className="cursor-pointer font-semibold">Evaluasi model historis <span className="ml-2 text-xs font-normal text-muted-foreground">2018–2019</span></summary>
     <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">{mode === "CURRENT_MONITORING" && "Mode terkini · "}Eksperimen historis 2018–2019 · tidak digunakan untuk keputusan operasional. Periode uji terpisah dari filter pemantauan.</p>
     {metrics.status === "loading" && <LoadingState label="Memuat hasil eksperimen…" />}
     {metrics.status === "error" && <ErrorState description={errorMessage(metrics.error)} onRetry={metrics.refetch} />}
     {metrics.status === "success" && !experiment && <EmptyState title="Hasil eksperimen belum tersedia" description={metrics.data?.status === "NOT_AVAILABLE" ? metrics.data.reason : "Belum ada model yang tersedia dari server."} action={<Button variant="outline" onClick={metrics.refetch}>Periksa lagi</Button>} />}
     {experiment && <><label className="block max-w-sm space-y-2 text-sm"><span className="font-medium">Stasiun eksperimen</span><Select aria-label="Stasiun eksperimen" value={experiment.station_id} onValueChange={setStationId} options={experiments.map((item) => ({ value: item.station_id, label: item.station_code }))} /></label><Experiment key={`${experiment.station_id}:${experiment.model_version}`} experiment={experiment} /></>}
+    </details>
   </div>;
 }

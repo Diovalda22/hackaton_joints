@@ -1,5 +1,10 @@
 # BE-07/08 — eksperimen ML GWT +1 hari
 
+Peningkatan 16 Oktober 2026: tersedia inferensi dari tujuh pengukuran manual terkini,
+skenario DEMO, dan rekomendasi pencegahan dari GWT + hujan opsional pada endpoint baru
+`POST /api/v1/prevention/assess`. Lihat [kontrak dan panduan demo](field-forecast-prevention.md).
+Pembatasan historis di bawah berlaku pada endpoint lama `/ml/forecast`.
+
 Pipeline melatih model terpisah untuk BRG6 dan BRG3 dari `mmc1.xlsx`. Targetnya perubahan
 GWT satu hari dari nilai terakhir; hasil model ditambahkan kembali ke lag 1. Fitur hanya memakai
 tujuh tanggal kalender sebelum target: lag 1/3/7, rolling mean 3/7 yang sudah digeser, dan

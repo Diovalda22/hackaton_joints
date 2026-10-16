@@ -18,7 +18,6 @@ import { errorMessage } from "@/lib/api";
 import { createRepository, readRepositoryConfig } from "@/lib/api/create-repository";
 import { safeNextPath, saveSession, useSession } from "@/lib/auth/session";
 import { roleLabels } from "@/lib/domain/labels";
-import { themeV2ClassName } from "@/lib/fonts";
 import type { User } from "@/types";
 
 const ROLE_DUTIES: Record<User["role"], readonly string[]> = {
@@ -66,13 +65,13 @@ function LoginForm() {
       </Link>
 
       <div className="mt-8 flex items-center justify-between gap-3">
-        <Brand href="/" label="GambutOps — beranda" />
+        <Brand href="/" label="PeatSignal — beranda" />
         <span className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", demo ? "border-[#FEDF89] bg-[#FFFAEB] text-[#B54708]" : "border-border bg-muted text-muted-foreground")}>
           {demo ? "Akun demo" : "Server"}
         </span>
       </div>
 
-      <h1 className="mt-8 font-display text-[clamp(30px,4vw,40px)] leading-[1.05] font-bold tracking-tight">Masuk ke GambutOps</h1>
+      <h1 className="mt-8 font-display text-[clamp(30px,4vw,40px)] leading-[1.05] font-bold tracking-tight">Masuk ke PeatSignal</h1>
       <p className="mt-3 text-[15px] leading-7 text-muted-foreground">Pilih akun sesuai peran. Anda bisa keluar dan berganti akun kapan saja.</p>
 
       <form onSubmit={submit} className="mt-8 space-y-6" aria-describedby={`${id}-note`}>
@@ -124,7 +123,7 @@ function LoginForm() {
         <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         {demo
           ? "Tanpa kata sandi. Data contoh berlabel DEMO dan tugas uji coba tersimpan di browser ini."
-          : "Tanpa kata sandi. Identitas akun diverifikasi oleh server GambutOps sebelum Anda masuk."}
+          : "Tanpa kata sandi. Identitas akun diverifikasi oleh server PeatSignal sebelum Anda masuk."}
       </p>
     </div>
   );
@@ -139,13 +138,13 @@ const PANEL_POINTS = [
 /** Panel kanan (desktop) / pita atas (HP): identitas produk di atas peta kontur yang sama dengan hero landing. */
 function BrandPanel() {
   return (
-    <aside aria-label="Tentang GambutOps" className="relative isolate overflow-hidden bg-[#0B2E1E] text-white lg:sticky lg:top-0 lg:h-dvh">
+    <aside aria-label="Tentang PeatSignal" className="relative isolate overflow-hidden bg-[#0B2E1E] text-white lg:sticky lg:top-0 lg:h-dvh">
       <TopoBackdrop id="login" river={false} className="absolute inset-0 -z-10 h-full w-full" />
       <div className="flex h-full flex-col justify-between gap-8 px-6 py-8 sm:px-10 lg:px-14 lg:py-12">
         <p className="hidden text-[11px] font-bold tracking-[0.2em] text-white/60 uppercase lg:block">Panel operasional</p>
         <div className="max-w-md">
           <p className="font-display text-[clamp(30px,4.4vw,60px)] leading-[0.98] font-extrabold tracking-[-0.02em]">
-            Cegah, deteksi, <span className="text-[#86EFAC] italic">tindak.</span>
+            Prevent, detection, <span className="text-[#86EFAC] italic">action.</span>
           </p>
           <span aria-hidden="true" className="mt-6 hidden h-1 w-16 rounded-full bg-white lg:block" />
           <ul className="mt-8 hidden space-y-3 lg:block">
@@ -157,7 +156,7 @@ function BrandPanel() {
             ))}
           </ul>
         </div>
-        <p className="hidden text-xs text-white/55 lg:block">© 2026 GambutOps</p>
+        <p className="hidden text-xs text-white/55 lg:block">© 2026 PeatSignal</p>
       </div>
     </aside>
   );
@@ -169,7 +168,7 @@ export function LoginView() {
   return (
     <RepositoryProvider repository={repository}>
       <QueryCacheProvider>
-        <main className={cn(themeV2ClassName, "grid min-h-dvh bg-background text-foreground lg:grid-cols-2")}>
+        <main className={cn("theme-v2", "grid min-h-dvh bg-background text-foreground lg:grid-cols-2")}>
           <div className="order-2 flex items-start justify-center px-4 py-10 sm:px-8 lg:order-1 lg:items-center lg:py-16">
             <LoginForm />
           </div>

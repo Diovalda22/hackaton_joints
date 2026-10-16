@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session";
+import { SessionSplash } from "./session-splash";
 
 /**
  * Halaman aplikasi hanya tampil setelah masuk. Ini pengalaman pengguna, bukan keamanan:
@@ -20,11 +21,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, [pathname, router, session]);
 
   if (!session) {
-    return (
-      <div role="status" aria-live="polite" className="flex min-h-dvh items-center justify-center bg-background px-4 text-sm text-muted-foreground">
-        {session === null ? "Mengalihkan ke halaman masuk…" : "Memeriksa sesi…"}
-      </div>
-    );
+    return <SessionSplash redirecting={session === null} />;
   }
   return children;
 }
