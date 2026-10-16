@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { pickDate } from "../helpers/calendar.mjs";
 import { signIn, switchRole } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
@@ -27,7 +28,7 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
   await form.waitFor();
   const title = `E2E periksa wilayah ${Date.now()}`;
   await form.getByLabel("Judul tugas").fill(title);
-  const officerLabel = await form.getByRole("combobox", { name: /^Petugas/ }).evaluate((select) => select.options[select.selectedIndex]?.textContent ?? "");
+  const officerLabel = await form.getByRole("combobox", { name: /^Petugas/ }).innerText();
   assert.match(officerLabel, /petugas/i, "petugas pertama terpilih otomatis");
   await form.getByRole("button", { name: "Buat tugas" }).click();
   await form.waitFor({ state: "hidden" });
@@ -47,6 +48,14 @@ test("alur kerja: prioritas → tugas → petugas → laporan → tindak lanjut 
     await status.filter({ hasText: "Dikerjakan" }).waitFor();
     await detail.getByLabel(resultLabel).check();
     await detail.getByLabel("Apa yang Anda lihat?").fill(note);
+    const observationDate = await detail.getByRole("button", { name: "Tanggal pengamatan", exact: true }).getAttribute("data-date");
+    await pickDate(page, "Tanggal pengamatan", observationDate);
+    const hours = detail.getByRole("spinbutton", { name: "Jam", exact: true });
+    const validHours = await hours.inputValue();
+    await hours.fill("99");
+    await detail.getByRole("button", { name: "Kirim laporan SIMULASI" }).click();
+    await detail.getByText("Waktu tidak valid", { exact: true }).waitFor();
+    await hours.fill(validHours);
     await detail.getByRole("button", { name: "Kirim laporan SIMULASI" }).click();
     await status.filter({ hasText: "Menunggu tinjauan" }).waitFor();
   }

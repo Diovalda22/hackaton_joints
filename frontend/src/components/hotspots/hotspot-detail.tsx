@@ -48,7 +48,7 @@ export function HotspotDetail({ hotspot, onClose }: { hotspot: Hotspot; onClose:
       </div>
       <dl className="mt-2 divide-y">
         <Row label="Waktu satelit">{formatUtcDateTime(hotspot.observed_at)}</Row>
-        <Row label="Wilayah">{area?.label ?? "Di luar wilayah DEMO"}</Row>
+        <Row label="Wilayah">{area?.label ?? "Wilayah lainnya"}</Row>
         <Row label="Koordinat">{hotspot.latitude.toFixed(5)}, {hotspot.longitude.toFixed(5)}</Row>
         <Row label="Satelit">{satelliteLabel(hotspot.satellite)} · {hotspot.instrument}</Row>
         <Row label="Confidence (mentah)">{confidence}</Row>
@@ -56,7 +56,7 @@ export function HotspotDetail({ hotspot, onClose }: { hotspot: Hotspot; onClose:
         <Row label="Sumber">{hotspot.source}</Row>
         {hotspot.imported_at && <Row label="Diperbarui di server">{formatDateTime(hotspot.imported_at)}</Row>}
       </dl>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">Confidence adalah kategori dari satelit, bukan peluang kebakaran. FRP adalah besaran energi panas yang terdeteksi.</p>
+      <details className="mt-3 text-xs leading-5 text-muted-foreground"><summary className="cursor-pointer font-medium">Tentang confidence & FRP</summary><p className="mt-2">Confidence adalah kategori satelit, bukan peluang kebakaran. FRP mengukur energi panas yang terdeteksi.</p></details>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         {hotspot.is_simulation ? <DemoBadge /> : <span />}
         {actor?.role === "coordinator" ? (

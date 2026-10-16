@@ -201,10 +201,22 @@ test("hotspot mock: pagination dan urutan mengikuti backend", async () => {
 test("mock: status sync FIRMS berlabel DEMO dan sync manual ditolak (tidak berpura-pura live)", async () => {
   const repo = createMockRepository({ storage: createMemoryStorage() });
   const status = await repo.getHotspotSyncStatus();
-  assert.equal(status.length, 4);
+  assert.equal(status.length, 2);
+  assert.ok(status.every((item) => item.area_id === "indonesia"));
   assert.ok(status.every((item) => item.status === "SUCCESS"));
   const coordinator = (await repo.listUsers()).find((user) => user.role === "coordinator")!;
   await assert.rejects(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 3 }, { actor: coordinator }), /hanya tersedia saat terhubung ke server/);
+});
+
+
+test("mock: seluruh marker peta konsisten dengan halaman daftar", async () => {
+  const repo = createMockRepository({ storage: createMemoryStorage() });
+  const query = { mode: "HISTORICAL_REPLAY" as const, from: "2019-07-01", to: "2019-10-31" };
+  const map = await repo.getHotspotMap(query);
+  const page = await repo.listHotspots({ ...query, limit: 100, offset: 100 });
+  assert.ok(map.items.length > 100);
+  assert.deepEqual(map.items.slice(100, 200).map((point) => point.id), page.items.map((point) => point.id));
+  assert.equal(map.items[100]!.list_offset, 100);
 });
 
 test("mock signIn: hanya akun demo yang dikenal", async () => {

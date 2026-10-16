@@ -129,3 +129,12 @@ cd backend
 
 Jika sample database sudah memiliki data tambahan, total bisa lebih besar. Dataset raw dan
 database yang berisi data penting tidak dihapus untuk mereproduksi handoff.
+
+## Marker peta tanpa pagination daftar
+
+`GET /api/v1/hotspots/map` menerima filter `from`, `to`, `mode`, `bbox`,
+`satellite`, dan `source_product` yang sama dengan daftar. Respons `{mode, items}`
+berisi seluruh marker sesuai filter tanpa limit/offset. Field marker: `id`,
+`latitude`, `longitude`, `observed_at`, `frp_mw`, `verification_status`, `list_offset`.
+Urutan dan `list_offset` mengikuti daftar (`acquired_at DESC, id`) agar klik peta
+bisa membuka halaman daftar yang tepat. Respons besar dikompresi gzip.

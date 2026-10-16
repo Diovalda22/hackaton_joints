@@ -16,6 +16,7 @@ AREAS = {
     "batanghari": BoundingBox(102.9, -2.2, 104.0, -1.3),
     "kubu-raya": BoundingBox(108.9, -1.2, 110.0, 0.3),
 }
+SYNC_AREAS = {**AREAS, "indonesia": BoundingBox(94.0, -11.5, 141.5, 6.5)}
 MAX_RESPONSE_BYTES = 20 * 1024 * 1024
 
 
@@ -53,7 +54,7 @@ def parse_response(raw: bytes, request: SyncRequest, date_from: date, date_to: d
         if not REQUIRED_COLUMNS.issubset(set(reader.fieldnames or [])):
             raise ValueError("CSV header")
         records = []
-        bbox = AREAS[request.area_id]
+        bbox = SYNC_AREAS[request.area_id]
         expected_satellites = {"N", "SNPP", "Suomi-NPP"} if "SNPP" in request.source_product else {
             "N20", "NOAA-20", "1", "JPSS-1"
         }
@@ -83,7 +84,7 @@ class FirmsClient:
     ) -> FirmsResponse:
         if not self.key:
             raise FirmsError("KEY_NOT_CONFIGURED", 503, "Key NASA FIRMS belum dikonfigurasi.")
-        box = AREAS[request.area_id]
+        box = SYNC_AREAS[request.area_id]
         bbox = ",".join(str(v) for v in (box.west, box.south, box.east, box.north))
         # Explicit start date fixes the UTC window even when the request crosses midnight.
         url = (

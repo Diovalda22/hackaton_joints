@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
 import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
@@ -31,7 +32,7 @@ test("titik panas: daftar ↔ peta, detail, pagination, filter, tugas dari titik
   const [from, to, total] = rangeText(await summary.innerText());
   assert.equal(from, 1);
   assert.ok(total >= to, "total dari server, bukan jumlah halaman");
-  await main.getByText("Titik panas belum tentu kebakaran", { exact: true }).waitFor();
+  await main.getByText("Indikasi panas · perlu verifikasi", { exact: true }).waitFor();
 
   // Pilih dari daftar → detail + popup peta.
   await main.locator('[data-map-status="ready"]').waitFor({ timeout: 20_000 });
@@ -66,7 +67,7 @@ test("titik panas: daftar ↔ peta, detail, pagination, filter, tugas dari titik
     assert.equal(await page.getByRole("group", { name: "Saring satelit" }).getByRole("button", { name: "Suomi NPP", exact: true }).getAttribute("aria-pressed"), "true");
   }
   const area = page.getByRole("combobox", { name: "Wilayah", exact: true });
-  await area.selectOption({ label: "Kubu Raya, Kalimantan Barat" });
+  await selectOption(area, { label: "Kubu Raya, Kalimantan Barat" });
   await page.getByRole("region", { name: /^Peta titik panas Kubu Raya/ }).waitFor();
 
   // Mode terkini menampilkan status sinkron FIRMS.

@@ -211,3 +211,26 @@ Teks Indonesia, kalimat pendek. Angka memakai format `id-ID` (koma desimal, minu
 | `/login` | §5 Login (split-screen fotomomen) | Akun demo sebagai kartu radio; panel kanan `band` + grid |
 | `/dashboard`, `/groundwater`, `/hotspots`, `/priorities`, `/tasks`, `/experiments/ml` | §5 Aplikasi/admin, animasi mikro saja | Shell baru, label kapital, kartu data tanpa bayangan |
 | 404 | Netral, tautan ke Ringkasan dan beranda | — |
+
+
+## 10. Teks dan pemilih tanggal
+
+- Utamakan judul, data, status dan aksi. Hindari eyebrow/deskripsi yang mengulang judul.
+- Penjelasan sumber, istilah, metode dan audit tersedia melalui Detail atau Panduan.
+- DEMO/SIMULASI, mode historis/terkini, data kurang dan gate eksperimen harus tetap jelas.
+- Kalender bersama memakai React DayPicker + Radix Popover, locale Indonesia, satu bulan
+  dengan navigasi bulan/tahun. Periode memakai draft dan Terapkan/Batal; tanggal tunggal
+  langsung dipilih. Jangan memakai input tanggal native untuk fitur baru.
+- Laporan memakai tanggal kalender serta jam/menit/detik lokal yang diberi keterangan zona waktu.
+
+
+## 11. Select
+
+- Gunakan Select bersama dari `src/components/ui/select.tsx` untuk pilihan tunggal.
+- Trigger tinggi 40px (header/kalender 36px), border tipis, chevron dan focus ring; nilai panjang
+  dipotong pada trigger tetapi tetap terbaca lengkap saat menu dibuka.
+- Menu memakai latar kartu, sudut rounded-xl dan shadow-sm; pilihan aktif berwarna secondary
+  dengan centang. Tinggi/lebar dibatasi viewport dan daftar dapat digulir.
+- Kelompok/keterangan tambahan berada dalam menu, bukan memenuhi trigger.
+- Form React Hook Form memakai Controller. Pilihan kosong tetap dikonversi ke nilai domain
+  kosong/null; jangan mengirim identitas opsi internal ke API.

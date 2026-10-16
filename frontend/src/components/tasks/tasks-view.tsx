@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/components/ui/utils";
 import { errorMessage } from "@/lib/api";
 import { findArea } from "@/lib/domain/areas";
-import { roleLabels } from "@/lib/domain/labels";
 import { isTerminal } from "@/lib/domain/task-state-machine";
 import { formatDateTime } from "@/lib/format";
 import type { InspectionTask, User } from "@/types";
@@ -49,9 +48,8 @@ export function TasksHeader() {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-teal">{page.eyebrow}</p>
-        <h1 className="mt-2.5 text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{page.description} Tugas dibuat dari halaman <Link href="/priorities" className="font-medium text-primary underline-offset-4 hover:underline">Prioritas pemeriksaan</Link>.</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{page.title}</h1>
+        <Button asChild variant="link" className="mt-1 h-auto px-0"><Link href="/priorities">Buat tugas dari prioritas</Link></Button>
       </div>
       <div className="flex flex-wrap gap-2">
         <Badge variant={mode === "HISTORICAL_REPLAY" ? "teal" : "warning"}>{mode === "HISTORICAL_REPLAY" ? "RIWAYAT" : "TERKINI"}</Badge>
@@ -117,7 +115,6 @@ export function TasksView() {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:items-start">
       <div className={cn("space-y-4", selectedId && "hidden xl:block")}>
-        <p className="text-sm text-muted-foreground">Anda masuk sebagai <span className="font-medium text-foreground">{actor.display_name}</span> ({roleLabels[actor.role].toLowerCase()}).</p>
         <div role="group" aria-label="Saring tugas" className="flex flex-wrap gap-2">
           {FILTERS.map((item) => (
             <Button key={item.id} size="sm" variant={item.id === filter ? "default" : "outline"} aria-pressed={item.id === filter} onClick={() => setFilter(item.id)}>
@@ -143,7 +140,6 @@ export function TasksView() {
           <div className="flex flex-col items-center rounded-xl border border-dashed px-6 py-16 text-center">
             <ClipboardList className="size-8 text-muted-foreground" aria-hidden="true" />
             <p className="mt-3 text-sm font-medium">Pilih tugas untuk melihat detail</p>
-            <p className="mt-1 max-w-xs text-xs leading-5 text-muted-foreground">Detail berisi tindakan yang bisa Anda lakukan, laporan lapangan, dan riwayat status.</p>
           </div>
         )}
       </div>

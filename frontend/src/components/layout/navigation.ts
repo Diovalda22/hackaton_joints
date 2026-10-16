@@ -49,7 +49,7 @@ export const navigation: readonly NavigationItem[] = [
   },
   {
     href: "/experiments/ml", label: "Uji prediksi", title: "Uji prediksi muka air tanah",
-    eyebrow: "EKSPERIMEN · PREDIKSI", phase: "F1.6", available: false, experimental: true, icon: FlaskConical,
+    eyebrow: "EKSPERIMEN · PREDIKSI", phase: "F1.6", available: true, experimental: true, icon: FlaskConical,
     description: "Uji coba memperkirakan muka air tanah satu hari ke depan. Hasilnya belum dipakai untuk keputusan.",
     capabilities: ["Membandingkan perkiraan model dengan cara sederhana (nilai hari ini = besok)", "Melihat grafik nilai sebenarnya dan nilai perkiraan", "Hasil hanya tampil bila model sudah diuji; tidak ada angka karangan"],
   },

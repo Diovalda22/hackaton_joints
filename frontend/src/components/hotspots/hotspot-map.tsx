@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent, Popup } from "maplibre-gl";
 import { BaseMap, loadMaplibre } from "@/components/maps/base-map";
-import { AREAS, findArea } from "@/lib/domain/areas";
+import { AREAS, INDONESIA_BBOX, findArea } from "@/lib/domain/areas";
 import { hotspotStatusLabels } from "@/lib/domain/labels";
 import { bboxPolygon, unionBbox } from "@/lib/maps/map-config";
 import { formatDateTime } from "@/lib/format";
-import type { Bbox, Hotspot, HotspotVerificationStatus } from "@/types";
+import type { Bbox, HotspotMapPoint, HotspotVerificationStatus } from "@/types";
+
+type MapPoint = Omit<HotspotMapPoint, "list_offset">;
 
 const AREA_SOURCE = "wilayah";
 const HOTSPOT_SOURCE = "titik-panas";
@@ -23,7 +25,7 @@ export const HOTSPOT_STATUS_COLOR: Record<HotspotVerificationStatus, string> = {
   DISMISSED: "#94a3b8",
 };
 
-function hotspotCollection(hotspots: readonly Hotspot[]) {
+function hotspotCollection(hotspots: readonly MapPoint[]) {
   return {
     type: "FeatureCollection" as const,
     features: hotspots.map((hotspot) => ({
@@ -34,10 +36,10 @@ function hotspotCollection(hotspots: readonly Hotspot[]) {
   };
 }
 
-function areaCollection(selectedAreaId: string | null) {
+function areaCollection(selectedAreaId: string | null, national: boolean) {
   return {
     type: "FeatureCollection" as const,
-    features: AREAS.map((area) => ({
+    features: (national ? [] : AREAS).map((area) => ({
       type: "Feature" as const,
       properties: { selected: area.id === selectedAreaId },
       geometry: { type: "Polygon" as const, coordinates: bboxPolygon(area.bbox) },
@@ -46,7 +48,7 @@ function areaCollection(selectedAreaId: string | null) {
 }
 
 /** Isi popup dibuat dengan textContent (bukan HTML) agar data sumber tidak dieksekusi. */
-function popupContent(hotspot: Hotspot): HTMLElement {
+function popupContent(hotspot: MapPoint): HTMLElement {
   const root = document.createElement("div");
   root.className = "space-y-0.5 text-xs leading-5";
   const title = document.createElement("p");
@@ -60,11 +62,12 @@ function popupContent(hotspot: Hotspot): HTMLElement {
 
 const registeredMaps = new WeakSet<MapLibreMap>();
 
-export function HotspotMap({ hotspots, selectedId, onSelect, areaId, className }: {
-  hotspots: readonly Hotspot[];
+export function HotspotMap({ hotspots, selectedId, onSelect, areaId, national = false, className }: {
+  hotspots: readonly MapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   areaId: string | null;
+  national?: boolean;
   className?: string;
 }) {
   const onSelectRef = useRef(onSelect);
@@ -72,15 +75,16 @@ export function HotspotMap({ hotspots, selectedId, onSelect, areaId, className }
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
   useEffect(() => () => { popupRef.current?.remove(); }, []);
 
+  const markers = useMemo(() => hotspotCollection(hotspots), [hotspots]);
   const selected = hotspots.find((hotspot) => hotspot.id === selectedId) ?? null;
 
   const sync = useCallback((map: MapLibreMap) => {
     if (!map.getSource(AREA_SOURCE)) {
-      map.addSource(AREA_SOURCE, { type: "geojson", data: areaCollection(areaId) });
+      map.addSource(AREA_SOURCE, { type: "geojson", data: areaCollection(areaId, national) });
       map.addLayer({ id: `${AREA_SOURCE}-garis`, type: "line", source: AREA_SOURCE, paint: { "line-color": "#18543b", "line-width": ["case", ["get", "selected"], 2, 1], "line-dasharray": [2, 1.5], "line-opacity": 0.7 } });
     }
     if (!map.getSource(HOTSPOT_SOURCE)) {
-      map.addSource(HOTSPOT_SOURCE, { type: "geojson", data: hotspotCollection(hotspots) });
+      map.addSource(HOTSPOT_SOURCE, { type: "geojson", data: markers });
       map.addLayer({
         id: POINT_LAYER, type: "circle", source: HOTSPOT_SOURCE,
         paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 3.5, 9, 6, 12, 8], "circle-color": ["get", "color"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1, "circle-opacity": 0.9 },
@@ -90,8 +94,8 @@ export function HotspotMap({ hotspots, selectedId, onSelect, areaId, className }
         paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 8, 9, 11, 12, 13], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#111827", "circle-stroke-width": 2.5 },
       });
     }
-    map.getSource<GeoJSONSource>(AREA_SOURCE)?.setData(areaCollection(areaId));
-    map.getSource<GeoJSONSource>(HOTSPOT_SOURCE)?.setData(hotspotCollection(hotspots));
+    map.getSource<GeoJSONSource>(AREA_SOURCE)?.setData(areaCollection(areaId, national));
+    map.getSource<GeoJSONSource>(HOTSPOT_SOURCE)?.setData(markers);
     map.setFilter(SELECTED_LAYER, ["==", ["get", "id"], selectedId ?? ""]);
 
     if (!registeredMaps.has(map)) {
@@ -114,13 +118,13 @@ export function HotspotMap({ hotspots, selectedId, onSelect, areaId, className }
         popupRef.current = new maplibre.Popup({ closeButton: false, offset: 12, maxWidth: "240px" }).setLngLat(position).setDOMContent(popupContent(selected)).addTo(map);
       });
     }
-  }, [areaId, hotspots, selected, selectedId]);
+  }, [areaId, markers, national, selected, selectedId]);
 
-  const area = findArea(areaId);
+  const area = national ? undefined : findArea(areaId);
   return (
     <BaseMap
-      label={`Peta titik panas${area ? ` ${area.label}` : ""}, ${hotspots.length} titik pada halaman ini`}
-      bounds={area?.bbox ?? ALL_AREAS_BBOX}
+      label={`Peta titik panas${area ? ` ${area.label}` : ""}, ${hotspots.length} titik sesuai filter`}
+      bounds={national ? INDONESIA_BBOX : area?.bbox ?? ALL_AREAS_BBOX}
       onStyleReady={sync}
       className={className}
     />

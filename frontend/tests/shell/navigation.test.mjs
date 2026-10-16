@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
 import { signIn } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
@@ -15,10 +16,13 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  // Kunjungan pertama: panduan muncul otomatis.
+  // Panduan dibuka saat diminta setelah login.
   await signIn(page, baseURL, "coordinator", "/dashboard");
   assert.equal(await page.locator("html").getAttribute("lang"), "id");
   const guide = page.getByRole("dialog", { name: "Panduan penggunaan GambutOps" });
+  await page.getByRole("heading", { name: "Ringkasan pemantauan", level: 1 }).waitFor();
+  assert.equal(await guide.count(), 0, "Panduan tidak terbuka otomatis");
+  await page.getByRole("button", { name: "Buka panduan penggunaan" }).click();
   await guide.waitFor();
   assert.equal(await guide.getByRole("tab", { name: "Kenalan" }).getAttribute("aria-selected"), "true");
   await guide.getByRole("tab", { name: "Kenalan" }).focus();
@@ -28,7 +32,7 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
   await guide.getByRole("tab", { name: "Istilah" }).waitFor();
   assert.equal(await guide.getByRole("tab", { name: "Istilah" }).getAttribute("aria-selected"), "true");
   await guide.getByText("Titik panas (hotspot)").waitFor();
-  await guide.getByRole("button", { name: "Lewati" }).click();
+  await guide.getByRole("button", { name: "Tutup panduan" }).click();
   await guide.waitFor({ state: "hidden" });
 
   // Setelah ditutup, panduan tidak muncul lagi saat reload, tetapi bisa dibuka dari header.
@@ -48,17 +52,16 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
 
   // Filter wilayah disimpan per jenis data.
   const area = page.getByLabel("Wilayah");
-  await page.locator("option", { hasText: "Batanghari, Jambi" }).waitFor({ state: "attached" });
-  await area.selectOption({ label: "Batanghari, Jambi" });
-  await page.getByRole("button", { name: "Kembalikan ke awal" }).waitFor();
+  await selectOption(area, { label: "Batanghari, Jambi" });
+  await page.getByRole("button", { name: "Reset" }).waitFor();
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
   assert.equal(await page.getByRole("button", { name: "Terkini", exact: true }).getAttribute("aria-pressed"), "true");
   await page.locator("main").getByText("Data muka air terkini tidak tersedia", { exact: true }).waitFor();
-  assert.equal(await area.inputValue(), "", "Mode terkini memakai filternya sendiri");
+  assert.equal(await area.getAttribute("data-value"), "", "Mode terkini memakai filternya sendiri");
   await page.getByRole("button", { name: "Riwayat", exact: true }).click();
-  assert.equal(await area.inputValue(), "batanghari", "Filter riwayat tetap tersimpan");
-  await page.getByRole("button", { name: "Kembalikan ke awal" }).click();
-  assert.equal(await area.inputValue(), "");
+  assert.equal(await area.getAttribute("data-value"), "batanghari", "Filter riwayat tetap tersimpan");
+  await page.getByRole("button", { name: "Reset" }).click();
+  assert.equal(await area.getAttribute("data-value"), "");
   await page.getByRole("button", { name: "Terkini", exact: true }).click();
 
   const modules = [
@@ -98,11 +101,10 @@ test("shell: panduan, routing, jenis data, filter, sidebar, drawer, dan responsi
     await drawer.waitFor({ state: "hidden" });
     assert.equal(await trigger.evaluate((element) => element === document.activeElement), true);
 
-    // Panduan dari drawer menutup drawer lalu membuka panduan.
-    await trigger.click();
-    await drawer.getByRole("button", { name: "Buka panduan" }).click();
+    // Panduan tetap tersedia di header pada mobile.
+    await helpButton.click();
     await guide.waitFor();
-    await guide.getByRole("tab", { name: "Cara pakai" }).waitFor();
+    await guide.getByRole("tab", { name: "Cara pakai" }).click();
     const tabList = await guide.getByRole("tablist").boundingBox();
     const lastTab = await guide.getByRole("tab", { name: "Penting" }).boundingBox();
     assert.ok(lastTab.x + lastTab.width <= tabList.x + tabList.width + 1, `Semua tab panduan terlihat pada ${width}px`);

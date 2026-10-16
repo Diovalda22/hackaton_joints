@@ -38,9 +38,12 @@ export function DataCompleteness({ summary, station, sourceName, sourceHash, dem
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">Hari tanpa pengukuran tidak dihitung sebagai nol dan tidak dipakai pada rata-rata maupun perubahan.</p>
 
-      <div className="mt-5 grid gap-3 border-t pt-4 text-xs leading-5 text-muted-foreground sm:grid-cols-2">
+
+      <details className="mt-4 border-t pt-3 text-xs leading-5 text-muted-foreground">
+        <summary className="cursor-pointer font-medium">Detail sumber & kelengkapan</summary>
+        <p className="mt-3">Hari tanpa pengukuran tidak dihitung sebagai nol atau dipakai dalam rata-rata.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <p className="flex items-start gap-2">
           <Database className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           <span>
@@ -60,7 +63,8 @@ export function DataCompleteness({ summary, station, sourceName, sourceHash, dem
           <MapPinOff className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           <span>Data riwayat 2018–2019, bukan kondisi saat ini. Koordinat stasiun belum tersedia dari sumber, jadi stasiun tidak ditampilkan di peta.</span>
         </p>
-      </div>
+        </div>
+      </details>
     </section>
   );
 }

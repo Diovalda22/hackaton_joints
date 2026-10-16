@@ -109,3 +109,13 @@ termasuk helper key yang mempertahankan konfigurasi dan permission file privat.
 Panduan Postgres digunakan untuk advisory lock pada koneksi khusus dan indeks target/waktu.
 Integrasi peta/frontend masih milik teman;
 Tahap 2 aplikasi baru selesai ketika hotspot nyata tampil dan filter bekerja melalui browser.
+
+## Cakupan nasional Terkini
+
+Sinkronisasi Terkini menggunakan `area_id: "indonesia"` dengan kotak koordinat
+`94,-11.5,141.5,6.5`, mencakup Indonesia dari Aceh hingga Papua. Kotak koordinat
+bukan batas negara administratif dan dapat mencakup titik di wilayah tetangga.
+Status default berisi dua produk nasional: VIIRS_SNPP_NRT dan VIIRS_NOAA20_NRT.
+Target Batanghari/Kubu Raya tetap diterima untuk kompatibilitas, tetapi UI Terkini
+menggunakan cakupan nasional dan mengabaikan filter wilayah historis.
+Terapkan `alembic upgrade head`, lalu sinkronkan kedua produk nasional.

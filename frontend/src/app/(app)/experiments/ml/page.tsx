@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { MlView } from "@/components/ml/ml-view";
 
 export const metadata: Metadata = { title: "Uji prediksi" };
-export default function MLPage() { return <ModulePlaceholder href="/experiments/ml" />; }
+export default function MLPage() { return <MlView />; }

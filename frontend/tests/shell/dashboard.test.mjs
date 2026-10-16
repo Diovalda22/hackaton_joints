@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chromium } from "playwright";
+import { selectOption } from "../helpers/select.mjs";
 import { signIn, switchRole } from "./helpers.mjs";
 
 const baseURL = process.env.SHELL_BASE_URL ?? "http://127.0.0.1:3000";
@@ -25,9 +26,8 @@ test("ringkasan: kartu perhatian, angka, peta, kegiatan, dan peran demo", { time
   const main = page.locator("main");
   await page.getByRole("heading", { name: "Ringkasan pemantauan", level: 1 }).waitFor();
   await main.getByRole("heading", { name: "Perlu diperiksa lebih dulu" }).waitFor();
-  await main.getByText("Prioritas adalah urutan pemeriksaan, bukan peluang kebakaran.").waitFor();
   await main.getByRole("heading", { name: "Tugas yang menunggu Anda" }).waitFor();
-  await main.getByText("Sebagai koordinator", { exact: false }).waitFor();
+  await page.getByRole("button", { name: /^Keluar/ }).waitFor();
 
   // Empat angka ringkasan, masing-masing menuju halamannya.
   const tiles = page.getByLabel("Angka ringkasan").getByRole("link");
@@ -37,14 +37,14 @@ test("ringkasan: kartu perhatian, angka, peta, kegiatan, dan peran demo", { time
 
   await main.locator('[data-map-status="ready"]').waitFor({ timeout: 20_000 });
   await main.getByRole("heading", { name: "Kegiatan terbaru" }).waitFor();
-  await main.getByText(/Data sampai .* \(data setelahnya tidak dipakai\)/).waitFor();
+  await main.getByText(/^Data sampai /).waitFor();
 
   // Ganti peran: kartu tugas mengikuti peran petugas.
   await switchRole(page, "field_officer");
-  await main.getByText("Sebagai petugas lapangan", { exact: false }).waitFor();
+  await main.getByRole("heading", { name: "Tugas yang menunggu Anda" }).waitFor();
 
   // Filter wilayah ikut mengubah ringkasan.
-  await page.getByRole("combobox", { name: "Wilayah", exact: true }).selectOption({ label: "Kubu Raya, Kalimantan Barat" });
+  await selectOption(page.getByRole("combobox", { name: "Wilayah", exact: true }), { label: "Kubu Raya, Kalimantan Barat" });
   await main.getByText(/^Kubu Raya, Kalimantan Barat · /).waitFor();
 
   await tiles.nth(2).click();

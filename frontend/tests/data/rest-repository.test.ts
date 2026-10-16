@@ -39,7 +39,7 @@ function apiHotspot(overrides: Record<string, unknown> = {}) {
   };
 }
 
-test("hotspot: query bbox/mode/pagination dikirim dan payload dipetakan", async () => {
+test("hotspot: Terkini memakai cakupan nasional meskipun filter wilayah lama tersimpan", async () => {
   const { repo, calls } = fakeFetch(() => json({ items: [apiHotspot()], total: 7, limit: 1, offset: 3 }));
   const result = await repo.listHotspots({ mode: "CURRENT_MONITORING", from: "2026-10-06", to: "2026-10-12", area_id: "batanghari", limit: 1, offset: 3 });
   assert.deepEqual([result.items.length, result.total, result.limit, result.offset], [1, 7, 1, 3]);
@@ -47,7 +47,7 @@ test("hotspot: query bbox/mode/pagination dikirim dan payload dipetakan", async 
   const url = calls[0]!.url;
   assert.equal(url.pathname, "/api/v1/hotspots");
   assert.equal(url.searchParams.get("mode"), "CURRENT_MONITORING");
-  assert.equal(url.searchParams.get("bbox"), "102.9,-2.2,104,-1.3");
+  assert.equal(url.searchParams.get("bbox"), "94,-11.5,141.5,6.5");
   assert.equal(url.searchParams.get("limit"), "1");
   assert.equal(url.searchParams.get("offset"), "3");
 });
@@ -174,6 +174,25 @@ test("sync FIRMS: status dibaca tanpa token; sync manual memakai Bearer koordina
   assert.equal(calls[1]?.url.pathname, "/api/v1/admin/hotspots/sync");
   assert.equal((calls[1]?.init.headers as Record<string, string>).Authorization, "Bearer coord-token");
   await rejectsWith(repo.syncHotspots({ area_id: "batanghari", source_product: "VIIRS_SNPP_NRT", day_range: 9 }, { actor }), "VALIDATION");
+});
+
+
+test("peta memuat marker Kalimantan di luar halaman pertama daftar", async () => {
+  const markers = Array.from({ length: 151 }, (_, index) => ({
+    id: `point-${index}`, latitude: -2, longitude: index === 150 ? 114 : 102,
+    observed_at: "2026-10-15T06:00:00Z", frp_mw: 1,
+    verification_status: "UNVERIFIED", list_offset: index,
+  }));
+  const { repo, calls } = fakeFetch(() => json({ mode: "CURRENT_MONITORING", items: markers }));
+  const data = await repo.getHotspotMap({ mode: "CURRENT_MONITORING", from: "2026-10-13", to: "2026-10-15", area_id: "batanghari", satellite: "N20" });
+  assert.equal(data.items.length, 151);
+  assert.equal(data.items[150]!.longitude, 114);
+  assert.equal(data.items[150]!.list_offset, 150);
+  assert.equal(calls[0]!.url.pathname, "/api/v1/hotspots/map");
+  assert.equal(calls[0]!.url.searchParams.get("bbox"), "94,-11.5,141.5,6.5");
+  assert.equal(calls[0]!.url.searchParams.get("satellite"), "N20");
+  assert.equal(calls[0]!.url.searchParams.has("limit"), false);
+  assert.equal(calls[0]!.url.searchParams.has("offset"), false);
 });
 
 test("signIn: identitas diverifikasi lewat GET /auth/me dengan Bearer sesuai peran", async () => {

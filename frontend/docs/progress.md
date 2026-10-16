@@ -1,12 +1,12 @@
 # GambutOps — Timeline dan Pemantauan Progres
 
-Pembaruan terakhir: **14 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari**: frontend, backend, database, ETL, NASA FIRMS, decision engine, tugas/laporan, dan eksperimen ML GWT +1 hari.
+Pembaruan terakhir: **15 Oktober 2026**. Scope: **aplikasi lengkap dalam 3 hari**: frontend, backend, database, ETL, NASA FIRMS, decision engine, tugas/laporan, dan eksperimen ML GWT +1 hari.
 
 Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PROJECT_TASKS.md).
 
 ## 1. Posisi saat ini
 
-**Shell F0 dan backend foundation/data API sudah diimplementasikan; gate integrasi frontend belum selesai. FIRMS live, priorities, tasks/reports, dan ML menunggu tahap berikutnya.**
+**Keenam halaman aplikasi sudah diimplementasikan. QA browser ke backend/database asli lulus lokal (bagian 19); penyederhanaan UI/kalender dan dropdown tersedia (bagian 21–22). Acceptance akhir dan integrasi landing page tetap terbuka. Deployment ditunda sementara sesuai arahan pengguna. Landing page ditangani teman; sisa frontend aplikasi ditangani pengguna sesuai pembagian terbaru.**
 
 | Bagian | Status | Bukti / pekerjaan tersisa |
 | --- | --- | --- |
@@ -20,14 +20,15 @@ Checklist lintas frontend/backend sampai submission: [PROJECT_TASKS.md](../../PR
 | F1.2 Groundwater | IMPLEMENTED | `feat/fe-groundwater`; lihat bagian 13 |
 | F1.4 Priorities + F1.5 Tasks | MERGED (PR #10) | `feat/frontend-tasks`: REST (BE-05/BE-06, Bearer token) + mock; E2E workflow lulus pada mock dan REST; lihat bagian 15 |
 | F1.3 Hotspots | MERGED (PR #10) | `feat/frontend-hotspots`: peta + daftar + pagination + sync FIRMS; mock dan REST diuji; lihat bagian 16 |
-| F1.1 Dashboard | IMPLEMENTED | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
-| F1.6, F1.7 | TODO | ML dan QA akhir |
+| F1.1 Dashboard | MERGED (PR #11) | `feat/frontend-dashboard`: perhatian utama, angka, peta ringkas, kegiatan; lihat bagian 17 |
+| F1.6 | IMPLEMENTED | ML metrics/forecast REST, grafik/tabel evaluasi, gate dan batasan; lihat bagian 18 |
+| F1.7 | QA LOKAL PASS | Browser ke backend/Supabase asli, workflow, ML sesuai artifact, FIRMS live; acceptance akhir terbuka, smoke deployment ditunda; lihat bagian 19 |
 | Backend foundation/data API | IMPLEMENTED | `feat/backend-data`: ETL GWT, importer VIIRS, API read; 20 tes lulus termasuk PostGIS nyata |
-| FIRMS live / rules / tasks / ML | TODO | Milik kita; tahap setelah data API |
+| FIRMS live / rules / tasks / ML | IMPLEMENTED / QA LOKAL PASS | Backend tersedia; browser REST, workflow, ML sesuai artifact dan FIRMS live lulus; lihat bagian 19 |
 
-Code shell tercatat pada `main` lokal dan referensi lokal `origin/main`, commit **`f3177ea`** (`feat(frontend): implement GambutOps F0 shell and routing`). Ini hasil inspeksi Git lokal, bukan pemeriksaan langsung ke GitHub. Branch shell terpisah juga tersedia pada checkout `/tmp/gambutops-f0-shell`.
+Riwayat foundation: code shell tercatat pada `main` lokal dan referensi lokal `origin/main`, commit **`f3177ea`** (`feat(frontend): implement GambutOps F0 shell and routing`). Ini hasil inspeksi Git lokal, bukan pemeriksaan langsung ke GitHub. Branch shell terpisah juga tersedia pada checkout `/tmp/gambutops-f0-shell`.
 
-Route yang tersedia belum berarti fiturnya selesai. Belum ada statistik pemantauan, grafik GWT, peta hotspot, assessment operasional, form tugas/laporan, atau persistensi demo.
+Status implementasi per halaman tercantum di tabel di atas. Bagian timeline dan pembagian kerja lama di bawah dipertahankan sebagai riwayat; pembagian terbaru mengikuti paragraf posisi saat ini.
 
 ## 2. Asumsi timeline
 
@@ -139,10 +140,11 @@ Shell yang sudah tersedia menjadi handoff untuk teman. Pembagian frontend per mo
 
 ### F1.6 — ML Experiment UI
 
-- [ ] Tujuan GWT +1 hari, baseline, satuan metrik, serta batasan dijelaskan.
-- [ ] Empty state tampil sebelum model dilatih; setelah tersedia, tampilkan hasil eksperimen nyata dari API.
-- [ ] Jika ilustrasi grafik/metrik dipakai, seluruhnya berlabel SIMULASI.
-- [ ] Model nyata, metrik test, dan baseline dikonsumsi melalui API; tidak ada forecast kondisi terkini tanpa input GWT.
+- [x] Tujuan GWT +1 hari, baseline, satuan metrik, serta batasan dijelaskan.
+- [x] Empty state tampil sebelum model dilatih; hasil tersedia dikonsumsi melalui REST.
+- [x] Tidak membuat ilustrasi metrik; flag SIMULASI API tetap ditampilkan bila ada.
+- [x] Metrics/forecast memakai API, mempertahankan release gate; hasil historis terpisah dari kondisi terkini.
+- [ ] Smoke halaman ML dengan backend/database dan artifact deployment nyata.
 
 ### F1.7 — Integration & QA
 
@@ -444,6 +446,153 @@ Catatan:
 
 Catatan: tanpa filter wilayah, jumlah titik panas REST mencakup semua hotspot yang diimpor (termasuk di luar kotak DEMO), sedangkan peta dibingkai ke dua wilayah DEMO.
 
+## 18. Sesi frontend 2026-10-15 — Uji prediksi dan QA lokal
+
+**Status:** IMPLEMENTED pada working tree, belum commit/push. Landing page tetap terpisah.
+
+- `/experiments/ml` menggantikan placeholder dan modul diaktifkan pada navigasi/panduan.
+- Metrics melalui `useMlMetrics`: pilihan stasiun dari respons, MAE/RMSE model vs persistence
+  dalam cm, periode pelatihan/uji, jumlah sampel, versi dan timestamp model.
+- Grafik terukur/prediksi/baseline dalam meter dengan tooltip dan legenda, tanpa menyambung
+  nilai null; tabel seluruh titik evaluasi tersedia untuk pembaca layar dan inspeksi nilai.
+- Kontrak Zod mempertahankan `station_code`, `release_gate`, `limitations`, termasuk gate
+  pada forecast. Gate hilang atau tidak dikenal ditolak sebagai payload invalid.
+- Form tanggal input memanggil forecast historis +1 hari melalui repository. Envelope REJECTED,
+  error/retry, pending, dan hasil tersedia ditampilkan. Perubahan tanggal/stasiun membuang
+  tampilan respons sebelumnya; hook query membatalkan respons lama dan memakai cache per input.
+- Halaman menjelaskan bahwa periode model tidak mengikuti filter monitoring. Mode terkini
+  tetap diberi keterangan eksplisit bahwa eksperimen historis tidak mewakili kondisi sekarang.
+- Mock tetap NOT_AVAILABLE; tidak membuat metrik ilmiah rekaan. Angka fixture hanya ada di tes.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | PASS; memerlukan akses registry di luar sandbox |
+| `npm run lint` | PASS |
+| `npm run typecheck` | PASS |
+| `node --import tsx --test --test-isolation=none tests/data/*.test.ts` | 60/60 PASS |
+| Production build dengan konfigurasi REST | PASS |
+| Production build dengan konfigurasi mock | PASS |
+| Browser ML REST dengan API terkontrol | PASS; metrics, gate, forecast OK/REJECTED, pergantian stasiun, error/retry, empty, dan 320/375/768/1440 px |
+| `npm run test:shell` pada production mock | 13/13 PASS; dashboard, GWT, hotspots, peta/fallback/fullscreen, ML, navigasi/responsif dan workflow/reload |
+
+Batas: uji REST sesi ini mengintersep respons API di browser, tidak mengakses backend/database
+atau NASA live. Smoke dengan runtime deployment, API publik/CORS, integrasi landing page,
+dan acceptance akhir masih diperlukan. Server dan browser lokal memerlukan izin di luar sandbox.
+
+## 19. Sesi frontend 2026-10-15 — integrasi browser ke backend/database asli
+
+**Status:** QA lokal PASS. Menggantikan batas verifikasi backend live pada bagian 18;
+host publik dan acceptance akhir tetap terbuka. Pembagian terbaru: teman landing page,
+pengguna frontend aplikasi.
+
+- Tambah `npm run test:live` untuk smoke browser data/ML dan workflow dengan respons asli.
+  FIRMS live adalah tes opt-in `LIVE_FIRMS_SYNC=1`, terpisah dari suite mock.
+- Tambah server loopback `backend/scripts/serve_browser_qa.py`: dependency database asli
+  memakai savepoint pada transaksi luar, request diserialkan hingga cleanup dependency,
+  dan seluruh write domain di-rollback pada shutdown. Sync NASA ditolak kecuali flag
+  `--allow-live-sync` dipilih; flag tersebut mempertahankan cache/riwayat NASA.
+- Metrics dan forecast BRG3/BRG6 diverifikasi terhadap artifact, termasuk tanggal target,
+  baseline, versi, gate dan penolakan input terkini. Nilai GWT UI cocok API asli.
+- Browser dashboard/hotspots dan workflow 2 laporan/9 riwayat/reload/tab baru lulus.
+- FIRMS live browser HTTP 200 menerima 50 baris; status database cocok run. Percobaan ulang
+  HTTP 429; petugas tidak mendapat tombol sinkron. Key hanya tersimpan pada `.env` backend.
+- Keenam halaman dicek setelah data selesai dimuat pada 1440/768/375/320 px: tanpa overflow.
+  Screenshot dashboard/ML mobile dan ML desktop diperiksa. Tidak ada error JS/hydration
+  atau kegagalan HTTP/CORS pada smoke read/ML.
+- Build REST, lint/typecheck, 60 tes data dan Ruff backend lulus. Server QA dihentikan;
+  rollback terverifikasi, task/laporan/riwayat kembali ke 0/0/0. Tidak ada task uji tertinggal.
+
+Prosedur, hasil lengkap, env, batasan dan cara mengulang tersedia di
+[live-integration-qa.md](live-integration-qa.md). Build lokal terakhir memakai REST port 8001;
+server QA tidak dibiarkan berjalan. Bangun ulang sesuai env sebelum menjalankan aplikasi.
+
+## 20. Pembaruan tracker — 15 Oktober 2026
+
+Implementasi ML dan bukti QA browser asli sudah tercatat pada commit `5720bd0`;
+panduan startup root pada `8fcef3a`. Status “belum commit/push” pada entri sesi terdahulu
+merupakan keadaan saat sesi tersebut, bukan status checkout sekarang. Push/review akhir
+tidak disimpulkan hanya dari keberadaan commit lokal.
+
+Deployment ditunda sementara sesuai arahan pengguna. Fokus berikutnya: review kontrak,
+acceptance lokal, integrasi landing page, startup bersih, panduan/skenario demo dan bahan
+submission. FE-11 bagian deployment serta smoke publik tetap terbuka dan ditunda.
+Hasil tes pada tracker merujuk bukti sesi sebelumnya; pembaruan ini hanya mengubah dokumen.
+
+## 21. UI ringkas dan kalender — 15 Oktober 2026
+
+**Status:** IMPLEMENTED pada working tree. Deployment tetap ditunda.
+
+- Keenam halaman mengutamakan data, grafik, status dan aksi. Eyebrow/deskripsi berulang,
+  kartu bantuan sidebar dan pengulangan peran dihapus. Sumber/mode diringkas pada bar global;
+  label DEMO/SIMULASI, data terkini yang belum tersedia dan gate ML tetap terlihat.
+- Filter menjadi panel **Filter data** dengan satu tombol periode dan wilayah. Penjelasan
+  cutoff/sumber ada di **Detail data**; indikator lengkap, alasan tambahan, versi aturan dan
+  snapshot audit ada di **Detail penilaian**; metadata/metode/batasan ML ada di **Detail eksperimen**.
+- Panduan hanya dibuka melalui tombol header; tidak ada modal otomatis. Isi panduan diperbaiki
+  agar membedakan data contoh, data server dan laporan SIMULASI.
+- Kalender React DayPicker 9.14.0 + date-fns locale Indonesia + Radix Popover mengikuti tema
+  aplikasi. Pilihan bulan/tahun, keyboard, batas tanggal, draft rentang dan Terapkan/Batal tersedia.
+  Escape atau klik di luar membatalkan draft. Filter tetap terpisah per mode, cutoff tidak berubah.
+- ML memakai tanggal tunggal; laporan memakai kalender + input angka jam/menit/detik dalam
+  zona waktu lokal browser, lalu dikirim sebagai ISO UTC melalui mekanisme form yang ada.
+  Input tanggal native dan datetime-local sudah diganti. API/schema/backend tidak diubah.
+
+Verifikasi: lint, typecheck, build production mock dan REST, serta 61 tes data lulus.
+Tes tanggal mencakup WIB, UTC negatif, pergantian DST dan tahun kabisat. Browser ML dengan
+respons REST terkontrol lulus untuk kalender, metrics, forecast OK/REJECTED, pergantian stasiun,
+detail via keyboard dan error/retry. Suite browser final mock **14/14 PASS**, termasuk workflow/follow-up/reload, validasi
+waktu laporan, kalender draft/batal/sorotan/batas/keyboard, serta enam halaman pada
+1440/768/375/320 px tanpa overflow. Screenshot kalender 320 px, dashboard desktop/mobile,
+prioritas mobile dan ML REST desktop/mobile diperiksa.
+
+Batas verifikasi: sesi UI ini tidak mengulang koneksi database/NASA asli. Bukti live pada bagian 19
+merupakan hasil sesi sebelumnya; selector suite live diperbarui mengikuti kalender baru.
+Screenshot desktop/mobile ditulis di `/tmp/gambutops-ui-qa/` (di luar Git). Build akhir memakai
+mock; bangun ulang dengan env REST untuk memakai backend. Server QA dihentikan setelah verifikasi.
+
+
+## 22. Dropdown select konsisten — 15 Oktober 2026
+
+**Status:** IMPLEMENTED pada working tree. Deployment tetap ditunda.
+
+- Tambah Select bersama berbasis Radix Select 2.4.1: chevron, penanda pilihan, sorotan hover/fokus,
+  menu dengan scroll dan pembatas viewport. Mendukung keyboard, typeahead, opsi disabled,
+  placeholder serta kelompok opsi.
+- Terapkan pada pengguna/peran demo, wilayah, stasiun groundwater, stasiun ML, prioritas,
+  petugas pada dialog pembuatan tugas dan penugasan ulang, serta bulan/tahun kalender.
+  Dropdown native tidak lagi dipakai sebagai kontrol UI aplikasi.
+- Stasiun menampilkan kode ringkas pada trigger; menu mengelompokkan wilayah dan menampilkan
+  akhir periode pengukuran. Menu peran menampilkan keterangan koordinator/petugas.
+- Opsi Semua wilayah dan Tentukan nanti tetap dipetakan ke nilai kosong/null yang sama.
+  Form tugas memakai Controller React Hook Form; kontrak API dan state machine tetap sama.
+- Selaraskan Radix Dialog ke 1.3.1 agar berbagi layer/focus scope dengan Select/Popover.
+  Escape menutup dropdown terlebih dahulu tanpa menutup dialog induk. Perbaiki lapisan
+  navigasi kalender agar pemilih bulan/tahun dapat diklik.
+
+Verifikasi: lint, typecheck, build produksi mock/REST, 61 tes data dan **15/15 tes browser mock PASS**.
+Mencakup Home/End/Enter/Escape, opsi kosong, stasiun/URL, dialog 320 px, prioritas dan assignee
+tersimpan, penugasan setelah tugas OPEN, reload, workflow, kalender bertingkat dan drawer.
+Screenshot stasiun desktop, wilayah 320 px, dialog tugas 320 px dan kalender diperiksa;
+file QA berada di `/tmp/gambutops-select-qa/` (di luar Git).
+
+Selector suite live/ML diperbarui agar memilih melalui menu yang terlihat. Tes database/NASA
+live tidak diulang pada sesi UI ini. Browser ML pada build REST dengan respons API terkontrol
+**PASS**: pergantian stasiun, kalender dengan dropdown bulan/tahun, forecast OK/REJECTED,
+detail via keyboard, error/retry dan responsif. Build akhir dikembalikan ke mock dan server QA
+dihentikan; server development pengguna pada port 3000 tidak dihentikan.
+
+
+## 23. Pemulihan cache development — 15 Oktober 2026
+
+Server development lama masih menyimpan jalur Radix bersarang dari sebelum deduplikasi npm.
+`npm ls` memverifikasi dependency valid; `react-primitive` kini terselesaikan dari paket root.
+Server proyek di port 3000 dihentikan, cache `.next/dev` dipindahkan ke backup `dev.stale-*`
+di dalam `.next`, lalu server dijalankan ulang dengan konfigurasi NEXT_PUBLIC sebelumnya.
+Tidak ada perubahan dependency tambahan atau kontrak aplikasi pada perbaikan ini.
+
+Smoke browser development PASS: keenam route HTTP 200, judul halaman termuat, tidak ada
+ENOENT/Module not found atau exception browser, serta menu wilayah dan pemilih tahun
+kalender dapat dibuka/ditutup. Server development dibiarkan aktif di http://localhost:3000.
 ## 18. Sesi frontend 2026-10-15 — landing page (`feat/landing-page`)
 
 **Status:** IMPLEMENTED, belum commit/push. Branch dari `main` setelah PR #11.
@@ -516,3 +665,16 @@ Atas masukan: teks dikurangi drastis (±215 kata di `<main>`, halaman desktop 9.
 - Teks: kredit foto dan screenshot alur dihapus; "Jujur soal batasan" → "Prinsip penggunaan data".
 - **Login v2:** split 50/50 (form kiri, panel kontur gelap kanan; HP: pita atas), kartu akun dengan ikon, tombol 48 px dengan spinner. Logika masuk tidak berubah. Kontur dipakai bersama lewat `src/components/landing/topo-backdrop.tsx`.
 - Tes: `landing.test.mjs` disesuaikan (ilustrasi berlabel, peta siap, hitungan kata tanpa label ilustrasi, FAQ via `#faq details` karena atribusi MapLibre juga `<details>`). `landing` dan `auth` lulus di dev.
+
+
+## Integrasi PR #13 — 16 Oktober 2026
+
+- Gabungkan `origin/main` ke `feat/backend-ml`; selesaikan 16 file konflik.
+- Pertahankan landing/login dan route group dari main bersama UI ML, kalender, Select,
+  serta peta hotspot nasional dari branch PR. Penggantian peran memakai keluar/masuk.
+- Gabungkan dependency dan lockfile, CSS kalender/landing, dokumentasi dan tes kedua branch.
+- Sesuaikan tes ML, kalender, Select dan integrasi REST agar melewati login; tambahkan
+  respons `/auth/me` pada fixture browser ML REST.
+- Verifikasi: backend **66 passed, 4 skipped**; frontend **65 tes data passed**,
+  lint, typecheck, build produksi mock dan **17 tes browser mock passed**.
+- Tidak menjalankan sinkronisasi NASA atau tes database live pada sesi resolusi ini.

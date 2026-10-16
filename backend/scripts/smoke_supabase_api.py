@@ -3,6 +3,7 @@
 import asyncio
 import json
 from datetime import UTC, date, datetime, timedelta
+from math import isclose
 from typing import Any
 
 import httpx
@@ -12,8 +13,6 @@ from app.core.config import get_settings
 from app.db.session import get_async_db
 from app.main import app
 
-COORDINATOR = {"Authorization": "Bearer demo-coordinator-token"}
-OFFICER = {"Authorization": "Bearer demo-field-officer-token"}
 OFFICER_ID = "00000000-0000-4000-8000-000000000002"
 
 
@@ -28,6 +27,8 @@ def require(response: httpx.Response, expected: int = 200) -> Any:
 
 async def run() -> None:
     settings = get_settings()
+    coordinator = {"Authorization": f"Bearer {settings.resolved_coordinator_token}"}
+    officer = {"Authorization": f"Bearer {settings.resolved_field_officer_token}"}
     engine = create_async_engine(
         settings.async_database_url,
         pool_pre_ping=True,
@@ -92,29 +93,57 @@ async def run() -> None:
                     ml_metrics = require(await client.get("/api/v1/ml/metrics"))
                     if ml_metrics["status"] != "AVAILABLE":
                         raise RuntimeError("ML artifacts are not available")
-                    brg6_experiment = next(
-                        experiment
-                        for experiment in ml_metrics["experiments"]
-                        if experiment["station_code"] == "BRG6"
-                    )
-                    first_target = date.fromisoformat(
-                        brg6_experiment["predictions"][0]["date"]
-                    )
-                    ml_forecast = require(
+                    if {item["station_code"] for item in ml_metrics["experiments"]} != {
+                        "BRG6", "BRG3"
+                    }:
+                        raise RuntimeError("ML metrics must contain BRG6 and BRG3")
+                    forecasts = []
+                    for experiment in ml_metrics["experiments"]:
+                        prediction = experiment["predictions"][0]
+                        first_target = date.fromisoformat(prediction["date"])
+                        ml_forecast = require(
+                            await client.post(
+                                "/api/v1/ml/forecast",
+                                json={
+                                    "station_id": experiment["station_id"],
+                                    "date": (first_target - timedelta(days=1)).isoformat(),
+                                },
+                            )
+                        )
+                        if ml_forecast["status"] != "OK":
+                            raise RuntimeError(f"Historical ML forecast rejected: {ml_forecast}")
+                        if (
+                            ml_forecast["forecast_date"] != prediction["date"]
+                            or ml_forecast["model_version"] != experiment["model_version"]
+                            or ml_forecast["release_gate"] != experiment["release_gate"]
+                            or not isclose(
+                                ml_forecast["predicted_gwt_m"], prediction["predicted_m"],
+                                rel_tol=1e-9, abs_tol=1e-9,
+                            )
+                            or not isclose(
+                                ml_forecast["baseline_gwt_m"], prediction["baseline_m"],
+                                rel_tol=1e-9, abs_tol=1e-9,
+                            )
+                        ):
+                            raise RuntimeError("ML forecast does not match the test artifact")
+                        forecasts.append({
+                            "station": experiment["station_code"],
+                            "release_gate": ml_forecast["release_gate"],
+                            "forecast_date": ml_forecast["forecast_date"],
+                            "matches_artifact": True,
+                        })
+                    rejected = require(
                         await client.post(
                             "/api/v1/ml/forecast",
-                            json={
-                                "station_id": brg6["id"],
-                                "date": (first_target - timedelta(days=1)).isoformat(),
-                            },
+                            json={"station_id": brg6["id"], "date": "2026-10-15"},
                         )
                     )
-                    if ml_forecast["status"] != "OK":
-                        raise RuntimeError(f"Historical ML forecast rejected: {ml_forecast}")
+                    if rejected["status"] != "REJECTED":
+                        raise RuntimeError("ML accepted a forecast without recent GWT data")
                     summary["ml"] = {
-                        "experiments": len(ml_metrics["experiments"]),
-                        "brg6_release_gate": brg6_experiment["release_gate"],
-                        "forecast_date": ml_forecast["forecast_date"],
+                        "experiments": len(forecasts),
+                        "forecasts": forecasts,
+                        "missing_history": "REJECTED",
                     }
 
                     hotspot_page = require(
@@ -153,7 +182,7 @@ async def run() -> None:
                     created = require(
                         await client.post(
                             "/api/v1/tasks",
-                            headers=COORDINATOR,
+                            headers=coordinator,
                             json={
                                 "mode": "HISTORICAL_REPLAY",
                                 "title": "Smoke pemeriksaan Supabase SIMULASI",
@@ -173,7 +202,7 @@ async def run() -> None:
                     started = require(
                         await client.patch(
                             f"/api/v1/tasks/{task_id}",
-                            headers=OFFICER,
+                            headers=officer,
                             json={"status": "IN_PROGRESS"},
                         )
                     )
@@ -183,7 +212,7 @@ async def run() -> None:
                     report = require(
                         await client.post(
                             f"/api/v1/tasks/{task_id}/reports",
-                            headers=OFFICER,
+                            headers=officer,
                             json={
                                 "observed_at": datetime.now(UTC).isoformat(),
                                 "result": "NO_FIRE_FOUND",
@@ -200,7 +229,7 @@ async def run() -> None:
                     verified = require(
                         await client.patch(
                             f"/api/v1/tasks/{task_id}",
-                            headers=COORDINATOR,
+                            headers=coordinator,
                             json={"status": "VERIFIED", "note": "Smoke review"},
                         )
                     )
@@ -220,4 +249,4 @@ async def run() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    asyncio.run(asyncio.wait_for(run(), timeout=120))

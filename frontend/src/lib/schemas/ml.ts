@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { isoDateSchema, isoDateTimeSchema } from "./common";
 
+const releaseGateSchema = z.enum(["EXPERIMENT_ONLY", "ELIGIBLE_FOR_HISTORICAL_FORECAST"]);
+
 const errorMetricsSchema = z.object({
   mae_cm: z.number().nonnegative(),
   rmse_cm: z.number().nonnegative(),
@@ -17,6 +19,7 @@ export const mlExperimentSchema = z.object({
   model_version: z.string().min(1),
   model_type: z.string().min(1),
   station_id: z.string().min(1),
+  station_code: z.string().min(1),
   target: z.literal("GWT_T_PLUS_1_DAY"),
   features: z.array(z.string().min(1)),
   training_period: z.object({ from: isoDateSchema, to: isoDateSchema }),
@@ -28,6 +31,8 @@ export const mlExperimentSchema = z.object({
   predictions: z.array(mlPredictionPointSchema),
   trained_at: isoDateTimeSchema,
   is_simulation: z.boolean(),
+  release_gate: releaseGateSchema,
+  limitations: z.array(z.string().min(1)),
 });
 
 /** Hasil ML hanya berasal dari API. Mock mengembalikan NOT_AVAILABLE, bukan metrik rekaan. */
@@ -51,5 +56,6 @@ export const mlForecastResponseSchema = z.discriminatedUnion("status", [
     predicted_gwt_m: z.number(),
     baseline_gwt_m: z.number(),
     model_version: z.string().min(1),
+    release_gate: releaseGateSchema,
   }),
 ]);
